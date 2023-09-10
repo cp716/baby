@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, } from 'react-native';
 import firebase from 'firebase';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 
 import Button from '../components/Button';
 
 export default function BabyAddScreen(props) {
     const { navigation } = props;
-    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [birthday, setBirthday] = useState();
@@ -31,6 +29,7 @@ export default function BabyAddScreen(props) {
                     //style: 'destructive',
                     onPress: () => {
                         //navigation.jumpTo('Home');
+                        toggleModal()
                         ref.add({
                             babyName,
                             birthday,
@@ -42,7 +41,6 @@ export default function BabyAddScreen(props) {
                                 babyBirthday: birthday,
                                 babyId: docRef.id,
                             })
-                            navigation.goBack();
                         })
                         .catch((error) => {
                             console.log('失敗しました', error);

@@ -42,7 +42,6 @@ export default function BabyAddScreen(props) {
                                 babyBirthday: birthday,
                                 babyId: docRef.id,
                             })
-                            navigation.goBack();
                         })
                         .catch((error) => {
                             console.log('失敗しました', error);

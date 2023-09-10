@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, } from 'react-native';
 import firebase from 'firebase';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 
 import Button from '../components/Button';
 
 export default function BabyAddScreen(props) {
     const { navigation } = props;
-    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [birthday, setBirthday] = useState();
@@ -21,7 +19,7 @@ export default function BabyAddScreen(props) {
             const db = firebase.firestore();
             const { currentUser } = firebase.auth();
             const ref = db.collection(`users/${currentUser.uid}/babyData`)
-            Alert.alert('以下の情報で登録します\n名前:' + babyName + '\n誕生日:' + detailTime, 'よろしいですか？', [
+            Alert.alert('「' + babyName + '」を登録します', 'よろしいですか？', [
                 {
                     text: 'キャンセル',
                     onPress: () => {},
@@ -31,6 +29,7 @@ export default function BabyAddScreen(props) {
                     //style: 'destructive',
                     onPress: () => {
                         //navigation.jumpTo('Home');
+                        toggleModal()
                         ref.add({
                             babyName,
                             birthday,
@@ -42,7 +41,6 @@ export default function BabyAddScreen(props) {
                                 babyBirthday: birthday,
                                 babyId: docRef.id,
                             })
-                            navigation.goBack();
                         })
                         .catch((error) => {
                             console.log('失敗しました', error);
@@ -149,17 +147,5 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
         paddingHorizontal: 8,
         marginBottom: 20,
-    },
-    birthdayInput: {
-        fontSize: 16,
-        height: 48,
-        borderColor: '#DDDDDD',
-        borderWidth: 1,
-        backgroundColor: '#ffffff',
-        paddingHorizontal: 8,
-        lineHeight: 48,
-    },
-    buttonArea: {
-        flexDirection: 'row',
     },
 });

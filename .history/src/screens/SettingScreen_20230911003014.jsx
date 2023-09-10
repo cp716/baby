@@ -95,14 +95,6 @@ export default function SettingScreen(props) {
             <List.Section>
                 <List.Subheader style={styles.listSubheader}>その他</List.Subheader>
                 <List.Item
-                        title="赤ちゃん登録"
-                        //description="Item description"
-                        left={props => <List.Icon {...props} icon="baby-face-outline" />}
-                        right={props => <List.Icon {...props} icon="chevron-right" />}
-                        style={styles.listItem}
-                        onPress={() => { navigation.navigate('BabyAdd'); }}
-                />
-                <List.Item
                     title="お問い合わせ"
                     //description="Item description"
                     left={props => <List.Icon {...props} icon="email-outline" />}

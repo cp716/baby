@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, FlatList, Image } from 'react-native';
 import storage from '../context/Storage';
-import firebase from 'firebase';
+import Modal from "react-native-modal";
 
-import { RadioButton } from 'react-native-paper';
+import { RadioButton, List } from 'react-native-paper';
 
 import { useBabyContext } from '../context/BabyContext';
 import { useCurrentBabyContext } from '../context/CurrentBabyContext';
+import Button from '../components/Button';
 
-export default function ModalSelectBaby(props) {
+export default function BabyListScreen(props) {
+    const { navigation } = props;
+
     const { baby } = useBabyContext();
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
@@ -20,12 +23,11 @@ export default function ModalSelectBaby(props) {
                 id: doc.id,
                 babyName: data.babyName,
                 birthday: data.birthday,
+                //birthday: year + '年' + (month + 1) + '月' + day + '日',
             });
         });
     }
 
-    const { toggleBabyModal } = props;
-    
     const [babyIdData, setBabyIdData] = useState('');
     const [checked, setChecked] = React.useState();
 
@@ -41,15 +43,20 @@ export default function ModalSelectBaby(props) {
         });
     }, []);
 
-    function renderItem({ item }) {   
+    function renderItem({ item }) {  
+        
+        const date = new Date(item.birthday.seconds * 1000 + item.birthday.nanoseconds / 1000000);
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const day = date.getDate();
+
         return(
             <View>
                 {(() => {
-                    //console.log(item.selectBaby)
                     return(
                         <RadioButton.Item
                             value={item.id}
-                            label={item.babyName}
+                            label={item.babyName + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
                             status={checked === item.id ? 'checked' : 'unchecked'}
                             onPress={() => {
                                 setChecked(item.id)
@@ -68,25 +75,28 @@ export default function ModalSelectBaby(props) {
         )       
     } 
 
+    const ItemSeparator = () => (
+        <View style={styles.separator} />
+    );
+
     return (
-        <View>
-            <View style={styles.inputTypeContainer}>
-                <FlatList
-                    //inverted//反転
-                    data={babyData}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => { return item.id; }}
-                />
-            </View>
-            <View style={modalStyles.container}>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleBabyModal} >
-                    <Text style={modalStyles.confirmButtonText}>close</Text>
-                </TouchableOpacity>
-            </View>
-            <View style={styles.advertisement}>
-                <Image style={{width: '100%'}}
-                    resizeMode='contain'
-                    source={require('../img/IMG_3641.jpg')}
+        <View style={styles.container}>
+            <View style={styles.inner}>
+                <Text style={styles.title}>赤ちゃん一覧</Text>
+                <View style={styles.inputTypeContainer}>
+                    <FlatList
+                        //inverted//反転
+                        data={babyData}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => { return item.id; }}
+                        ItemSeparatorComponent={ItemSeparator}
+                    />
+                </View>
+                <Button
+                    label="編集"
+                    onPress={() => { 
+                        navigation.navigate('BabyEdit', { babyData: babyData }); 
+                    }}
                 />
             </View>
         </View>
@@ -94,16 +104,37 @@ export default function ModalSelectBaby(props) {
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F0F4F8',
+    },
+    inner: {
+        paddingHorizontal: 27,
+        paddingVertical: 24,
+    },
+    title: {
+        //marginTop: '5%',
+        //marginLeft: '5%',
+        fontSize: 24,
+        lineHeight: 32,
+        fontWeight: 'bold',
+    },
     inputTypeContainer: {
+        marginTop: '10%',
         paddingHorizontal: 27,
         paddingVertical: 10,
         //height: 50,
-        //backgroundColor: '#987652',
+        maxHeight: '70%',
+        backgroundColor: '#FFF',
         //flex: 1,
         //flexDirection: 'row',
         //width: 350 ,
         //flex:1
-        height: 300,
+        //height: 300,
+        padding : '5%',
+        borderColor : '#737373',
+        borderWidth : 1,
+        borderRadius : 20,
     },
     radioButton: {
         //flexDirection: 'row',
@@ -124,27 +155,11 @@ const styles = StyleSheet.create({
         alignItems:'center',
         //backgroundColor: '#464876',
     },
-});
-
-const modalStyles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
+    separator: {
+        height: 1,
+        backgroundColor: '#737373',
     },
-    confirmButton : {
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        marginTop : '5%',
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
-        borderWidth : 1,
-        borderRadius : 10,
-        width: "40%",
-    },
-    confirmButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
-        padding: 10,
-        fontSize: 16,
+    item: {
+    padding: 20,
     },
 });

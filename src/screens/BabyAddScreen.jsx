@@ -21,6 +21,7 @@ export default function BabyAddScreen(props) {
             const db = firebase.firestore();
             const { currentUser } = firebase.auth();
             const ref = db.collection(`users/${currentUser.uid}/babyData`)
+            const ref2 = db.collection(`users/${currentUser.uid}/currentBaby`)
             Alert.alert('以下の情報で登録します\n名前:' + babyName + '\n誕生日:' + detailTime, 'よろしいですか？', [
                 {
                     text: 'キャンセル',
@@ -28,9 +29,42 @@ export default function BabyAddScreen(props) {
                 },
                 {
                     text: '登録する',
-                    //style: 'destructive',
+                    //現在登録しているcurrentBabyを読み込み
                     onPress: () => {
-                        //navigation.jumpTo('Home');
+                        ref2.get()
+                        .then((querySnapshot) => {
+                            querySnapshot.forEach((doc) => {
+                                if (doc.exists) {
+                                    // ドキュメントが存在する場合、そのデータを取得
+                                    const data = doc.data();
+                                    console.log('取得したデータ:', data.babyId);
+                                    ref.add({
+                                        babyName,
+                                        birthday,
+                                    })
+                                    .then((docRef) => {
+                                        const ref3 = db.collection(`users/${currentUser.uid}/currentBaby`).doc(data.babyId)
+                                        currentBabyDispatch({ 
+                                            type: "addBaby",
+                                            babyName: babyName,
+                                            babyBirthday: birthday,
+                                            babyId: docRef.id,
+                                        })
+                                        ref3.set({
+                                            babyName,
+                                            birthday,
+                                            babyId: docRef.id,
+                                        })
+                                        navigation.goBack();
+                                    })
+                                } else {
+                                console.log('ドキュメントが存在しません。');
+                                }
+                            });
+                        })
+                        .catch((error) => {
+                        console.error('ドキュメントの取得に失敗しました。', error);
+                        });
                         ref.add({
                             babyName,
                             birthday,
@@ -40,6 +74,11 @@ export default function BabyAddScreen(props) {
                                 type: "addBaby",
                                 babyName: babyName,
                                 babyBirthday: birthday,
+                                babyId: docRef.id,
+                            })
+                            ref2.add({
+                                babyName,
+                                birthday,
                                 babyId: docRef.id,
                             })
                             navigation.goBack();

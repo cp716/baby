@@ -21,6 +21,7 @@ import LogInScreen from './src/screens/LogInScreen';
 import TestScreen from './src/screens/TestScreen';
 import AcountScreen from './src/screens/AcountScreen';
 import BabyAddScreen from './src/screens/BabyAddScreen';
+import BabyListScreen from './src/screens/BabyListScreen';
 import BabyEditScreen from './src/screens/BabyEditScreen';
 import BabySettingScreen from './src/screens/BabySettingScreen';
 import ContactFormScreen from './src/screens/ContactFormScreen';
@@ -65,6 +66,7 @@ function RightTab() {
         <Stack.Screen name="LogIn" component={LogInScreen} />
         <Stack.Screen name="ContactForm" component={ContactFormScreen} />
         <Stack.Screen name="BabyAdd" component={BabyAddScreen} />
+        <Stack.Screen name="BabyList" component={BabyListScreen} />
         <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
       </Stack.Navigator>
     </View>

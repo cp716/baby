@@ -57,7 +57,8 @@ export default function BabyListScreen(props) {
                         <RadioButton.Item
                             value={item.id}
                             label={item.babyName + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
-                            status={checked === item.id ? 'checked' : 'unchecked'}
+                            status={checked === item.id ? 'checked' : null}
+                            //status="unchecked"
                             onPress={() => {
                                 setChecked(item.id)
                                 currentBabyDispatch({ 
@@ -65,7 +66,6 @@ export default function BabyListScreen(props) {
                                     babyName: item.babyName,
                                     babyBirthday: item.birthday.toDate(),
                                     babyId: item.id,
-                                    //OK
                                 })
                             }}
                         />
@@ -85,7 +85,7 @@ export default function BabyListScreen(props) {
                 <Text style={styles.title}>赤ちゃん一覧</Text>
                 <View style={styles.inputTypeContainer}>
                     <FlatList
-                        //inverted//反転
+                        inverted//反転
                         data={babyData}
                         renderItem={renderItem}
                         keyExtractor={(item) => { return item.id; }}

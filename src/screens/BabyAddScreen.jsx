@@ -33,58 +33,49 @@ export default function BabyAddScreen(props) {
                     onPress: () => {
                         ref2.get()
                         .then((querySnapshot) => {
-                            querySnapshot.forEach((doc) => {
-                                if (doc.exists) {
-                                    // ドキュメントが存在する場合、そのデータを取得
-                                    const data = doc.data();
-                                    console.log('取得したデータ:', data.babyId);
-                                    ref.add({
+                            //新規赤ちゃん登録
+                            ref.add({
+                                babyName,
+                                birthday,
+                            })
+                            .then((docRef) => {
+                                currentBabyDispatch({ 
+                                    type: "addBaby",
+                                    babyName: babyName,
+                                    babyBirthday: birthday,
+                                    babyId: docRef.id,
+                                })
+                                //ドキュメントが存在しない場合
+                                if(querySnapshot.size === 0){
+                                    //currentBaby登録
+                                    ref2.add({
                                         babyName,
                                         birthday,
+                                        babyId: docRef.id,
                                     })
-                                    .then((docRef) => {
-                                        const ref3 = db.collection(`users/${currentUser.uid}/currentBaby`).doc(data.babyId)
-                                        currentBabyDispatch({ 
-                                            type: "addBaby",
-                                            babyName: babyName,
-                                            babyBirthday: birthday,
-                                            babyId: docRef.id,
-                                        })
-                                        ref3.set({
-                                            babyName,
-                                            birthday,
-                                            babyId: docRef.id,
-                                        })
-                                        navigation.goBack();
-                                    })
+                                //ドキュメントが存在する場合
                                 } else {
-                                console.log('ドキュメントが存在しません。');
+                                    querySnapshot.forEach((doc) => {
+                                        if (doc.exists) {
+                                            // currentBaby上書き
+                                            const ref3 = db.collection(`users/${currentUser.uid}/currentBaby`).doc(doc.id)
+                                            ref3.set({
+                                                babyName,
+                                                birthday,
+                                                babyId: docRef.id,
+                                            })
+                                        }
+                                    });
                                 }
+                                navigation.goBack();
+                            })
+                            .catch((error) => {
+                                console.log('失敗しました', error);
                             });
+                            
                         })
                         .catch((error) => {
                         console.error('ドキュメントの取得に失敗しました。', error);
-                        });
-                        ref.add({
-                            babyName,
-                            birthday,
-                        })
-                        .then((docRef) => {
-                            currentBabyDispatch({ 
-                                type: "addBaby",
-                                babyName: babyName,
-                                babyBirthday: birthday,
-                                babyId: docRef.id,
-                            })
-                            ref2.add({
-                                babyName,
-                                birthday,
-                                babyId: docRef.id,
-                            })
-                            navigation.goBack();
-                        })
-                        .catch((error) => {
-                            console.log('失敗しました', error);
                         });
                     },
                 },

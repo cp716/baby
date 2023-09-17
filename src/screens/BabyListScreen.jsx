@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, FlatList, Image } from 'react-native';
-import storage from '../context/Storage';
-import Modal from "react-native-modal";
+import { View, Text, StyleSheet, Alert, FlatList } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 
-import { RadioButton, List } from 'react-native-paper';
+import { RadioButton } from 'react-native-paper';
 
 import { useBabyContext } from '../context/BabyContext';
-import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 import Button from '../components/Button';
 
 export default function BabyListScreen(props) {
     const { navigation } = props;
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        if (isFocused) {
+            setChecked(null);
+            setBabyId(null);
+            setBabyName(null);
+            setBabyBirthday(null);
+        }
+    }, [isFocused]);
 
     const { baby } = useBabyContext();
-    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const babyData = [];
     if(baby !== "") {
@@ -23,25 +30,14 @@ export default function BabyListScreen(props) {
                 id: doc.id,
                 babyName: data.babyName,
                 birthday: data.birthday,
-                //birthday: year + '年' + (month + 1) + '月' + day + '日',
             });
         });
     }
 
-    const [babyIdData, setBabyIdData] = useState('');
+    const [babyId, setBabyId] = useState(null);
+    const [babyName, setBabyName] = useState(null);
+    const [babyBirthday, setBabyBirthday] = useState(null);
     const [checked, setChecked] = React.useState();
-
-    useEffect(() => {
-        storage.load({
-            key : 'selectbaby',
-        }).then(data => {
-            // 読み込み成功時処理
-            setChecked(data.babyId)
-        }).catch(err => {
-            // 読み込み失敗時処理
-            console.log(err)
-        });
-    }, []);
 
     function renderItem({ item }) {  
         
@@ -58,15 +54,11 @@ export default function BabyListScreen(props) {
                             value={item.id}
                             label={item.babyName + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
                             status={checked === item.id ? 'checked' : null}
-                            //status="unchecked"
                             onPress={() => {
                                 setChecked(item.id)
-                                currentBabyDispatch({ 
-                                    type: "addBaby",
-                                    babyName: item.babyName,
-                                    babyBirthday: item.birthday.toDate(),
-                                    babyId: item.id,
-                                })
+                                setBabyId(item.id)
+                                setBabyName(item.babyName)
+                                setBabyBirthday(item.birthday.seconds * 1000 + item.birthday.nanoseconds / 1000000)
                             }}
                         />
                     )
@@ -79,6 +71,11 @@ export default function BabyListScreen(props) {
         <View style={styles.separator} />
     );
 
+    const enabledButtonStyle = {};
+    const disabledButtonStyle = {
+    backgroundColor: '#F0F0F0', // 無効な状態のボタンの背景色
+    };
+    
     return (
         <View style={styles.container}>
             <View style={styles.inner}>
@@ -94,8 +91,21 @@ export default function BabyListScreen(props) {
                 </View>
                 <Button
                     label="編集"
+                    disabled={!babyId || !babyName || !babyBirthday}
+                    style={babyId && babyName && babyBirthday ? enabledButtonStyle : disabledButtonStyle}
                     onPress={() => { 
-                        navigation.navigate('BabyEdit', { babyData: babyData }); 
+                        if (babyId && babyName && babyBirthday) {
+                            navigation.navigate('BabyEdit', { 
+                                babyId: babyId, 
+                                babyName: babyName,
+                                babyBirthday: babyBirthday,
+                            });
+                        } else {
+                            // ここでボタンが無効な状態であることをユーザーに伝えるための処理を追加するか、ボタンを非表示にするなどの適切な処理を行います。
+                            // 例えば、アラートを表示するか、ボタンを灰色にしてクリックできなくするなどの方法が考えられます。
+                            // 以下はアラートを表示する例です。
+                            Alert.alert("編集をしたい赤ちゃんを選択してください");
+                        }
                     }}
                 />
             </View>
@@ -161,5 +171,11 @@ const styles = StyleSheet.create({
     },
     item: {
     padding: 20,
+    },
+    // 無効なボタンのスタイル
+    disabledButtonStyle: {
+    backgroundColor: 'gray', // 無効な状態のボタンの背景色
+    padding: 10,
+    borderRadius: 5,
     },
 });

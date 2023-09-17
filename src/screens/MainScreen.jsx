@@ -1,15 +1,15 @@
 import React, { useEffect, useState }  from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useIsFocused } from '@react-navigation/native'
 
 import firebase from 'firebase';
-import storage from '../context/Storage';
 
 import MilkAddButton from '../components/AddButton/MilkAddButton';
 import ToiletAddButton from '../components/AddButton/ToiletAddButton';
 import DiseaseAddButton from '../components/AddButton/DiseaseAddButton';
 import FoodAddButton from '../components/AddButton/FoodAddButton';
 import FreeAddButton from '../components/AddButton/FreeAddButton';
+import ModalSelectBaby from '../components/ModalSelectBaby';
 
 import Datetime from '../components/Datetime';
 import TableTitle from '../components/TableTitle';
@@ -17,24 +17,32 @@ import CreateData from '../components/CreateData';
 import DailyTable from '../components/DailyTable';
 
 import { useBabyContext } from '../context/BabyContext';
-import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 import { useDateTimeContext } from '../context/DateTimeContext';
 import { useBabyRecordContext } from '../context/BabyRecordContext';
 
 export default function MainScreen(props) {
     const { baby } = useBabyContext();
-    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
+    const { currentBaby } = useBabyContext();
+
+    const babyData = [];
+    if(baby !== "") {
+        baby.forEach((doc) => {
+            const data = doc.data();
+            babyData.push({
+                id: doc.id,
+                babyName: data.babyName,
+                birthday: data.birthday,
+            });
+        });
+    }
+    
     const { dateTimeState, dateTimeDispatch } = useDateTimeContext();
     const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
 
-    const { navigation } = props;
     const [todayData, setTodayData] = useState([]);
     const [indexCount, setIndexCount] = useState(0);
     const [babyRecord, setBabyRecord] = useState([]);
     const [day, setDay] = useState(dateTimeState.day - 1);
-
-
-    //const todayData = memos.filter((memo) => memo.day == [dateTimeState.day]);
 
     const [isLoading, setLoading] = useState(false);
 
@@ -45,18 +53,16 @@ export default function MainScreen(props) {
     const [babyBirthdayData, setBabyBirthdayData] = useState('');
 
     useEffect(() => {
-        storage.load({
-            key : 'selectbaby',
-        }).then(data => {
-            // 読み込み成功時処理
-            setBabyNameData(data.babyName)
-            setBabyIdData(data.babyId)
-            setBabyBirthdayData(data.birthday)
-        }).catch(err => {
-            // 読み込み失敗時処理
-            console.log(err)
-        });
-    }, [currentBabyState,isFocused]);
+        const currentBabyData = [];
+        if(currentBaby !== "") {
+            currentBaby.forEach((doc) => {
+                const data = doc.data();
+                setBabyNameData(data.babyName)
+                setBabyIdData(data.babyId)
+                setBabyBirthdayData(data.birthday)
+            });
+        }
+    }, [currentBaby, isFocused]);
 
     useEffect(() => {
         setLoading(true);
@@ -115,18 +121,6 @@ export default function MainScreen(props) {
         };
     }, [babyIdData, dateTimeState]);
 
-    const babyData = [];
-    if(baby !== "") {
-        baby.forEach((doc) => {
-            const data = doc.data();
-            babyData.push({
-                id: doc.id,
-                babyName: data.babyName,
-                birthday: data.birthday,
-            });
-        });
-    }
-
     if (babyData.length == 0) {
         return (
             <View style={styles.container}>
@@ -168,7 +162,7 @@ export default function MainScreen(props) {
                         <FreeAddButton />
                         <FreeAddButton />
                         <FreeAddButton />
-                        <FreeAddButton />
+                        <ModalSelectBaby />
                     </View>
                 </View>
             </View>
@@ -205,7 +199,7 @@ export default function MainScreen(props) {
                     <FreeAddButton />
                     <FreeAddButton />
                     <FreeAddButton />
-                    <FreeAddButton />
+                    <ModalSelectBaby />
                 </View>
             </View>
         </View>

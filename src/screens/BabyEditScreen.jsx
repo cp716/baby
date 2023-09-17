@@ -1,46 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, } from 'react-native';
 import firebase from 'firebase';
-import storage from '../context/Storage';
 
 import Button from '../components/Button';
 
-import { useBabyContext } from '../context/BabyContext';
-import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function BabyEditScreen(props) {
-    const { navigation } = props;
+    const { route, navigation } = props;
+    const { babyId, babyName, babyBirthday } = route.params;
 
-    const { baby } = useBabyContext();
-    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-    const [detaiBirthday, setDetailBirthday] = useState('誕生日を選択');
-
-    const [babyNameData, setBabyNameData] = useState('');
-    const [babyIdData, setBabyIdData] = useState('');
-    const [babyBirthdayData, setBabyBirthdayData] = useState('');
+    const [detaiBirthday, setDetailBirthday] = useState('');
 
     useEffect(() => {
-        storage.load({
-            key : 'selectbaby',
-        }).then(data => {
-            // 読み込み成功時処理
-            setBabyNameData(data.babyName)
-            setBabyIdData(data.babyId)
-            setBabyBirthdayData(new Date(data.babyBirthday))
+        const date = new Date(babyBirthday)
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const day = date.getDate();
+        setDetailBirthday(year + '年' + (month + 1) + '月' + day + '日')
+    }, [babyBirthday]);
 
-            const date = new Date(data.babyBirthday)
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            const day = date.getDate();
-            setDetailBirthday(year + '年' + (month + 1) + '月' + day + '日')
-        }).catch(err => {
-            // 読み込み失敗時処理
-            console.log(err)
-        });
-    }, [baby, currentBabyState]);
+    const [babyNameData, setBabyNameData] = useState(babyName);
+    const [babyIdData, setBabyIdData] = useState(babyId);
+    const [babyBirthdayData, setBabyBirthdayData] = useState(babyBirthday);
 
     function handlePress() {            
         if( babyNameData !== "") {
@@ -57,15 +41,9 @@ export default function BabyEditScreen(props) {
                     onPress: () => {
                         ref.set({
                             babyName: babyNameData,
-                            birthday: babyBirthdayData,
+                            birthday: new Date(babyBirthdayData),
                         })
                         .then((docRef) => {
-                            currentBabyDispatch({ 
-                                type: "addBaby",
-                                babyName: babyNameData,
-                                babyBirthday: babyBirthdayData,
-                                babyId: babyIdData,
-                            })
                             navigation.goBack();
                         })
                         .catch((error) => {

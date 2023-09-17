@@ -63,10 +63,6 @@ export default function ToiletAddButton() {
                     toggleModal();
                     getNewDate(new Date(Math.floor(new Date().getTime()/1000/60/5)*1000*60*5));
                 }}
-                onLongPress={() => {
-                    toggleBabyModal();
-                }}
-                //style={{ top: 80, bottom: 'auto'}}
             />
             <Modal isVisible={isModalVisible}
                 onBackdropPress={toggleModal}
@@ -101,26 +97,6 @@ export default function ToiletAddButton() {
                     </View>
                     <View>
                         <ToiletInputForm selectTime={selectTime} toggleModal={toggleModal}/>
-                    </View>
-                </View>
-            </Modal>
-            <Modal isVisible={isBabyModalVisible}
-                onBackdropPress={toggleBabyModal}
-                backdropTransitionOutTiming={0}
-                //modalレパートリー
-                //"bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" |
-                //animationIn="fadeInUpBig"
-                //animationOut="fadeOutDownBig"
-                animationIn="fadeIn"
-                animationOut="fadeOut"
-                //avoidKeyboard={true}
-                //swipeDirection="down"
-                //onSwipeComplete={toggleBabyModal}
-                >
-                <View style={modalStyles.container}>
-                    <Text style={modalStyles.title}>表示中の赤ちゃんを変更</Text>
-                    <View>
-                        <ModalSelectBaby selectTime={selectTime} toggleBabyModal={toggleBabyModal}/>
                     </View>
                 </View>
             </Modal>

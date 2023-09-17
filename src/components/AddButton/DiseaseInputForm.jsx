@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import firebase from 'firebase';
-import storage from '../../context/Storage';
+import { useBabyContext } from '../../context/BabyContext';
 
 import { CheckBox } from 'react-native-elements'
 
@@ -9,30 +9,28 @@ export default function DiseaseInputForm(props) {
     const { selectTime } = props;
     const { toggleModal } = props;
 
+    const { currentBaby } = useBabyContext();
     const [babyIdData, setBabyIdData] = useState('');
 
     useEffect(() => {
-        storage.load({
-            key : 'selectbaby',
-        }).then(data => {
-            // 読み込み成功時処理
-            setBabyIdData(data.babyId)
-        }).catch(err => {
-            // 読み込み失敗時処理
-            console.log(err)
-        });
+        const currentBabyData = [];
+        if(currentBaby !== "") {
+            currentBaby.forEach((doc) => {
+                const data = doc.data();
+                setBabyIdData(data.babyId)
+                //setBabyNameData(data.babyName)
+                //setBabyBirthdayData(data.birthday)
+            });
+        }
     }, []);
 
     const date = new Date(selectTime);
-
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
     
-    const [bodyText, setBodyText] = useState('');
     const [bodyTemperature, setBodyTemperature] = useState('');
-
-
+    const [bodyText, setBodyText] = useState('');
     const [hanamizu, setHanamizu] = useState(false);
     const [seki, setSeki] = useState(false);
     const [oto, setOto] = useState(false);
@@ -41,12 +39,10 @@ export default function DiseaseInputForm(props) {
     const [kusuri, setKusuri] = useState(false);
 
     function handlePress() {
-        
         const db = firebase.firestore();
         const { currentUser } = firebase.auth();
         const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(babyIdData)
         .collection(`${year}_${month}`)    
-        
         if( hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) {
             if(bodyTemperature >= 32 && bodyTemperature <= 43 || bodyTemperature == '') {
                 ref.add({
@@ -78,8 +74,7 @@ export default function DiseaseInputForm(props) {
             Alert.alert("未入力です");
         }
     }
-
-
+    
     return (
         <ScrollView scrollEnabled={false}>
             <View style={styles.radioButtonContainer}>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useReducer }  from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import firebase from 'firebase';
 
 //＝＝＝＝＝＝＝＝
@@ -11,31 +11,53 @@ export function useBabyContext() {
 }
 
 export function BabyProvider({ children }) {
-
     const [baby, setBaby] = useState('');
-    const initialState = {
-        baby : baby,
-    };
+    const [currentBaby, setCurrentBaby] = useState('');
+
+    // unsubscribedCurrentBaby を定義
+    let unsubscribedCurrentBaby;
+
+    // initialStateをuseMemoでキャッシュ
+    const initialState = useMemo(() => {
+        return {
+            baby: baby,
+            currentBaby: currentBaby,
+        };
+    }, [baby, currentBaby]);
 
     useEffect(() => {
-        const db =firebase.firestore();
-        let unsubscribed = firebase.auth().onAuthStateChanged((user) => {
+        const db = firebase.firestore();
+        let unsubscribedBaby = firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-                //const ref = db.collection(`users/${user.uid}/baby`).orderBy('updatedAt', 'asc');
-                //const refs = db.collection(`users/${currentUser.uid}/babyData`)
-                const ref = db.collection(`users/${user.uid}/babyData`)//.orderBy('updatedAt', 'asc');
-                unsubscribed = ref.onSnapshot((snapshot) => {
-                    setBaby(snapshot);
-                }, (error) => {
-                console.log(error);
-                Alert.alert('データの読み込みに失敗しました。');
+                const babyRef = db.collection(`users/${user.uid}/babyData`);
+                const currentBabyRef = db.collection(`users/${user.uid}/currentBaby`);
+
+                unsubscribedBaby = babyRef.onSnapshot((babySnapshot) => {
+                    setBaby(babySnapshot);
+
+                    // currentBabyコレクションも監視
+                    // unsubscribedCurrentBaby の初期化
+                    unsubscribedCurrentBaby = currentBabyRef.onSnapshot((currentBabySnapshot) => {
+                        setCurrentBaby(currentBabySnapshot);
+                    }, (currentBabyError) => {
+                        console.log(currentBabyError);
+                        Alert.alert('currentBabyデータの読み込みに失敗しました。');
+                    });
+                }, (babyError) => {
+                    console.log(babyError);
+                    Alert.alert('babyデータの読み込みに失敗しました。');
                 });
             }
         });
         return () => {
-            unsubscribed();
+            unsubscribedBaby();
+            
+            // クリーンアップ時にunsubscribedCurrentBabyも呼び出す
+            if (unsubscribedCurrentBaby) {
+                unsubscribedCurrentBaby();
+            }
         };
-    },[]);
+    }, []);
 
     return (
         <BabyContext.Provider value={initialState}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import firebase from 'firebase';
-import storage from '../../context/Storage';
+import { useBabyContext } from '../../context/BabyContext';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 
 export default function FreeEditForm(props) {
@@ -8,18 +8,19 @@ export default function FreeEditForm(props) {
     const { babyData } = props;
     const { toggleModal } = props;
 
+    const { currentBaby } = useBabyContext();
     const [babyIdData, setBabyIdData] = useState('');
 
     useEffect(() => {
-        storage.load({
-            key : 'selectbaby',
-        }).then(data => {
-            // 読み込み成功時処理
-            setBabyIdData(data.babyId)
-        }).catch(err => {
-            // 読み込み失敗時処理
-            console.log(err)
-        });
+        const currentBabyData = [];
+        if(currentBaby !== "") {
+            currentBaby.forEach((doc) => {
+                const data = doc.data();
+                setBabyIdData(data.babyId)
+                //setBabyNameData(data.babyName)
+                //setBabyBirthdayData(data.birthday)
+            });
+        }
     }, []);
 
     const year = selectTime.getFullYear();

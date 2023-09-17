@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
 import firebase from 'firebase';
 import Modal from "react-native-modal";
 
@@ -117,17 +117,17 @@ export default function ModalSelectBaby(props) {
                 <View style={modalStyles.container}>
                         <Text style={modalStyles.title}>表示中の赤ちゃんを変更</Text>
                         <View style={styles.inputTypeContainer}>
-                            <FlatList
-                                //inverted//反転
-                                data={babyData}
-                                renderItem={renderItem}
-                                keyExtractor={(item) => { return item.id; }}
-                                ItemSeparatorComponent={ItemSeparator}
-                            />
+                        <FlatList
+                            //inverted//反転
+                            data={babyData}
+                            renderItem={renderItem}
+                            keyExtractor={(item) => { return item.id; }}
+                            ItemSeparatorComponent={ItemSeparator}
+                        />
                         </View>
                         <View>
                             <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
-                                <Text style={modalStyles.confirmButtonText}>close</Text>
+                                <Text style={modalStyles.confirmButtonText}>閉じる</Text>
                             </TouchableOpacity>
                         </View>
                         <View style={styles.advertisement}>
@@ -144,16 +144,19 @@ export default function ModalSelectBaby(props) {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        backgroundColor : '#FFF',
+        padding : '5%',
+        borderColor : '#36C1A7',
+        borderWidth : 3,
+        borderRadius : 20,
     },
     inputTypeContainer: {
-        marginTop: '10%',
         paddingHorizontal: 27,
         paddingVertical: 10,
         //height: 50,
-        maxHeight: '70%',
-        backgroundColor: '#FFF',
+        //maxHeight: '50%',
         //flex: 1,
+        backgroundColor: '#FFF',
         //flexDirection: 'row',
         //width: 350 ,
         //flex:1
@@ -161,11 +164,22 @@ const styles = StyleSheet.create({
         padding : '5%',
         borderColor : '#737373',
         borderWidth : 1,
-        borderRadius : 20,
+        borderRadius : 10,
     },
     separator: {
         height: 1,
         backgroundColor: '#737373',
+    },
+    advertisement: {
+        //marginTop: 'auto',
+        //marginBottom: 'auto',
+        //paddingTop: 10,
+        //paddingBottom: 10,
+        //height: '15%',
+        //width: '50%',
+        //alignItems:'center',
+        //backgroundColor: '#464876',
+        //marginBottom: 10,
     },
 });
 
@@ -188,12 +202,14 @@ const modalStyles = StyleSheet.create({
         padding : '5%',
         borderColor : '#36C1A7',
         borderWidth : 3,
-        borderRadius : 20,
+        borderRadius : 10,
     },
     title : {
-        color : '#36C1A7',
+        color : '#737373',
         fontWeight : 'bold',
-        textAlign: 'center'
+        textAlign: 'center',
+        fontSize: 20,
+        marginBottom: '5%',
     },
     //arrow : {
         //color : '#36C1A7',
@@ -202,14 +218,15 @@ const modalStyles = StyleSheet.create({
         marginLeft: 'auto',
         marginRight: 'auto',
         marginTop : '5%',
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
+        marginBottom: '5%',
+        backgroundColor : '#FFDB59',
+        borderColor : '#737373',
         borderWidth : 1,
         borderRadius : 10,
         width: "40%",
     },
     confirmButtonText : {
-        color : '#36C1A7',
+        color : '#737373',
         fontWeight : 'bold',
         textAlign : 'center',
         padding: 10,

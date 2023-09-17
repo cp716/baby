@@ -75,7 +75,7 @@ export default function MainScreen(props) {
                 if(babyIdData !== '') {
                     const db = firebase.firestore();
                     const ref = db.collection(`users/${user.uid}/babyData`).doc(babyIdData)
-                    .collection(`${dateTimeState.year}_${dateTimeState.month}`).orderBy('updatedAt', 'asc'); 
+                    .collection(`${dateTimeState.year}_${dateTimeState.month}`).orderBy('updatedAt', 'asc');
                     //.collection(`${dateTimeState.year}/${dateTimeState.month}/${dateTimeState.day}`).orderBy('updatedAt', 'asc');
                     cleanupFuncs.memos = ref.onSnapshot((snapshot) => {
                     const userMemos = [];

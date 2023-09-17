@@ -1,10 +1,13 @@
-import React, { useState ,Component } from 'react';
+import React, { useState, useEffect } from 'react';
+import firebase from 'firebase';
 import Swiper from 'react-native-swiper'
 import { StyleSheet, View, ScrollView, TouchableOpacity, Text } from 'react-native';
-import { Table, TableWrapper, Row, Col } from 'react-native-table-component';
-import { useBabyRecordContext } from '../context/BabyRecordContext';
+import { Table, Row } from 'react-native-table-component';
 import Modal from "react-native-modal";
 import DatePicker from 'react-native-modern-datepicker';
+import { useBabyContext } from '../context/BabyContext';
+
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function RecordScreen() {
     const [isModalVisible, setModalVisible] = useState(false);
@@ -15,18 +18,111 @@ export default function RecordScreen() {
     const nowDateYear = new Date().getFullYear();
     const nowDateMonth = new Date().getMonth() + 1;
     const [date, setDate] = useState(`${nowDateYear}/${nowDateMonth.toString().padStart(2, "0")}/01`);
-    const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
     let selectYear = date.slice( 0, 4 );
-    let selectMonth = date.slice( 5, 7 );
-    console.log(date)
-    console.log(selectYear)
-    console.log(selectMonth)
+    let selectMonth = date.slice( 5, 7 ).replace(/^0+/, "");
+
     const groupBy = function(xs, key) {
         return xs.reduce(function(rv, x) {
             (rv[x[key]] = rv[x[key]] || []).push(x);
             return rv;
         }, {});
     };
+
+
+
+
+
+
+
+
+    const { currentBaby } = useBabyContext();
+
+    const [baby, setBaby] = useState('');
+    const [monthData, setMonthData] = useState([]);
+    const [babyNameData, setBabyNameData] = useState('');
+    const [babyIdData, setBabyIdData] = useState('');
+    const [babyBirthdayData, setBabyBirthdayData] = useState('');
+
+    useEffect(() => {
+        const currentBabyData = [];
+        if(currentBaby !== "") {
+            currentBaby.forEach((doc) => {
+                const data = doc.data();
+                setBabyNameData(data.babyName)
+                setBabyIdData(data.babyId)
+                setBabyBirthdayData(data.birthday)
+            });
+        }
+    }, [currentBaby]);
+
+    // unsubscribedCurrentBaby を定義
+    let unsubscribedCurrentBaby;
+
+    useEffect(() => {
+        const db = firebase.firestore();
+        let unsubscribedBaby = firebase.auth().onAuthStateChanged((user) => {
+            if (user && babyIdData) {
+                const babyRef = db.collection(`users/${user.uid}/babyData`).doc(babyIdData)
+                .collection(`${selectYear}_${selectMonth}`).orderBy('updatedAt', 'asc'); 
+                unsubscribedBaby = babyRef.onSnapshot((babySnapshot) => {
+                    setBaby(babySnapshot);
+
+                    const userMemos = [];
+                    babySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        userMemos.push({
+                            id: doc.id,
+                            timeLeft: data.timeLeft,
+                            timeRight: data.timeRight,
+                            milk: data.milk,
+                            category: data.category,
+                            bonyu: data.bonyu,
+                            toilet: data.toilet,
+                            disease: data.disease,
+                            bodyTemperature: data.bodyTemperature,
+                            food: data.food,
+                            freeText: data.freeText,
+                            bodyText: data.bodyText,
+                            selectBaby: data.selectBaby,
+                            day: data.day,
+                            updatedAt: data.updatedAt.toDate(),
+                        });
+                    });
+                    setMonthData(userMemos);
+                }, (babyError) => {
+                    console.log(babyError);
+                    Alert.alert('babyデータの読み込みに失敗しました。');
+                });
+            }
+        });
+        return () => {
+            unsubscribedBaby();
+            
+            // クリーンアップ時にunsubscribedCurrentBabyも呼び出す
+            if (unsubscribedCurrentBaby) {
+                unsubscribedCurrentBaby();
+            }
+        };
+    }, [babyIdData, date]);
+
+    console.log(monthData)
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     const tableHead = ['授乳', '哺乳瓶', 'ご飯', 'トイレ', '病気', '体温']
     const sybTableHead = ['左', '右', 'ミルク', '母乳', '炭水化物', 'タンパク質', 'ミネラル', '調味料', '飲み物', 'おしっこ', 'うんち', '鼻水', '咳', '嘔吐', '発疹', '怪我', '薬', '最高', '最低']
@@ -63,7 +159,7 @@ export default function RecordScreen() {
         let kegaCount = 0;
         let kusuriCount = 0;
 
-        const x = babyRecordState.babyData.filter((data) => data.day == [i])
+        const x = monthData.filter((data) => data.day == [i])
         const groupByCategory = groupBy(x, 'category');
         const junyu = groupByCategory.JUNYU
         const milk  = groupByCategory.MILK
@@ -174,21 +270,31 @@ export default function RecordScreen() {
         rowData.push(`${i}日`);
         tableDateData.push(rowData);
     }
-    tableDateData.splice(17, 0, ['']);
-    tableDateData.splice(18, 0, ['○月']);
+    tableDateData.splice(12, 0, ['']);
+    tableDateData.splice(13, 0, ['○月']);
+    tableDateData.splice(24, 0, ['']);
+    tableDateData.splice(25, 0, ['○月']);
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity
-                style={styles.babyAddButton}
-                onPress={() => {
-                    toggleModal();
-                }}
-            >
-                <Text style={styles.babyAddButtonText}>
-                    {selectYear}年{selectMonth}月
-                </Text>
-            </TouchableOpacity>
+            <View style={styles.date}>
+                <TouchableOpacity onPress={console.log()} style={styles.dateArrow}>
+                    <MaterialCommunityIcons name={'chevron-left-circle-outline'} size={35} color="#36C1A7" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.modalButton}
+                    onPress={() => {
+                        toggleModal();
+                    }}
+                >
+                    <Text style={styles.modalButtonText}>
+                        {selectYear}年{selectMonth}月
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={console.log()} style={styles.dateArrow}>
+                    <MaterialCommunityIcons name={'chevron-right-circle-outline'} size={35} color="#36C1A7" />
+                </TouchableOpacity>
+            </View>
             <Modal isVisible={isModalVisible}
                 onBackdropPress={toggleModal}
                 backdropTransitionOutTiming={0}
@@ -230,7 +336,7 @@ export default function RecordScreen() {
                 <View style={styles.table}>
                     <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
                         {
-                            tableDateData.slice(0,17).map((rowData, index) => (
+                            tableDateData.slice(0,12).map((rowData, index) => (
                                 <Row
                                     key={index}
                                     data={rowData}
@@ -246,7 +352,7 @@ export default function RecordScreen() {
                             <Row data={tableHead} widthArr={widthArr} style={styles.header} textStyle={styles.text}/>
                             <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
                             {
-                                tableData.slice(0,15).map((rowData, index) => (
+                                tableData.slice(0,10).map((rowData, index) => (
                                     <Row
                                         key={index}
                                         data={rowData}
@@ -263,7 +369,7 @@ export default function RecordScreen() {
                 <View style={styles.table}>
                     <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
                         {
-                            tableDateData.slice(17).map((rowData, index) => (
+                            tableDateData.slice(12,24).map((rowData, index) => (
                                 <Row
                                     key={index}
                                     data={rowData}
@@ -279,7 +385,39 @@ export default function RecordScreen() {
                             <Row data={tableHead} widthArr={widthArr} style={styles.header} textStyle={styles.text}/>
                             <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
                             {
-                                tableData.slice(15).map((rowData, index) => (
+                                tableData.slice(10,20).map((rowData, index) => (
+                                    <Row
+                                        key={index}
+                                        data={rowData}
+                                        widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]}
+                                        style={styles.row}
+                                        textStyle={styles.text}
+                                    />
+                                ))
+                            }
+                        </Table>
+                    </ScrollView>
+                </View>
+                <View style={styles.table}>
+                    <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
+                        {
+                            tableDateData.slice(24).map((rowData, index) => (
+                                <Row
+                                    key={index}
+                                    data={rowData}
+                                    widthArr={[50]}
+                                    style={styles.row}
+                                    textStyle={styles.text}
+                                />
+                            ))
+                        }
+                    </Table>
+                    <ScrollView horizontal={true} style={styles.dataWrapper}>
+                        <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
+                            <Row data={tableHead} widthArr={widthArr} style={styles.header} textStyle={styles.text}/>
+                            <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
+                            {
+                                tableData.slice(20).map((rowData, index) => (
                                     <Row
                                         key={index}
                                         data={rowData}
@@ -301,11 +439,35 @@ const styles = StyleSheet.create({
     container: { 
         flex: 1,
         padding: 16,
-        paddingTop: 80,
+        //paddingTop: 80,
         backgroundColor: '#fff',
     },
+    date: {
+        flexDirection: 'row',
+        height: 70,
+        alignItems:'center',
+        justifyContent: 'center',
+    },
+    modalButton : {
+        backgroundColor : '#FFF',
+        borderColor : '#36C1A7',
+        borderWidth : 1,
+        borderRadius : 10,
+        //fontSize: 20,
+        paddingHorizontal: 10,
+    },
+    modalButtonText : {
+        color : '#36C1A7',
+        fontWeight : 'bold',
+        textAlign : 'center',
+        padding: 10,
+        fontSize: 20,
+    },
+    dateArrow: {
+        paddingHorizontal: 10,
+    },
     table: { flexDirection: 'row' },
-    header: { height: 30 },
+    header: { height: 30, backgroundColor: '#D3EBE9', },
     text: { textAlign: 'center', fontWeight: '100' },
     dataWrapper: { marginLeft: -1 }, //flexDirection: 'column'
     row: { height: 30 },

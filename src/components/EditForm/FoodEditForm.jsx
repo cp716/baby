@@ -28,15 +28,17 @@ export default function FoodEditForm(props) {
     const month = selectTime.getMonth() + 1;
     const day = selectTime.getDate();
 
-    const [tansuikabutsu, setTansuikabutsu] = useState(babyData.food.tansuikabutsu);
-    const [tampakushitsu, setTampakushitsu] = useState(babyData.food.tampakushitsu);
-    const [bitamin, setBitamin] = useState(babyData.food.bitamin);
-    const [chomiryo, setChomiryo] = useState(babyData.food.chomiryo);
-    const [drink, setDrink] = useState(babyData.food.drink);
+    const [foodCheck, setFoodCheck] = useState(babyData.food.foodCheck);
+    const [drinkCheck, setDrinkCheck] = useState(babyData.food.drinkCheck);
+    const [foodAmount, setFoodAmount] = useState(babyData.food.foodAmount);
+    const [drinkAmount, setDrinkAmount] = useState(babyData.food.drinkAmount);
     const [detailBody, setBodyText] = useState(babyData.bodyText);
 
-    if(isNaN(drink)) {
-        setDrink('')
+    if(isNaN(foodAmount)) {
+        setFoodAmount('')
+    }
+    if(isNaN(drinkAmount)) {
+        setDrinkAmount('')
     }
 
     function handlePress() {
@@ -45,27 +47,30 @@ export default function FoodEditForm(props) {
             const db = firebase.firestore();
             const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(babyIdData)
             .collection(`${year}_${month}`).doc(babyData.id)
+            if( foodCheck || drinkCheck ) {
+                return (
+                    ref.set({
+                        'category':'FOOD',
+                        bodyText: detailBody,
+                        updatedAt: selectTime,
+                        food: {
+                            foodCheck: foodCheck,
+                            drinkCheck: drinkCheck,
+                            foodAmount: parseInt(foodAmount),
+                            drinkAmount: parseInt(drinkAmount),
+                        }
+                    }, { merge: true })
+                    .then(() => {
+                        toggleModal()
+                    })
+                    .catch((error) => {
+                        Alert.alert(error.code);
+                    })
+                );
+            } else {
+                Alert.alert("未入力です");
+            }
             
-            return (
-                ref.set({
-                    'category':'FOOD',
-                    bodyText: detailBody,
-                    updatedAt: selectTime,
-                    food: {
-                        tansuikabutsu: tansuikabutsu,
-                        tampakushitsu: tampakushitsu,
-                        bitamin: bitamin,
-                        chomiryo: chomiryo,
-                        drink: parseInt(drink),
-                    }
-                }, { merge: true })
-                .then(() => {
-                    toggleModal()
-                })
-                .catch((error) => {
-                    Alert.alert(error.code);
-                })
-            );
         }
     }
 
@@ -100,38 +105,53 @@ export default function FoodEditForm(props) {
             <View style={styles.inputTypeContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title='炭水化物'
-                        checked={tansuikabutsu}
-                        onPress={() => setTansuikabutsu(!tansuikabutsu)}
+                        title='食事'
+                        checked={foodCheck}
+                        onPress={() => {
+                            if (foodAmount) {
+                                // foodAmount に値が入っている場合、クリアする
+                                setFoodAmount('');
+                            }
+                            setFoodCheck(!foodCheck);
+                        }}
                     />
                     <CheckBox
-                        title='タンパク資'
-                        checked={tampakushitsu}
-                        onPress={() => setTampakushitsu(!tampakushitsu)}
-                    />
-                    <CheckBox
-                        title='ビタミン・ミネラル'
-                        checked={bitamin}
-                        onPress={() => setBitamin(!bitamin)}
-                    />
-                    <CheckBox
-                        title='調味料'
-                        checked={chomiryo}
-                        onPress={() => setChomiryo(!chomiryo)}
+                        title='飲物'
+                        checked={drinkCheck}
+                        onPress={() => {
+                            if (setDrinkAmount) {
+                                // foodAmount に値が入っている場合、クリアする
+                                setDrinkAmount('');
+                            }
+                            setDrinkCheck(!drinkCheck);
+                        }}
                     />
                 </View>
             </View>
             <View style={styles.inputContainer}>
-                <Text>飲み物</Text>
+                <Text>食物</Text>
                 <TextInput
                         keyboardType="decimal-pad"
-                        value={String(drink)}
-                        style={styles.input}
-                        onChangeText={(text) => { setDrink(text); }}
+                        value={String(foodAmount)}
+                        style={[styles.input, !foodCheck && styles.disabledInput]}
+                        onChangeText={(text) => { setFoodAmount(text); }}
                         //autoFocus
                         placeholder = "量を入力"
                         textAlign={"center"}//入力表示位置
                         maxLength={4}
+                        editable={foodCheck} // foodCheck チェック時にのみ編集可能にする
+                />
+                <Text>飲物</Text>
+                <TextInput
+                        keyboardType="decimal-pad"
+                        value={String(drinkAmount)}
+                        style={styles.input}
+                        onChangeText={(text) => { setDrinkAmount(text); }}
+                        //autoFocus
+                        placeholder = "量を入力"
+                        textAlign={"center"}//入力表示位置
+                        maxLength={4}
+                        editable={drinkCheck} // drinkCheck チェック時にのみ編集可能にする
                 />
             </View>
             <View style={styles.inputMemoContainer}>

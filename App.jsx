@@ -137,7 +137,7 @@ export default function App() {
       <DateTimeProvider>
       <BabyRecordProvider>
         <Tab.Navigator
-          initialRouteName="メイン"
+          initialRouteName="ホーム"
         >
           <Tab.Screen
             name="記録"

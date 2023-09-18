@@ -133,20 +133,17 @@ export default function CreateData(props) {
                                                 )
                                             }else if (item.category == 'FOOD') {
                                                 var food = "";
-                                                if(item.food.tansuikabutsu) {
-                                                    food += "「炭水化物」"
+                                                if(item.food.foodCheck) {
+                                                    food += "「食事」"
                                                 }
-                                                if(item.food.tampakushitsu) {
-                                                    food += "「タンパク質」"
+                                                if(item.food.foodAmount) {
+                                                    food += item.food.foodAmount + 'g'
                                                 }
-                                                if(item.food.bitamin) {
-                                                    food += "「ビタミン・ミネラル」"
+                                                if(item.food.drinkCheck) {
+                                                    food += "「飲物」"
                                                 }
-                                                if(item.food.chomiryo) {
-                                                    food += "「調味料」"
-                                                }
-                                                if(item.food.drink) {
-                                                    food += item.food.drink + 'ml'
+                                                if(item.food.drinkAmount) {
+                                                    food += item.food.drinkAmount + 'ml'
                                                 }
                                                 return (
                                                     food

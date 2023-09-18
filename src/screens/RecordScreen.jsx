@@ -7,7 +7,18 @@ import Modal from "react-native-modal";
 import DatePicker from 'react-native-modern-datepicker';
 import { useBabyContext } from '../context/BabyContext';
 
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+const nowDateYear = new Date().getFullYear();
+const nowDateMonth = new Date().getMonth() + 1;
+const nowDateDay = new Date().getDate();
+let initialIndex;
+
+if (nowDateDay <= 10) {
+    initialIndex = 0;
+} else if (nowDateDay <= 20) {
+    initialIndex = 1;
+} else {
+    initialIndex = 2;
+}
 
 export default function RecordScreen() {
     const [isModalVisible, setModalVisible] = useState(false);
@@ -15,8 +26,8 @@ export default function RecordScreen() {
         setModalVisible(!isModalVisible);
     };
 
-    const nowDateYear = new Date().getFullYear();
-    const nowDateMonth = new Date().getMonth() + 1;
+    
+    const [index, setIndex] = useState(initialIndex);
     const [date, setDate] = useState(`${nowDateYear}/${nowDateMonth.toString().padStart(2, "0")}/01`);
     let selectYear = date.slice( 0, 4 );
     let selectMonth = date.slice( 5, 7 ).replace(/^0+/, "");
@@ -105,25 +116,6 @@ export default function RecordScreen() {
         };
     }, [babyIdData, date]);
 
-    console.log(monthData)
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const tableHead = ['授乳', '哺乳瓶', 'ご飯', 'トイレ', '病気', '体温']
     const sybTableHead = ['左', '右', 'ミルク', '母乳', '炭水化物', 'タンパク質', 'ミネラル', '調味料', '飲み物', 'おしっこ', 'うんち', '鼻水', '咳', '嘔吐', '発疹', '怪我', '薬', '最高', '最低']
     const widthArr = [100, 100, 250, 100, 300, 100]
@@ -132,7 +124,6 @@ export default function RecordScreen() {
 
     const tableData = [];
     for (let i = 1; i < lastDay.getDate() + 1; i += 1) {
-    //for (let i = 1; i < 16; i += 1) {
         let junyLeftTotal = 0;
         let junyRightTotal = 0;
         let milkTotal = 0;
@@ -142,8 +133,8 @@ export default function RecordScreen() {
         let oshikkoCount = 0;
         let unchiCount = 0;
         
-        let maxBodyTemperature = '-';
-        let minBodyTemperature = '-';
+        let maxBodyTemperature = 0;
+        let minBodyTemperature = 0;
 
         let foodCount = 0;
         let tansuikabutsuCount = 0;
@@ -172,12 +163,34 @@ export default function RecordScreen() {
             junyLeftTotal += junyu[key].timeLeft
             junyRightTotal += junyu[key].timeRight
         }
+        if(junyLeftTotal == 0) {
+            junyLeftTotal = '-'
+        } else {
+            junyLeftTotal = junyLeftTotal + '分'
+        }
+        if(junyRightTotal == 0) {
+            junyRightTotal = '-'
+        } else {
+            junyRightTotal = junyRightTotal + '分'
+        }
+
         for (let key in milk) {
             milkTotal += milk[key].milk
         }
+        if(milkTotal == 0) {
+            milkTotal = '-'
+        } else {
+            milkTotal = milkTotal + '\nml'
+        }
+
         for (let key in bonyu) {
             bonyuTotal += bonyu[key].bonyu
             bonyuCount += 1
+        }
+        if(bonyuTotal == 0) {
+            bonyuTotal = '-'
+        } else {
+            bonyuTotal = bonyuTotal + '\nml'
         }
 
         for (let key in toilet) {
@@ -187,6 +200,16 @@ export default function RecordScreen() {
             if(toilet[key].toilet.unchi) {
                 unchiCount += 1
             }
+        }
+        if(oshikkoCount == 0) {
+            oshikkoCount = '-'
+        } else {
+            oshikkoCount = oshikkoCount + '回'
+        }
+        if(unchiCount == 0) {
+            unchiCount = '-'
+        } else {
+            unchiCount = unchiCount + '回'
         }
 
         for (let key in food) {
@@ -228,32 +251,72 @@ export default function RecordScreen() {
                 kusuriCount += 1
             }
         }
+        if(hanamizuCount == 0) {
+            hanamizuCount = '-'
+        } else {
+            hanamizuCount = hanamizuCount + '回'
+        }
+        if(sekiCount == 0) {
+            sekiCount = '-'
+        } else {
+            sekiCount = sekiCount + '回'
+        }
+        if(otoCount == 0) {
+            otoCount = '-'
+        } else {
+            otoCount = otoCount + '回'
+        }
+        if(hosshinCount == 0) {
+            hosshinCount = '-'
+        } else {
+            hosshinCount = hosshinCount + '回'
+        }
+        if(kegaCount == 0) {
+            kegaCount = '-'
+        } else {
+            kegaCount = kegaCount + '回'
+        }
+        if(kusuriCount == 0) {
+            kusuriCount = '-'
+        } else {
+            kusuriCount = kusuriCount + '回'
+        }
 
         for (let key in disease) {
             if(!isNaN(disease[key].disease.bodyTemperature)) {
-                maxBodyTemperature = disease[key].disease.bodyTemperature + '°'
-                minBodyTemperature = disease[key].disease.bodyTemperature + '°'
+                maxBodyTemperature = disease[key].disease.bodyTemperature
+                minBodyTemperature = disease[key].disease.bodyTemperature
             }
+        }
+        if(maxBodyTemperature == 0) {
+            maxBodyTemperature = '-'
+        } else {
+            maxBodyTemperature = maxBodyTemperature + '°'
+        }
+        if(minBodyTemperature == 0) {
+            minBodyTemperature = '-'
+        } else {
+            minBodyTemperature = minBodyTemperature + '°'
         }
 
         const rowData = [];
 
-        rowData.push(`${junyLeftTotal}ml`);
-        rowData.push(`${junyRightTotal}ml`);
-        rowData.push(`${milkTotal}ml`);
-        rowData.push(`${bonyuTotal}ml`);
-        rowData.push(`${tansuikabutsuCount}回`);
-        rowData.push(`${tampakushitsuCount}回`);
-        rowData.push(`${bitaminCount}回`);
-        rowData.push(`${chomiryoCount}回`);
-        rowData.push(`${drinkTotal}ml`);
-        rowData.push(`${oshikkoCount}回`);
-        rowData.push(`${unchiCount}回`);
-        rowData.push(`${hanamizuCount}回`);
-        rowData.push(`${sekiCount}回`);
-        rowData.push(`${otoCount}回`);
-        rowData.push(`${hosshinCount}回`);
-        rowData.push(`${kegaCount}回`);
+        rowData.push(`${junyLeftTotal}`);
+        rowData.push(`${junyRightTotal}`);
+        rowData.push(`${milkTotal}`);
+        rowData.push(`${bonyuTotal}`);
+        rowData.push(`${tansuikabutsuCount}`);
+        rowData.push(`${tampakushitsuCount}`);
+        rowData.push(`${bitaminCount}`);
+        rowData.push(`${chomiryoCount}`);
+        rowData.push(`${drinkTotal}`);
+        rowData.push(`${oshikkoCount}`);
+        rowData.push(`${unchiCount}`);
+        rowData.push(`${hanamizuCount}`);
+        rowData.push(`${sekiCount}`);
+        rowData.push(`${otoCount}`);
+        rowData.push(`${hosshinCount}`);
+        rowData.push(`${kegaCount}`);
         rowData.push(`${kusuriCount}`);
         rowData.push(`${maxBodyTemperature}`);
         rowData.push(`${minBodyTemperature}`);
@@ -263,7 +326,7 @@ export default function RecordScreen() {
 
     const tableDateData = [];
     tableDateData.push(['']);
-    tableDateData.push(['○月']);
+    tableDateData.push([selectMonth + '月']);
     for (let i = 1; i < lastDay.getDate() + 1; i += 1) {
     //for (let i = 1; i < 16; i += 1) {
             const rowData = [];
@@ -271,16 +334,19 @@ export default function RecordScreen() {
         tableDateData.push(rowData);
     }
     tableDateData.splice(12, 0, ['']);
-    tableDateData.splice(13, 0, ['○月']);
+    tableDateData.splice(13, 0, [selectMonth + '月']);
     tableDateData.splice(24, 0, ['']);
-    tableDateData.splice(25, 0, ['○月']);
+    tableDateData.splice(25, 0, [selectMonth + '月']);
 
+    const todayDate = new Date();
+    const todayDay = todayDate.getDate();
+    const isTodayRow = (rowData) => {
+        return rowData[0] === todayDay + '日';
+    };
+    
     return (
         <View style={styles.container}>
-            <View style={styles.date}>
-                <TouchableOpacity onPress={console.log()} style={styles.dateArrow}>
-                    <MaterialCommunityIcons name={'chevron-left-circle-outline'} size={35} color="#36C1A7" />
-                </TouchableOpacity>
+            <View style={[styles.date , {height: '15%'}]}>
                 <TouchableOpacity
                     style={styles.modalButton}
                     onPress={() => {
@@ -290,9 +356,6 @@ export default function RecordScreen() {
                     <Text style={styles.modalButtonText}>
                         {selectYear}年{selectMonth}月
                     </Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={console.log()} style={styles.dateArrow}>
-                    <MaterialCommunityIcons name={'chevron-right-circle-outline'} size={35} color="#36C1A7" />
                 </TouchableOpacity>
             </View>
             <Modal isVisible={isModalVisible}
@@ -326,10 +389,10 @@ export default function RecordScreen() {
                 dot={<View style={{backgroundColor:'rgba(0,0,0,.2)', width: 8, height: 8,borderRadius: 4, marginLeft: 3, marginRight: 3, marginTop: 3, marginBottom: 3,}} />}
                 horizontal={false}
                 showsButtons={false}//サイドボタン
-                onIndexChanged={(index) => {console.log(index)}}
+                //onIndexChanged={(index) => {console.log(index)}}
                 showsPagination={true}//下部マーク
                 loop={false}//連続ループ
-                //index={dateTimeState.day - 1}
+                index={index}
                 loadMinimal={true}
                 //renderPagination={renderPagination}
             >
@@ -358,7 +421,7 @@ export default function RecordScreen() {
                                         data={rowData}
                                         widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]}
                                         style={styles.row}
-                                        textStyle={styles.text}
+                                        textStyle={styles.dataText}
                                     />
                                 ))
                             }
@@ -374,7 +437,10 @@ export default function RecordScreen() {
                                     key={index}
                                     data={rowData}
                                     widthArr={[50]}
-                                    style={styles.row}
+                                    style={{
+                                        ...styles.row,
+                                        ...(isTodayRow(rowData) ? { backgroundColor: '#D3EBE9' } : {}), // 今日の行は背景色を変更
+                                    }}
                                     textStyle={styles.text}
                                 />
                             ))
@@ -391,7 +457,7 @@ export default function RecordScreen() {
                                         data={rowData}
                                         widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]}
                                         style={styles.row}
-                                        textStyle={styles.text}
+                                        textStyle={styles.dataText}
                                     />
                                 ))
                             }
@@ -423,7 +489,7 @@ export default function RecordScreen() {
                                         data={rowData}
                                         widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]}
                                         style={styles.row}
-                                        textStyle={styles.text}
+                                        textStyle={styles.dataText}
                                     />
                                 ))
                             }
@@ -438,9 +504,7 @@ export default function RecordScreen() {
 const styles = StyleSheet.create({
     container: { 
         flex: 1,
-        padding: 16,
-        //paddingTop: 80,
-        backgroundColor: '#fff',
+        backgroundColor: '#F0F4F8',
     },
     date: {
         flexDirection: 'row',
@@ -454,7 +518,7 @@ const styles = StyleSheet.create({
         borderWidth : 1,
         borderRadius : 10,
         //fontSize: 20,
-        paddingHorizontal: 10,
+        //paddingHorizontal: 10,
     },
     modalButtonText : {
         color : '#36C1A7',
@@ -466,11 +530,13 @@ const styles = StyleSheet.create({
     dateArrow: {
         paddingHorizontal: 10,
     },
-    table: { flexDirection: 'row' },
-    header: { height: 30, backgroundColor: '#D3EBE9', },
+    table: { flexDirection: 'row', paddingLeft: '5%', paddingRight: '10%' },
+    header: { height: 40, backgroundColor: '#D3EBE9', },
     text: { textAlign: 'center', fontWeight: '100' },
+    dataText: { textAlign: 'center', fontWeight: 'bold' },
+    //wrapper: { padding: '5%' },
     dataWrapper: { marginLeft: -1 }, //flexDirection: 'column'
-    row: { height: 30 },
+    row: { height: 40 },
     dot: {
         marginLeft: 5,
     }
@@ -487,7 +553,7 @@ const modalStyles = StyleSheet.create({
         color : '#36C1A7',
         fontWeight : 'bold',
         textAlign : 'center',
-        padding: 10,
+        //padding: 10,
         fontSize: 20,
     },
     container : {

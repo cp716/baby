@@ -136,22 +136,24 @@ export default function App() {
       <CurrentBabyProvider>
       <DateTimeProvider>
       <BabyRecordProvider>
-        <Tab.Navigator initialRouteName="メイン">
+        <Tab.Navigator
+          initialRouteName="メイン"
+        >
           <Tab.Screen
             name="記録"
             component={LeftTab}
             options={{
               tabBarIcon: ({ focused, size }) => (
-                <MaterialCommunityIcons name="note-text-outline" size={24} color={focused ? '#7cc' : '#ccc'}/>
+                <MaterialCommunityIcons name="note-text-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
               ),
             }}
           />
           <Tab.Screen
-            name="メイン"
+            name="ホーム"
             component={CenterTab}
             options={{
               tabBarIcon: ({ focused, size }) => (
-                <MaterialCommunityIcons name="home-outline" size={24} color={focused ? '#7cc' : '#ccc'}/>
+                <MaterialCommunityIcons name="home-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
               ),
             }}
           />
@@ -160,7 +162,7 @@ export default function App() {
             component={RightTab}
             options={{
               tabBarIcon: ({ focused, size }) => (
-                <Ionicons name="settings-outline" size={24} color={focused ? '#7cc' : '#ccc'}/>
+                <Ionicons name="settings-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
               ),
             }}
           />

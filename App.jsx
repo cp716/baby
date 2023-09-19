@@ -146,6 +146,7 @@ export default function App() {
               tabBarIcon: ({ focused, size }) => (
                 <MaterialCommunityIcons name="note-text-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
               ),
+              title: '',
             }}
           />
           <Tab.Screen
@@ -155,6 +156,7 @@ export default function App() {
               tabBarIcon: ({ focused, size }) => (
                 <MaterialCommunityIcons name="home-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
               ),
+              title: '',
             }}
           />
           <Tab.Screen
@@ -164,6 +166,7 @@ export default function App() {
               tabBarIcon: ({ focused, size }) => (
                 <Ionicons name="settings-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
               ),
+              title: '',
             }}
           />
         </Tab.Navigator>

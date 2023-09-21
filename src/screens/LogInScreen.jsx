@@ -36,8 +36,8 @@ export default function LogInScreen(props) {
     return (
         <View style={styles.container}>
             <Loading isLoading={isLoading} />
-            <View style={styles.inner}>
-                <Text style={styles.title}>ログイン</Text>
+            <Text style={styles.title}>ログイン</Text>
+            <View style={styles.inputArea}>
                 <Text style={styles.inputText}>メールアドレス</Text>
                 <TextInput
                     style={styles.input}
@@ -60,18 +60,18 @@ export default function LogInScreen(props) {
                     secureTextEntry
                     textContentType="password"
                 />
-                <Button
-                    label="ログイン"
-                    onPress={handlePress}
-                />
-                <View style={styles.footer}>
-                    <TouchableOpacity onPress={() => { navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'SignUp'}],
-                    }); }}>
-                        <Text style={styles.footerLink}>会員登録はこちら</Text>
-                    </TouchableOpacity>
-                </View>
+            </View>
+            <Button
+                label="ログイン"
+                onPress={handlePress}
+            />
+            <View style={styles.footer}>
+                <TouchableOpacity onPress={() => { navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'SignUp'}],
+                }); }}>
+                    <Text style={styles.footerLink}>会員登録はこちら</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -80,11 +80,21 @@ export default function LogInScreen(props) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F0F4F8',
+        alignItems: 'center',
+        padding: 20,
     },
-    inner: {
-        paddingHorizontal: 27,
-        paddingVertical: 24,
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginTop: 10,
+        marginBottom: 30,
+        textAlign: 'center',
+        color: '#333',
+    },
+    inputArea: {
+        width: '100%',
+        backgroundColor: '#456845',
+        padding: 20,
     },
     inputText: {
         fontSize: 15,
@@ -92,16 +102,12 @@ const styles = StyleSheet.create({
         //fontWeight: 'bold',
         marginBottom: 1,
         color: '#737373',
-    },
-    title: {
-        fontSize: 24,
-        lineHeight: 32,
-        fontWeight: 'bold',
-        marginBottom: 24,
+        textAlign: 'left',
     },
     input: {
         fontSize: 16,
         height: 48,
+        width: '90%',
         borderColor: '#DDDDDD',
         borderWidth: 1,
         backgroundColor: '#ffffff',

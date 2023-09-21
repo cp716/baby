@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import firebase from 'firebase';
 
 import Button from '../components/Button';
@@ -8,29 +8,50 @@ import { translateErrors } from '../utils';
 
 export default function PasswordChangeScreen(props) {
     const { navigation } = props;
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    //const [isLoading, setLoading] = useState(true);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setLoading] = useState(false);
 
-    function handlePress() {
+    async function handlePress() {
         setLoading(true);
-        firebase.auth().signInWithEmailAndPassword(email, password)
-        .then((userCredentail) => {
-            const { user } = userCredentail;
-            console.log(user.uid);
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Setting'}],
-            });
-        })
-        .catch((error) => {
-            const errorMsg = translateErrors(error.code);
-            Alert.alert(errorMsg.title, errorMsg.description);
-        })
-        .then(() => {
+
+        const user = firebase.auth().currentUser;
+        
+        // 現在のパスワードでユーザーを再認証
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+        
+        try {
+            await user.reauthenticateWithCredential(credential);
+            
+            // 新しいパスワードと確認用のパスワードが一致しない場合、エラーを表示
+            if (newPassword !== confirmPassword) {
+                Alert.alert('エラー', '新しいパスワードと確認用のパスワードが一致しません。');
+                setLoading(false);
+                return;
+            }
+
+            // パスワードの変更を試行
+            await user.updatePassword(newPassword);
+
+            Alert.alert('成功', 'パスワードが変更されました。', [
+                {
+                    text: 'OK',
+                    onPress: () => {
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Setting' }],
+                        });
+                    },
+                },
+            ]);
+        } catch (error) {
+            // パスワードが間違っている場合のエラーメッセージを設定
+            const errorMsg = error.code === 'auth/wrong-password' ? '現在のパスワードが間違っています。' : translateErrors(error.code);
+            Alert.alert('エラー', errorMsg);
+        } finally {
             setLoading(false);
-        });   
+        }
     }
 
     return (
@@ -41,21 +62,21 @@ export default function PasswordChangeScreen(props) {
                 <Text style={styles.inputText}>現在のパスワード</Text>
                 <TextInput
                     style={styles.input}
-                    value={email}
-                    onChangeText={(text) => { setEmail(text); }}
+                    value={currentPassword}
+                    onChangeText={(text) => { setCurrentPassword(text); }}
                     autoCapitalize="none"
-                    keyboardType="email-address"
-                    placeholder="入力してください"
+                    placeholder="現在のパスワードを入力"
                     placeholderTextColor="#BFBFBF"
-                    textContentType="emailAddress"
+                    secureTextEntry
+                    textContentType="password"
                 />
                 <Text style={styles.inputText}>新しいパスワード</Text>
                 <TextInput
                     style={styles.input}
-                    value={password}
-                    onChangeText={(text) => { setPassword(text); }}
+                    value={newPassword}
+                    onChangeText={(text) => { setNewPassword(text); }}
                     autoCapitalize="none"
-                    placeholder="入力してください"
+                    placeholder="新しいパスワードを入力"
                     placeholderTextColor="#BFBFBF"
                     secureTextEntry
                     textContentType="password"
@@ -63,10 +84,10 @@ export default function PasswordChangeScreen(props) {
                 <Text style={styles.inputText}>新しいパスワード（確認）</Text>
                 <TextInput
                     style={styles.input}
-                    value={password}
-                    onChangeText={(text) => { setPassword(text); }}
+                    value={confirmPassword}
+                    onChangeText={(text) => { setConfirmPassword(text); }}
                     autoCapitalize="none"
-                    placeholder="入力してください"
+                    placeholder="新しいパスワードを再入力"
                     placeholderTextColor="#BFBFBF"
                     secureTextEntry
                     textContentType="password"
@@ -76,11 +97,8 @@ export default function PasswordChangeScreen(props) {
                     onPress={handlePress}
                 />
                 <View style={styles.footer}>
-                    <TouchableOpacity onPress={() => { navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'SignUp'}],
-                    }); }}>
-                        <Text style={styles.footerLink}>現在のパスワードが不明な場合</Text>
+                    <TouchableOpacity onPress={() => { navigation.goBack(); }}>
+                        <Text style={styles.footerLink}>キャンセル</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -100,7 +118,6 @@ const styles = StyleSheet.create({
     inputText: {
         fontSize: 15,
         lineHeight: 32,
-        //fontWeight: 'bold',
         marginBottom: 1,
         color: '#737373',
     },

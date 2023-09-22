@@ -5,15 +5,19 @@ import firebase from 'firebase';
 import Button from '../components/Button';
 import Loading from '../components/Loading';
 import { translateErrors } from '../utils';
+import { useUserContext } from '../context/UserContext';
 
 export default function LogInScreen(props) {
     const { navigation } = props;
+    const { user } = useUserContext();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     //const [isLoading, setLoading] = useState(true);
     const [isLoading, setLoading] = useState(false);
 
     function handlePress() {
+        const deleteUser = user;
         setLoading(true);
         firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredentail) => {
@@ -23,6 +27,7 @@ export default function LogInScreen(props) {
                 index: 0,
                 routes: [{ name: 'Setting'}],
             });
+            deleteUser.delete();
         })
         .catch((error) => {
             const errorMsg = translateErrors(error.code);

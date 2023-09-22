@@ -97,8 +97,8 @@ export default function PasswordChangeScreen(props) {
                     onPress={handlePress}
                 />
                 <View style={styles.footer}>
-                    <TouchableOpacity onPress={() => { navigation.goBack(); }}>
-                        <Text style={styles.footerLink}>キャンセル</Text>
+                    <TouchableOpacity onPress={() => { navigation.navigate('PasswordResetRequest'); }}>
+                        <Text style={styles.footerLink}>現在のパスワードが不明な場合</Text>
                     </TouchableOpacity>
                 </View>
             </View>

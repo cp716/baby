@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Button } from 'react-native';
+import { View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons'; 
 
@@ -16,6 +16,7 @@ import RecordScreen from './src/screens/RecordScreen';
 import SettingScreen from './src/screens/SettingScreen';
 import MailChangeScreen from './src/screens/MailChangeScreen';
 import PasswordChangeScreen from './src/screens/PasswordChangeScreen';
+import PasswordResetRequestScreen from './src/screens/PasswordChangeRequestScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import LogInScreen from './src/screens/LogInScreen';
 import TestScreen from './src/screens/TestScreen';
@@ -61,6 +62,7 @@ function RightTab() {
         <Stack.Screen name="Acount" component={AcountScreen} />
         <Stack.Screen name="MailChange" component={MailChangeScreen} />
         <Stack.Screen name="PasswordChange" component={PasswordChangeScreen} />
+        <Stack.Screen name="PasswordResetRequest" component={PasswordResetRequestScreen} />
         <Stack.Screen name="BabySetting" component={BabySettingScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="LogIn" component={LogInScreen} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, } from 'react-native';
 import firebase from 'firebase';
 
@@ -8,29 +8,44 @@ import { translateErrors } from '../utils';
 
 export default function MailChangeScreen(props) {
     const { navigation } = props;
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    //const [isLoading, setLoading] = useState(true);
+    const [newEmail, setNewEmail] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
     const [isLoading, setLoading] = useState(false);
+    const currentUser = firebase.auth().currentUser;
 
     function handlePress() {
-        setLoading(true);
-        firebase.auth().signInWithEmailAndPassword(email, password)
-        .then((userCredentail) => {
-            const { user } = userCredentail;
-            console.log(user.uid);
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Setting'}],
-            });
-        })
-        .catch((error) => {
-            const errorMsg = translateErrors(error.code);
-            Alert.alert(errorMsg.title, errorMsg.description);
-        })
-        .then(() => {
-            setLoading(false);
-        });   
+        if (newEmail === confirmEmail) {
+            if (newEmail === currentUser.email) {
+                Alert.alert('現在登録されているメールアドレスと新しく入力されたメールアドレスが同じです。');
+            } else {
+                setLoading(true);
+
+                // 新しいメールアドレスに変更する処理を実行
+                currentUser.updateEmail(newEmail)
+                    .then(() => {
+                        Alert.alert('メールアドレスが変更されました', '新しいメールアドレスを使用してログインしてください。', [
+                            {
+                                text: 'OK',
+                                onPress: () => {
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: 'Setting' }],
+                                    });
+                                },
+                            },
+                        ]);
+                    })
+                    .catch((error) => {
+                        const errorMsg = translateErrors(error.code);
+                        Alert.alert(errorMsg.title, errorMsg.description);
+                    })
+                    .finally(() => {
+                        setLoading(false);
+                    });
+            }
+        } else {
+            Alert.alert('エラー', '新しいメールアドレスと確認用メールアドレスが一致しません。');
+        }
     }
 
     return (
@@ -41,8 +56,8 @@ export default function MailChangeScreen(props) {
                 <Text style={styles.inputText}>新しいメールアドレス</Text>
                 <TextInput
                     style={styles.input}
-                    value={email}
-                    onChangeText={(text) => { setEmail(text); }}
+                    value={newEmail}
+                    onChangeText={(text) => { setNewEmail(text); }}
                     autoCapitalize="none"
                     keyboardType="email-address"
                     placeholder="入力してください"
@@ -52,13 +67,13 @@ export default function MailChangeScreen(props) {
                 <Text style={styles.inputText}>新しいメールアドレス（確認）</Text>
                 <TextInput
                     style={styles.input}
-                    value={password}
-                    onChangeText={(text) => { setPassword(text); }}
+                    value={confirmEmail}
+                    onChangeText={(text) => { setConfirmEmail(text); }}
                     autoCapitalize="none"
-                    placeholder="入力してください"
+                    keyboardType="email-address"
+                    placeholder="再度入力してください"
                     placeholderTextColor="#BFBFBF"
-                    secureTextEntry
-                    textContentType="password"
+                    textContentType="emailAddress"
                 />
                 <Button
                     label="確認"
@@ -81,7 +96,6 @@ const styles = StyleSheet.create({
     inputText: {
         fontSize: 15,
         lineHeight: 32,
-        //fontWeight: 'bold',
         marginBottom: 1,
         color: '#737373',
     },

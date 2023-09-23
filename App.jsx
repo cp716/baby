@@ -19,13 +19,14 @@ import PasswordChangeScreen from './src/screens/PasswordChangeScreen';
 import PasswordResetRequestScreen from './src/screens/PasswordChangeRequestScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import LogInScreen from './src/screens/LogInScreen';
-import TestScreen from './src/screens/TestScreen';
 import AcountScreen from './src/screens/AcountScreen';
 import BabyAddScreen from './src/screens/BabyAddScreen';
 import BabyListScreen from './src/screens/BabyListScreen';
 import BabyEditScreen from './src/screens/BabyEditScreen';
 import BabySettingScreen from './src/screens/BabySettingScreen';
 import ContactFormScreen from './src/screens/ContactFormScreen';
+
+import TestScreen from './src/screens/TestScreen';
 
 import { UserProvider } from './src/context/UserContext';
 import { BabyProvider } from './src/context/BabyContext';
@@ -70,6 +71,9 @@ function RightTab() {
         <Stack.Screen name="BabyAdd" component={BabyAddScreen} />
         <Stack.Screen name="BabyList" component={BabyListScreen} />
         <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
+        
+        <Stack.Screen name="Test" component={TestScreen} />
+
       </Stack.Navigator>
     </View>
   );

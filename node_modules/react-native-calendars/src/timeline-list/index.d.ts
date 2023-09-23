@@ -1,4 +1,4 @@
-/// <reference types="react" />
+import React from 'react';
 import { TimelineProps } from '../timeline/Timeline';
 export interface TimelineListRenderItemInfo {
     item: string;
@@ -39,5 +39,5 @@ export interface TimelineListProps {
      */
     initialTime?: TimelineProps['initialTime'];
 }
-declare const TimelineList: (props: TimelineListProps) => JSX.Element;
+declare const TimelineList: (props: TimelineListProps) => React.JSX.Element;
 export default TimelineList;

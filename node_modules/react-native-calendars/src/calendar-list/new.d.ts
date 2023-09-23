@@ -1,4 +1,4 @@
-/// <reference types="react" />
+import React from 'react';
 import { ScrollViewProps } from 'react-native';
 import { CalendarProps } from '../calendar';
 export interface CalendarListProps {
@@ -17,5 +17,5 @@ export interface CalendarListProps {
     /** Identifier for testing */
     testID?: string;
 }
-declare const CalendarList: (props: CalendarListProps) => JSX.Element;
+declare const CalendarList: (props: CalendarListProps) => React.JSX.Element;
 export default CalendarList;

@@ -103,5 +103,5 @@ export interface TimelineProps {
     timelineLeftInset?: number;
 }
 export { Event as TimelineEventProps, PackedEvent as TimelinePackedEventProps };
-declare const _default: React.MemoExoticComponent<(props: TimelineProps) => JSX.Element>;
+declare const _default: React.MemoExoticComponent<(props: TimelineProps) => React.JSX.Element>;
 export default _default;

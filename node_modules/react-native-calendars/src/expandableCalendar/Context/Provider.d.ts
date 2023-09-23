@@ -1,4 +1,4 @@
-/// <reference types="react" />
+import React from 'react';
 import { ViewStyle, ViewProps, StyleProp } from 'react-native';
 import { Theme, DateData } from '../../types';
 import { UpdateSources } from '../commons';
@@ -31,7 +31,7 @@ export interface CalendarContextProviderProps extends ViewProps {
  * @example: https://github.com/wix/react-native-calendars/blob/master/example/src/screens/expandableCalendar.js
  */
 declare const CalendarProvider: {
-    (props: CalendarContextProviderProps): JSX.Element;
+    (props: CalendarContextProviderProps): React.JSX.Element;
     displayName: string;
 };
 export default CalendarProvider;

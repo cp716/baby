@@ -1,4 +1,4 @@
-/// <reference types="react" />
+import React from 'react';
 import { TextStyle, ViewStyle } from 'react-native';
 export interface NowIndicatorProps {
     styles: {
@@ -7,5 +7,5 @@ export interface NowIndicatorProps {
     width: number;
     left: number;
 }
-declare const NowIndicator: (props: NowIndicatorProps) => JSX.Element;
+declare const NowIndicator: (props: NowIndicatorProps) => React.JSX.Element;
 export default NowIndicator;

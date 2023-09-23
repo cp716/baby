@@ -22,5 +22,5 @@ export interface TimelineHoursProps {
     numberOfDays: number;
     timelineLeftInset?: number;
 }
-declare const _default: React.MemoExoticComponent<(props: TimelineHoursProps) => JSX.Element>;
+declare const _default: React.MemoExoticComponent<(props: TimelineHoursProps) => React.JSX.Element>;
 export default _default;

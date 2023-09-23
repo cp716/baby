@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, } from 'react-native';
 import firebase from 'firebase'
+import * as SQLite from 'expo-sqlite';
 
 import Button from '../components/Button';
 import { translateErrors } from '../utils';
+
+// データベースファイルのパスを指定してデータベースを開く
+const db = SQLite.openDatabase('DB.db');
 
 export default function SignUpScreen(props) {
     const { navigation } = props;
@@ -88,9 +92,35 @@ export default function SignUpScreen(props) {
                     onPress={handlePress}
                 />
             </View>
+            <Button
+    title="CREATE"
+    onPress={() => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction((tx) => {
+            // 実行したいSQL
+            tx.executeSql(
+                "CREATE TABLE IF NOT EXISTS HealthData(id integer primary key not null, height real, weight real);",
+                null,
+                () => {
+                    // 成功時のコールバック
+                    console.log("CREATE TABLE Success.");
+                },
+                () => {
+                    // 失敗時のコールバック
+                    console.log("CREATE TABLE Failed.");
+                    return true;  // return true でロールバックする
+                });
+            },
+            () => { console.log("Failed All."); },
+            () => { console.log("Success All."); }
+            
+        );SQLite.openDatabase('DB.db');
+    }} />
         </View>
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: {

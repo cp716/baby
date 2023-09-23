@@ -79,6 +79,14 @@ export default function SettingScreen(props) {
                         style={styles.listItem}
                         onPress={() => { navigation.navigate('ContactForm'); }}
                     />
+                    <List.Item
+                    title="テスト"
+                    //description="Item description"
+                    left={props => <List.Icon {...props} icon="email-outline" />}
+                    right={props => <List.Icon {...props} icon="chevron-right" />}
+                    style={styles.listItem}
+                    onPress={() => { navigation.navigate('Test'); }}
+                    />
                     <LogOutButton />
                 </List.Section>
             </View>
@@ -124,6 +132,14 @@ export default function SettingScreen(props) {
                     right={props => <List.Icon {...props} icon="chevron-right" />}
                     style={styles.listItem}
                     onPress={() => { navigation.navigate('LogIn'); }}
+                />
+                <List.Item
+                    title="テスト"
+                    //description="Item description"
+                    left={props => <List.Icon {...props} icon="email-outline" />}
+                    right={props => <List.Icon {...props} icon="chevron-right" />}
+                    style={styles.listItem}
+                    onPress={() => { navigation.navigate('Test'); }}
                 />
             </List.Section>
         </View>

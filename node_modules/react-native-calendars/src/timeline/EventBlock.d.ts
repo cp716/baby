@@ -1,4 +1,4 @@
-/// <reference types="react" />
+import React from 'react';
 import { TextStyle, ViewStyle } from 'react-native';
 export interface Event {
     id?: string;
@@ -25,5 +25,5 @@ export interface EventBlockProps {
         [key: string]: ViewStyle | TextStyle;
     };
 }
-declare const EventBlock: (props: EventBlockProps) => JSX.Element;
+declare const EventBlock: (props: EventBlockProps) => React.JSX.Element;
 export default EventBlock;

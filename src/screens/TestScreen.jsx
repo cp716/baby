@@ -1,123 +1,99 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Button } from 'react-native';
-import DrawerButton from '../components/DrawerButton';
-import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
-import { useDateTimeContext } from "../context/DateTimeContext";
+import React, { useState, useEffect } from 'react';
+import { View, Button, TextInput, Text } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import * as SQLite from 'expo-sqlite';
 
-export default function TestScreen(props) {
-    const { dateTimeState } = useDateTimeContext();
+export default function TestScreen() {
+  const [text, setText] = useState('');
+  const [message, setMessage] = useState('');
+  const [db, setDb] = useState(null);
 
-    const { navigation } = props;
-    useEffect(() => {
-        navigation.setOptions({
-            headerLeft: () => <DrawerButton />,
-        });
-    }, []);
+  useEffect(() => {
+    // SQLiteデータベースを開くか作成する
+    const database = SQLite.openDatabase('DB.db');
+    setDb(database);
 
-    const today = new Date()
-
-    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-    const [selectTime, setselectTime] = useState(today);
-    const [detailTime, setDetailTime] = useState(today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日');
-
-    const getNewDate = (date) => {
-        const hours = date.getHours();
-        const minutes = date.getMinutes();
-        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日')
-        setselectTime(new Date(dateTimeState.year, dateTimeState.month-1 ))
-    }
-    
-    //起動
-    const showDatePicker = () => {
-        setDatePickerVisibility(true);
-    };
-
-    //終了
-    const hideDatePicker = () => {
-        setDatePickerVisibility(false);
-    };
-
-    //表示用のstateへ日時を代入
-    const formatDatetime = (date) => {
-        const year = date.getFullYear()
-        const month = (date.getMonth()+1)
-        const day = date.getDate()
-        setDetailTime(year + '年' + month + '月' + day + '日');
-    };
-
-    //決定ボタン押下時の処理
-    const handleConfirm = (date) => {
-        setselectTime(date);
-        formatDatetime(date);
-        hideDatePicker();
-    };
-
-    return (
-        <View style={{ flex: 1 }}>
-            <View style={[styles.dateTime , {height: '15%'}]}>
-                <Button title={String(detailTime)} onPress={showDatePicker} />
-                <DateTimePickerModal
-                                isVisible={isDatePickerVisible}
-                                value={selectTime}
-                                onConfirm={handleConfirm}
-                                onCancel={hideDatePicker}
-                                mode="date"//入力項目
-                                locale='ja'//日本語化
-                                display="spinner"//UIタイプ
-                                confirmTextIOS="決定"//決定ボタンテキスト
-                                cancelTextIOS="キャンセル"//キャンセルボタンテキスト
-                                minuteInterval={5}//分数間隔
-                                headerTextIOS=""//入力欄ヘッダーテキスト
-                                textColor="blue"//ピッカーカラー
-                                date={selectTime}//ピッカー日付デフォルト
-                />
-            </View>
-        </View>
+    database.transaction(
+      (tx) => {
+        // テーブルが存在しない場合は作成
+        tx.executeSql(
+          'CREATE TABLE IF NOT EXISTS TestTable (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT)',
+          [],
+          () => {
+            console.log('テーブルが作成されました');
+          },
+          (error) => {
+            console.error('テーブルの作成中にエラーが発生しました:', error);
+          }
+        );
+      },
+      (error) => {
+        console.error('データベースのオープン中にエラーが発生しました:', error);
+      }
     );
-}
+  }, []);
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F0F4F8',
-    },
-    footer: {
-        height:'25%',
-        width:'100%',
-        position:'absolute',
-        bottom: 0,
-        borderTopWidth: 1,
-        borderTopColor : 'rgba(0, 0, 0, 100)',
-        //paddingBottom: 50,
-    },
-    dateTime: {
-        //backgroundColor: '#ffffff',
-        //flexDirection: 'row',
-        //paddingVertical: 16,
-        //justifyContent: 'center',
-        //borderTopWidth: 0.5,
-        //borderBottomWidth: 0.5,
-        //borderTopColor : 'rgba(0, 0, 0, 100)',
-        //borderBottomColor: 'rgba(0, 0, 0, 100)',
-        //height: 50,
-        //marginBottom:1,
-        //marginBottom:1,
-        //textAlign: 'center',
-        justifyContent: 'center',
-        //alignItems: 'center',
-        //position: 'absolute',
-        //marginTop: 'auto',
-        //marginBottom: 'auto',
-        //fontSize: 30,
-    },
-    tableTitle: {
-        flexDirection: 'row',
-    },
-    advertisement: {
-        height: '40%',
-        //width: '50%',
-        alignItems:'center',
-        backgroundColor: '#ffffff',
-    },
-});
+  const createTable = () => {
+    // テーブルを作成する関数は不要なので削除
+  };
+
+  const shareDatabase = async () => {
+    try {
+      // SQLiteデータベースファイルのURIを取得
+      const dbFileUri = FileSystem.documentDirectory + 'DB.db';
+
+      // データベースファイルを共有
+      Sharing.shareAsync(dbFileUri)
+        .then(() => {
+          setMessage('データベースが共有されました');
+        })
+        .catch((error) => {
+          setMessage('共有中にエラーが発生しました');
+          console.error('共有中にエラーが発生しました:', error);
+        });
+    } catch (error) {
+      setMessage('共有中にエラーが発生しました');
+      console.error('共有中にエラーが発生しました:', error);
+    }
+  };
+
+  const insertData = () => {
+    // テキストをデータベースに挿入
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          'INSERT INTO TestTable (text) VALUES (?)',
+          [text],
+          (_, result) => {
+            setMessage('データがテーブルに挿入されました');
+          },
+          (_, error) => {
+            setMessage('データの挿入中にエラーが発生しました');
+            console.error('データの挿入中にエラーが発生しました:', error);
+          }
+        );
+      }
+    );
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      {db ? (
+        <Text>DBが作成されました</Text>
+      ) : (
+        <Text>データベースの作成中...</Text>
+      )}
+      <Text>{message}</Text>
+      <TextInput
+        style={{ width: 200, borderColor: 'gray', borderWidth: 1, marginBottom: 10 }}
+        onChangeText={setText}
+        value={text}
+        placeholder="テキストを入力してください"
+      />
+      <Button title="データベースを共有" onPress={shareDatabase} />
+      <Button title="テーブルを作成" onPress={createTable} />
+      <Button title="データを挿入" onPress={insertData} />
+    </View>
+  );
+}

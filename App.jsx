@@ -27,6 +27,7 @@ import BabySettingScreen from './src/screens/BabySettingScreen';
 import ContactFormScreen from './src/screens/ContactFormScreen';
 
 import TestScreen from './src/screens/TestScreen';
+import TestScreen2 from './src/screens/TestScreen2';
 
 import { UserProvider } from './src/context/UserContext';
 import { BabyProvider } from './src/context/BabyContext';
@@ -73,6 +74,7 @@ function RightTab() {
         <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
         
         <Stack.Screen name="Test" component={TestScreen} />
+        <Stack.Screen name="Test2" component={TestScreen2} />
 
       </Stack.Navigator>
     </View>

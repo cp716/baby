@@ -87,6 +87,14 @@ export default function SettingScreen(props) {
                     style={styles.listItem}
                     onPress={() => { navigation.navigate('Test'); }}
                     />
+                    <List.Item
+                    title="テスト2"
+                    //description="Item description"
+                    left={props => <List.Icon {...props} icon="email-outline" />}
+                    right={props => <List.Icon {...props} icon="chevron-right" />}
+                    style={styles.listItem}
+                    onPress={() => { navigation.navigate('Test2'); }}
+                    />
                     <LogOutButton />
                 </List.Section>
             </View>

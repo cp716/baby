@@ -1,55 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
 import firebase from 'firebase';
+import { useIsFocused } from '@react-navigation/native';
 import Modal from "react-native-modal";
-
+import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
 import CircleButton from './CircleButton';
 import { RadioButton } from 'react-native-paper';
 
 import { useBabyContext } from '../context/BabyContext';
 
 export default function ModalSelectBaby(props) {
-
+    const isFocused = useIsFocused();
     const [isModalVisible, setModalVisible] = useState(false);
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
 
-    const { baby } = useBabyContext();
-    const { currentBaby } = useBabyContext();
+    // データ取得関数を初回実行
+    useEffect(() => {
+        loadBabyData();
+    }, [isFocused]);
 
-    const babyData = [];
-    if(baby !== "") {
-        baby.forEach((doc) => {
-            const data = doc.data();
-            babyData.push({
-                id: doc.id,
-                babyName: data.babyName,
-                birthday: data.birthday,
-            });
+    const { baby } = useBabyContext();
+
+    const [babyData, setBabyData] = useState([]); // SQLiteから取得したデータを格納するステート
+    const [currentBaby, setCurrentBaby] = useState([]); // SQLiteから取得したデータを格納するステート
+
+    // SQLiteデータベースを開くか作成する
+    const database = SQLite.openDatabase('DB.db');
+
+    // SQLiteからデータを取得する関数
+    const loadBabyData = () => {
+        database.transaction((tx) => {
+            // babyDataテーブルからデータを取得
+            tx.executeSql(
+                'SELECT * FROM babyData',
+                [],
+                (_, { rows }) => {
+                    const data = rows._array; // クエリ結果を配列に変換
+                    setBabyData(data); // データをステートにセット
+                },
+                (_, error) => {
+                    console.error('データの取得中にエラーが発生しました:', error);
+                }
+            );
+            tx.executeSql(
+                'SELECT * FROM currentBaby',
+                [],
+                (_, rows) => {
+                    setCurrentBaby(rows.rows.item(0)); // データをステートにセット)
+                }
+            );
         });
-    }
+    };
+    console.log(currentBaby.id)
 
     const [babyIdData, setBabyIdData] = useState(null);
     const { toggleBabyModal } = props;
-    const [checked, setChecked] = React.useState(babyIdData);
-
-    useEffect(() => {
-        const currentBabyData = [];
-        if(currentBaby !== "") {
-            currentBaby.forEach((doc) => {
-                const data = doc.data();
-                setBabyIdData(data.babyId)
-                //setBabyNameData(data.babyName)
-                //setBabyBirthdayData(data.birthday)
-                setChecked(data.babyId);
-            });
-        }
-    }, [currentBaby]);
+    const [checked, setChecked] = React.useState(currentBaby.id);
     
     function renderItem({ item }) {
 
-        const date = new Date(item.birthday.seconds * 1000 + item.birthday.nanoseconds / 1000000);
+        const date = new Date(item.birthday);
         const year = date.getFullYear();
         const month = date.getMonth();
         const day = date.getDate();
@@ -61,28 +73,13 @@ export default function ModalSelectBaby(props) {
                         <RadioButton.Item
                             value={item.id}
                             label={item.babyName + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
-                            status={checked === item.id ? 'checked' : 'unchecked'}
+                            status={checked === item.id ? 'checked' : null}
                             onPress={() => {
+                                console.log(item.id)
                                 setChecked(item.id)
-                                const db = firebase.firestore();
-                                const { currentUser } = firebase.auth();
-                                const ref1 = db.collection(`users/${currentUser.uid}/currentBaby`)
-                                ref1.get()
-                                .then((querySnapshot) => {
-                                    querySnapshot.forEach((doc) => {
-                                        if (doc.exists) {
-                                            // currentBaby上書き
-                                            const db = firebase.firestore();
-                                            const { currentUser } = firebase.auth();
-                                            const ref2 = db.collection(`users/${currentUser.uid}/currentBaby`).doc(doc.id)
-                                            ref2.set({
-                                                babyName: item.babyName,
-                                                birthday: item.birthday.toDate(),
-                                                babyId: item.id,
-                                            })
-                                        }
-                                    });
-                                })
+                                setBabyId(item.id)
+                                setBabyName(item.babyName)
+                                setBabyBirthday(item.birthday)
                             }}
                         />
                     )
@@ -117,13 +114,13 @@ export default function ModalSelectBaby(props) {
                 <View style={modalStyles.container}>
                         <Text style={modalStyles.title}>表示中の赤ちゃんを変更</Text>
                         <View style={styles.inputTypeContainer}>
-                        <FlatList
-                            //inverted//反転
-                            data={babyData}
-                            renderItem={renderItem}
-                            keyExtractor={(item) => { return item.id; }}
-                            ItemSeparatorComponent={ItemSeparator}
-                        />
+                                <FlatList
+                                inverted // 反転
+                                data={babyData}
+                                renderItem={renderItem}
+                                keyExtractor={(item) => item.id.toString()} // idを文字列に変換
+                                ItemSeparatorComponent={ItemSeparator}
+                            />
                         </View>
                         <View>
                             <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >

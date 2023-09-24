@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, FlatList } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
+import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
 
 import { RadioButton } from 'react-native-paper';
 
@@ -20,19 +21,35 @@ export default function BabyListScreen(props) {
         }
     }, [isFocused]);
 
+    // データ取得関数を初回実行
+    useEffect(() => {
+        loadBabyData();
+    }, [isFocused]);
+
     const { baby } = useBabyContext();
 
-    const babyData = [];
-    if(baby !== "") {
-        baby.forEach((doc) => {
-            const data = doc.data();
-            babyData.push({
-                id: doc.id,
-                babyName: data.babyName,
-                birthday: data.birthday,
-            });
+    const [babyData, setBabyData] = useState([]); // SQLiteから取得したデータを格納するステート
+
+    // SQLiteデータベースを開くか作成する
+    const database = SQLite.openDatabase('DB.db');
+
+    // SQLiteからデータを取得する関数
+    const loadBabyData = () => {
+        database.transaction((tx) => {
+            // babyDataテーブルからデータを取得
+            tx.executeSql(
+                'SELECT * FROM babyData',
+                [],
+                (_, { rows }) => {
+                    const data = rows._array; // クエリ結果を配列に変換
+                    setBabyData(data); // データをステートにセット
+                },
+                (_, error) => {
+                    console.error('データの取得中にエラーが発生しました:', error);
+                }
+            );
         });
-    }
+    };
 
     const [babyId, setBabyId] = useState(null);
     const [babyName, setBabyName] = useState(null);
@@ -41,7 +58,7 @@ export default function BabyListScreen(props) {
 
     function renderItem({ item }) {  
         
-        const date = new Date(item.birthday.seconds * 1000 + item.birthday.nanoseconds / 1000000);
+        const date = new Date(item.birthday);
         const year = date.getFullYear();
         const month = date.getMonth();
         const day = date.getDate();
@@ -55,10 +72,11 @@ export default function BabyListScreen(props) {
                             label={item.babyName + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
                             status={checked === item.id ? 'checked' : null}
                             onPress={() => {
+                                console.log(item.id)
                                 setChecked(item.id)
                                 setBabyId(item.id)
                                 setBabyName(item.babyName)
-                                setBabyBirthday(item.birthday.seconds * 1000 + item.birthday.nanoseconds / 1000000)
+                                setBabyBirthday(item.birthday)
                             }}
                         />
                     )
@@ -82,10 +100,10 @@ export default function BabyListScreen(props) {
                 <Text style={styles.title}>赤ちゃん一覧</Text>
                 <View style={styles.inputTypeContainer}>
                     <FlatList
-                        inverted//反転
+                        inverted // 反転
                         data={babyData}
                         renderItem={renderItem}
-                        keyExtractor={(item) => { return item.id; }}
+                        keyExtractor={(item) => item.id.toString()} // idを文字列に変換
                         ItemSeparatorComponent={ItemSeparator}
                     />
                 </View>

@@ -38,7 +38,7 @@ export default function TestScreen() {
         (tx) => {
           // テーブル削除
           tx.executeSql(
-            'DROP TABLE IF EXISTS babyData',
+            'DROP TABLE IF EXISTS currentBaby',
             [],
             () => {
               console.log('古いテーブルが削除されました');
@@ -72,7 +72,7 @@ export default function TestScreen() {
       db.transaction(
         (tx) => {
           tx.executeSql(
-            'SELECT * FROM babyData',
+            'SELECT * FROM currentBaby',
             [],
             (_, resultSet) => {
               const data = resultSet.rows._array; // データをJSON形式に変換

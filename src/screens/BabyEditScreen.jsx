@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, } from 'react-native';
-import firebase from 'firebase';
-
-import Button from '../components/Button';
-
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import * as SQLite from 'expo-sqlite';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import Button from '../components/Button';
 
 export default function BabyEditScreen(props) {
     const { route, navigation } = props;
     const { babyId, babyName, babyBirthday } = route.params;
-
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-
+    const [babyNameData, setBabyNameData] = useState(babyName);
+    const [babyIdData, setBabyIdData] = useState(babyId);
+    const [babyBirthdayData, setBabyBirthdayData] = useState(new Date(babyBirthday));
     const [detaiBirthday, setDetailBirthday] = useState('');
 
     useEffect(() => {
@@ -22,78 +21,96 @@ export default function BabyEditScreen(props) {
         setDetailBirthday(year + '年' + (month + 1) + '月' + day + '日')
     }, [babyBirthday]);
 
-    const [babyNameData, setBabyNameData] = useState(babyName);
-    const [babyIdData, setBabyIdData] = useState(babyId);
-    const [babyBirthdayData, setBabyBirthdayData] = useState(babyBirthday);
+    console.log(new Date(babyBirthday))
 
-    function handlePress() {            
-        if( babyNameData !== "") {
-            const { currentUser } = firebase.auth();
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(babyIdData);
-            Alert.alert('以下の情報へ更新します\n名前:' + babyNameData + '\n誕生日:' + detaiBirthday, 'よろしいですか？', [
-                {
-                    text: 'いいえ',
-                    onPress: () => {},
-                },
-                {
-                    text: 'はい',
-                    onPress: () => {
-                        ref.set({
-                            babyName: babyNameData,
-                            birthday: new Date(babyBirthdayData),
-                        })
-                        .then((docRef) => {
-                            navigation.goBack();
-                        })
-                        .catch((error) => {
-                            console.log('失敗しました', error);
-                        });
-                    },
-                },
-            ]);
-        } else {
-            Alert.alert("未入力です");
-        }
-    }
+    useEffect(() => {
+        setBabyBirthdayData(new Date(babyBirthday));
+    }, [babyBirthday]);
 
-    function deleteItem() {
-        const { currentUser } = firebase.auth();
-        if(currentUser) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(babyIdData);
-            Alert.alert('「' + babyNameData + '」に関する全ての記録が削除されます', 'よろしいですか？', [
-                {
-                    text: 'キャンセル',
-                    onPress: () => {},
-                },
-                {
-                    text: 'はい',
-                    style: 'destructive',
-                    onPress: () => {
-                        Alert.alert('削除後はデータの復旧ができません', '本当によろしいですか？', [
-                            {
-                                text: 'キャンセル',
-                                onPress: () => {},
-                            },
-                            {
-                                text: '削除',
-                                style: 'destructive',
-                                onPress: () => {
-                                    ref.delete().catch(() => {
-                                        Alert.alert('削除に失敗しました');
-                                    });
-                                    navigation.goBack();
+    const updateBabyData = () => {
+        Alert.alert('以下の情報へ更新します\n名前:' + babyNameData + '\n誕生日:' + detaiBirthday, 'よろしいですか？', [
+            {
+                text: 'いいえ',
+                onPress: () => {},
+            },
+            {
+                text: 'はい',
+                onPress: () => {
+                    if (babyNameData !== "") {
+                        const db = SQLite.openDatabase('DB.db');
+                
+                        db.transaction(
+                            (tx) => {
+                            tx.executeSql(
+                                'UPDATE babyData SET babyName = ?, birthday = ? WHERE id = ?',
+                                [babyNameData, babyBirthdayData.toISOString(), babyIdData],
+                                (_, result) => {
+                                Alert.alert('更新が完了しました');
+                                navigation.goBack();
                                 },
-                            },
-                        ]);
-                    },
+                                (_, error) => {
+                                Alert.alert('更新中にエラーが発生しました');
+                                console.error('データの更新中にエラーが発生しました:', error);
+                                }
+                            );
+                            }
+                        );
+                    } else {
+                        Alert.alert('名前は必須です');
+                    }
                 },
-            ]);
-        }
-    }
+            },
+        ]);
 
-    
+
+
+
+        
+    };
+
+    const deleteBabyData = () => {
+        Alert.alert('「' + babyNameData + '」に関する全ての記録が削除されます', 'よろしいですか？', [
+            {
+                text: 'キャンセル',
+                onPress: () => {},
+            },
+            {
+                text: 'はい',
+                style: 'destructive',
+                onPress: () => {
+                    Alert.alert('削除後はデータの復旧ができません', '本当によろしいですか？', [
+                        {
+                            text: 'キャンセル',
+                            onPress: () => {},
+                        },
+                        {
+                            text: '削除',
+                            style: 'destructive',
+                            onPress: () => {
+                                const db = SQLite.openDatabase('DB.db');
+                                db.transaction(
+                                (tx) => {
+                                    tx.executeSql(
+                                    'DELETE FROM babyData WHERE id = ?',
+                                    [babyIdData],
+                                    (_, result) => {
+                                        Alert.alert('削除が完了しました');
+                                        navigation.goBack();
+                                    },
+                                    (_, error) => {
+                                        Alert.alert('削除中にエラーが発生しました');
+                                        console.error('データの削除中にエラーが発生しました:', error);
+                                    }
+                                    );
+                                }
+                                );
+                            },
+                        },
+                    ]);
+                },
+            },
+        ]);
+    };
 
     //起動
     const showDatePicker = () => {
@@ -153,19 +170,19 @@ export default function BabyEditScreen(props) {
                 <View style={styles.buttonArea}>
                     <Button
                         label="削除"
-                        onPress={deleteItem}
+                        onPress={deleteBabyData}
                     />
                     <Button
                         label="更新"
-                        onPress={handlePress}
+                        onPress={updateBabyData}
                     />
                 </View>
             </View>
         </View>
     );
-}
+    }
 
-const styles = StyleSheet.create({
+    const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F0F4F8',

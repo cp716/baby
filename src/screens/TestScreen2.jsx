@@ -71,9 +71,6 @@ export default function BabyAddScreen(props) {
             onPress: () => {
               // SQLiteに赤ちゃんデータを保存
               saveBabyDataToSQLite();
-
-              // Firestoreに赤ちゃんデータを保存
-              saveBabyDataToFirestore();
             }
           }
         ]
@@ -98,14 +95,42 @@ export default function BabyAddScreen(props) {
           }
         );
         tx.executeSql(
-          'INSERT INTO currentBaby (babyName, birthday) VALUES (?, ?)',
-          [babyName, new Date(birthday).toISOString()], // Firestore Timestampに変換した日付を保存
-          (_, result) => {
-            setMessage('データがテーブルに挿入されました');
+          'SELECT EXISTS (SELECT 1 FROM currentBaby)',
+          [babyName, new Date(birthday).toISOString()],
+          (_, resultSet) => {
+            const dataExists = resultSet.rows.item(0)[Object.keys(resultSet.rows.item(0))[0]];
+            console.log(dataExists)
+            if (dataExists == 1) {
+              // データが存在する場合、UPDATEを実行
+              tx.executeSql(
+                'UPDATE currentBaby SET babyName = ?, birthday = ?',
+                [babyName, new Date(birthday).toISOString()],
+                (_, result) => {
+                  setMessage('データが更新されました');
+                },
+                (_, error) => {
+                  setMessage('データの更新中にエラーが発生しました');
+                  console.error('データの更新中にエラーが発生しました:', error);
+                }
+              );
+            } else {
+              // データが存在しない場合、INSERTを実行
+              tx.executeSql(
+                'INSERT INTO currentBaby (babyName, birthday) VALUES (?, ?)',
+                [babyName, new Date(birthday).toISOString()],
+                (_, result) => {
+                  setMessage('データが挿入されました');
+                },
+                (_, error) => {
+                  setMessage('データの挿入中にエラーが発生しました');
+                  console.error('データの挿入中にエラーが発生しました:', error);
+                }
+              );
+            }
           },
           (_, error) => {
-            setMessage('データの挿入中にエラーが発生しました');
-            console.error('データの挿入中にエラーが発生しました:', error);
+            setMessage('データの存在チェック中にエラーが発生しました');
+            console.error('データの存在チェック中にエラーが発生しました:', error);
           }
         );
       }
@@ -124,9 +149,6 @@ export default function BabyAddScreen(props) {
     const firestore = firebase.firestore();
   
     try {
-      // Firestoreのコレクションへの参照を取得
-      const collectionRef = firestore.collection(`users/${currentUser.uid}/babyData`);
-  
       // SQLiteのbabyDataテーブルからbirthdayを取得
       const sqliteBirthday = await new Promise((resolve, reject) => {
         db.transaction(
@@ -149,17 +171,29 @@ export default function BabyAddScreen(props) {
       const firestoreTimestampData = convertToFirestoreTimestamp(sqliteBirthday._array);
       console.log(firestoreTimestampData)
       
+      // Firestoreのコレクションへの参照を取得
+      const collectionRef = firestore.collection(`users/${currentUser.uid}/babyData`);
+
+      // コレクション内のすべてのドキュメントを削除
+      await collectionRef.get().then(async (querySnapshot) => {
+        const deletePromises = [];
+        querySnapshot.forEach((doc) => {
+          // 削除処理をPromiseとして配列に追加
+          deletePromises.push(doc.ref.delete());
+        });
+        // すべての削除処理を待機
+        await Promise.all(deletePromises);
+      });
+
       // データを一括で保存
       await Promise.all(firestoreTimestampData.map(async (item) => {
-        // ドキュメントを追加
-        await collectionRef.add({
+        // ドキュメント名を指定してデータを追加
+        await collectionRef.doc(item.id.toString()).set({
           babyName: item.babyName,
           birthday: item.birthday,
           id: item.id,
         });
       }));
-  
-      
       Alert.alert("データがFirestoreに保存されました");
     } catch (error) {
       console.error('Firestoreへの保存中にエラーが発生しました:', error);

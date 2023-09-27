@@ -5,7 +5,6 @@ import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
 
 import { RadioButton } from 'react-native-paper';
 
-import { useBabyContext } from '../context/BabyContext';
 import Button from '../components/Button';
 
 export default function BabyListScreen(props) {
@@ -15,9 +14,9 @@ export default function BabyListScreen(props) {
     useEffect(() => {
         if (isFocused) {
             setChecked(null);
-            setBabyId(null);
-            setBabyName(null);
-            setBabyBirthday(null);
+            setId(null);
+            setName(null);
+            setBirthday(null);
         }
     }, [isFocused]);
 
@@ -25,8 +24,6 @@ export default function BabyListScreen(props) {
     useEffect(() => {
         loadBabyData();
     }, [isFocused]);
-
-    const { baby } = useBabyContext();
 
     const [babyData, setBabyData] = useState([]); // SQLiteから取得したデータを格納するステート
 
@@ -51,9 +48,9 @@ export default function BabyListScreen(props) {
         });
     };
 
-    const [babyId, setBabyId] = useState(null);
-    const [babyName, setBabyName] = useState(null);
-    const [babyBirthday, setBabyBirthday] = useState(null);
+    const [id, setId] = useState(null);
+    const [name, setName] = useState(null);
+    const [birthday, setBirthday] = useState(null);
     const [checked, setChecked] = React.useState();
 
     function renderItem({ item }) {  
@@ -69,14 +66,14 @@ export default function BabyListScreen(props) {
                     return(
                         <RadioButton.Item
                             value={item.id}
-                            label={item.babyName + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
+                            label={item.name + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
                             status={checked === item.id ? 'checked' : null}
                             onPress={() => {
                                 console.log(item.id)
                                 setChecked(item.id)
-                                setBabyId(item.id)
-                                setBabyName(item.babyName)
-                                setBabyBirthday(item.birthday)
+                                setId(item.id)
+                                setName(item.name)
+                                setBirthday(item.birthday)
                             }}
                         />
                     )
@@ -109,14 +106,14 @@ export default function BabyListScreen(props) {
                 </View>
                 <Button
                     label="編集"
-                    disabled={!babyId || !babyName || !babyBirthday}
-                    style={babyId && babyName && babyBirthday ? enabledButtonStyle : disabledButtonStyle}
+                    disabled={!id || !name || !birthday}
+                    style={id && name && birthday ? enabledButtonStyle : disabledButtonStyle}
                     onPress={() => { 
-                        if (babyId && babyName && babyBirthday) {
+                        if (id && name && birthday) {
                             navigation.navigate('BabyEdit', { 
-                                babyId: babyId, 
-                                babyName: babyName,
-                                babyBirthday: babyBirthday,
+                                id: id, 
+                                name: name,
+                                birthday: birthday,
                             });
                         } else {
                             // ここでボタンが無効な状態であることをユーザーに伝えるための処理を追加するか、ボタンを非表示にするなどの適切な処理を行います。

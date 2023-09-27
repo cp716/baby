@@ -42,19 +42,6 @@ export default function TestScreen() {
             [],
             () => {
               console.log('古いテーブルが削除されました');
-              // テーブル再作成
-              //tx.executeSql(
-              //  'CREATE TABLE IF NOT EXISTS babyData (id INTEGER PRIMARY KEY AUTOINCREMENT, babyName TEXT, birthday TEXT)',
-              //  [],
-              //  () => {
-              //    console.log('新しいテーブルが作成されました');
-              //    setMessage('新しいテーブルが作成されました');
-              //  },
-              //  (error) => {
-              //    setMessage('新しいテーブルの作成中にエラーが発生しました');
-              //    console.error('新しいテーブルの作成中にエラーが発生しました:', error);
-              //  }
-              //);
             },
             (error) => {
               setMessage('古いテーブルの削除中にエラーが発生しました');
@@ -115,7 +102,7 @@ export default function TestScreen() {
     db.transaction(
       (tx) => {
         tx.executeSql(
-          'INSERT INTO babyData (babyName, birthday) VALUES (?, ?)',
+          'INSERT INTO babyData (name, birthday) VALUES (?, ?)',
           [text, '201112319999'],
           (_, result) => {
             setMessage('データがテーブルに挿入されました');

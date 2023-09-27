@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
-import firebase from 'firebase';
 import { useIsFocused } from '@react-navigation/native';
 import Modal from "react-native-modal";
 import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
 import CircleButton from './CircleButton';
 import { RadioButton } from 'react-native-paper';
-
 import { useBabyContext } from '../context/BabyContext';
+import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 
 export default function ModalSelectBaby(props) {
     const isFocused = useIsFocused();
@@ -15,19 +14,31 @@ export default function ModalSelectBaby(props) {
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
+    //const { currentBaby2 } = useBabyContext();
+    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
+    const { babyState, babyDispatch } = useBabyContext();
+
+    
+
+    
+
+    const [babyData, setBabyData] = useState([]); // SQLiteから取得したデータを格納するステート
+    const [id, setId] = useState('');
+    const [name, setName] = useState(null);
+    const [birthday, setBirthday] = useState(null);
+    //const { toggleBabyModal } = props;
+    const [checked, setChecked] = useState(id);
+    // SQLiteデータベースを開くか作成する
+    const database = SQLite.openDatabase('DB.db');
 
     // データ取得関数を初回実行
     useEffect(() => {
         loadBabyData();
+        setId(currentBabyState.currentBaby[0].id)
+        //setChecked(currentBabyState.currentBaby[0].id)
     }, [isFocused]);
 
-    const { baby } = useBabyContext();
-
-    const [babyData, setBabyData] = useState([]); // SQLiteから取得したデータを格納するステート
-    const [currentBaby, setCurrentBaby] = useState([]); // SQLiteから取得したデータを格納するステート
-
-    // SQLiteデータベースを開くか作成する
-    const database = SQLite.openDatabase('DB.db');
+    console.log(currentBabyState.currentBaby)
 
     // SQLiteからデータを取得する関数
     const loadBabyData = () => {
@@ -44,20 +55,8 @@ export default function ModalSelectBaby(props) {
                     console.error('データの取得中にエラーが発生しました:', error);
                 }
             );
-            tx.executeSql(
-                'SELECT * FROM currentBaby',
-                [],
-                (_, rows) => {
-                    setCurrentBaby(rows.rows.item(0)); // データをステートにセット)
-                }
-            );
         });
     };
-    console.log(currentBaby.id)
-
-    const [babyIdData, setBabyIdData] = useState(null);
-    const { toggleBabyModal } = props;
-    const [checked, setChecked] = React.useState(currentBaby.id);
     
     function renderItem({ item }) {
 
@@ -72,14 +71,15 @@ export default function ModalSelectBaby(props) {
                     return(
                         <RadioButton.Item
                             value={item.id}
-                            label={item.babyName + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
+                            label={item.name + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
                             status={checked === item.id ? 'checked' : null}
                             onPress={() => {
-                                console.log(item.id)
+                                //console.log(item.id)
                                 setChecked(item.id)
-                                setBabyId(item.id)
-                                setBabyName(item.babyName)
-                                setBabyBirthday(item.birthday)
+                                setId(item.id)
+                                setName(item.name)
+                                setBirthday(item.birthday)
+                                currentBabyDispatch({ type: "addBaby", currentBaby: item })
                             }}
                         />
                     )

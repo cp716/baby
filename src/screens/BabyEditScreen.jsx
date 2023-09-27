@@ -6,29 +6,29 @@ import Button from '../components/Button';
 
 export default function BabyEditScreen(props) {
     const { route, navigation } = props;
-    const { babyId, babyName, babyBirthday } = route.params;
+    const { id, name, birthday } = route.params;
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-    const [babyNameData, setBabyNameData] = useState(babyName);
-    const [babyIdData, setBabyIdData] = useState(babyId);
-    const [babyBirthdayData, setBabyBirthdayData] = useState(new Date(babyBirthday));
+    const [nameData, setNameData] = useState(name);
+    const [idData, setIdData] = useState(id);
+    const [birthdayData, setBirthdayData] = useState(new Date(birthday));
     const [detaiBirthday, setDetailBirthday] = useState('');
 
     useEffect(() => {
-        const date = new Date(babyBirthday)
+        const date = new Date(birthday)
         const year = date.getFullYear();
         const month = date.getMonth();
         const day = date.getDate();
         setDetailBirthday(year + '年' + (month + 1) + '月' + day + '日')
-    }, [babyBirthday]);
+    }, [birthday]);
 
-    console.log(new Date(babyBirthday))
+    console.log(new Date(birthday))
 
     useEffect(() => {
-        setBabyBirthdayData(new Date(babyBirthday));
-    }, [babyBirthday]);
+        setBirthdayData(new Date(birthday));
+    }, [birthday]);
 
     const updateBabyData = () => {
-        Alert.alert('以下の情報へ更新します\n名前:' + babyNameData + '\n誕生日:' + detaiBirthday, 'よろしいですか？', [
+        Alert.alert('以下の情報へ更新します\n名前:' + nameData + '\n誕生日:' + detaiBirthday, 'よろしいですか？', [
             {
                 text: 'いいえ',
                 onPress: () => {},
@@ -36,14 +36,14 @@ export default function BabyEditScreen(props) {
             {
                 text: 'はい',
                 onPress: () => {
-                    if (babyNameData !== "") {
+                    if (nameData !== "") {
                         const db = SQLite.openDatabase('DB.db');
                 
                         db.transaction(
                             (tx) => {
                             tx.executeSql(
-                                'UPDATE babyData SET babyName = ?, birthday = ? WHERE id = ?',
-                                [babyNameData, babyBirthdayData.toISOString(), babyIdData],
+                                'UPDATE babyData SET name = ?, birthday = ? WHERE id = ?',
+                                [nameData, birthdayData.toISOString(), idData],
                                 (_, result) => {
                                 Alert.alert('更新が完了しました');
                                 navigation.goBack();
@@ -69,7 +69,7 @@ export default function BabyEditScreen(props) {
     };
 
     const deleteBabyData = () => {
-        Alert.alert('「' + babyNameData + '」に関する全ての記録が削除されます', 'よろしいですか？', [
+        Alert.alert('「' + nameData + '」に関する全ての記録が削除されます', 'よろしいですか？', [
             {
                 text: 'キャンセル',
                 onPress: () => {},
@@ -92,7 +92,7 @@ export default function BabyEditScreen(props) {
                                 (tx) => {
                                     tx.executeSql(
                                     'DELETE FROM babyData WHERE id = ?',
-                                    [babyIdData],
+                                    [idData],
                                     (_, result) => {
                                         Alert.alert('削除が完了しました');
                                         navigation.goBack();
@@ -129,7 +129,7 @@ export default function BabyEditScreen(props) {
 
     //決定ボタン押下時の処理
     const handleConfirm = (date) => {
-        setBabyBirthdayData(date);
+        setBirthdayData(date);
         formatDatetime(date);
         hideDatePicker();
     };
@@ -141,8 +141,8 @@ export default function BabyEditScreen(props) {
                 <Text style={styles.inputText}>名前</Text>
                 <TextInput
                     style={styles.input}
-                    value={babyNameData}
-                    onChangeText={(text) => { setBabyNameData(text); }}
+                    value={nameData}
+                    onChangeText={(text) => { setNameData(text); }}
                     autoCapitalize="none"
                     keyboardType="default"
                     placeholder="入力してください"
@@ -154,7 +154,7 @@ export default function BabyEditScreen(props) {
                 </TouchableOpacity>
                 <DateTimePickerModal
                     isVisible={isDatePickerVisible}
-                    value={new Date(babyBirthdayData)}
+                    value={new Date(birthdayData)}
                     onConfirm={handleConfirm}
                     onCancel={hideDatePicker}
                     mode="date"//入力項目
@@ -165,7 +165,7 @@ export default function BabyEditScreen(props) {
                     minuteInterval={5}//分数間隔
                     headerTextIOS=""//入力欄ヘッダーテキスト
                     textColor="blue"//ピッカーカラー
-                    date={new Date(babyBirthdayData)}//ピッカー日付デフォルト
+                    date={new Date(birthdayData)}//ピッカー日付デフォルト
                 />
                 <View style={styles.buttonArea}>
                     <Button

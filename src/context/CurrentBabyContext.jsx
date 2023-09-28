@@ -1,8 +1,7 @@
-import React, { createContext, useReducer, useContext, useEffect,useState, useMemo } from 'react';
+import React, { createContext, useReducer, useContext, useEffect, useMemo } from 'react';
 import { openDatabase } from 'expo-sqlite';
 
 // SQLiteデータベースに接続
-const db = openDatabase('DB.db'); // データベース名を適切に設定
 
 //＝＝＝＝＝＝＝＝
 // Context
@@ -14,10 +13,6 @@ export function useCurrentBabyContext() {
 }
 
 export function CurrentBabyProvider({ children }) {
-  //const [currentBaby, setCurrentBaby] = useState('');
-
-  const currentBaby = [];
-
   //＝＝＝＝＝＝＝＝
   // 初期値設定
   //＝＝＝＝＝＝＝＝
@@ -25,49 +20,49 @@ export function CurrentBabyProvider({ children }) {
   // initialStateをuseMemoでキャッシュ
   const initialState = useMemo(() => {
     return {
-        currentBaby: currentBaby,
+        name: '',
+        birthday: '',
+        id: '',
     };
-  }, [currentBaby]);
+  }, []);
 
   const reducer = (state, action) => {
-
     //＝＝＝＝＝＝＝＝
     // 設定中赤ちゃん変更処理
     //＝＝＝＝＝＝＝＝
     if (action.type === "addBaby") {
       // SQLiteにデータを保存
-      //console.log(action.currentBaby)
-      db.transaction((tx) => {
-        tx.executeSql(
-          'UPDATE currentBaby SET name = ?, birthday = ?, id = ?',
-          //'INSERT INTO currentBaby (name, birthday, Id) VALUES (?, ?, ?)',
-          [action.currentBaby.name, action.currentBaby.birthday, action.currentBaby.id],
-          (_, result) => {
-            // データが保存されたらContextを更新
-            //state.name = action.name;
-            //state.bBirthday = action.birthday;
-            //state.id = action.id;
-            //state.currentBaby = action.currentBaby;
-            currentBaby.push(action.currentBaby[0])
-            //console.log(action.currentBaby)
-            
-          },
-          (_, error) => {
-            console.error('データの保存中にエラーが発生しました:', error);
-          }
-        );
-      });
-      return { currentBaby: state.currentBaby };
+      const db = openDatabase('DB.db');
+      db.transaction(
+        (tx) => {
+          tx.executeSql(
+            'UPDATE currentBaby SET name = ?, birthday = ?, id = ?',
+            [action.name, action.birthday, action.id],
+            (_, result) => {
+              // データが保存されたらContextを更新
+            },
+            (_, error) => {
+              console.error('データの保存中にエラーが発生しました:', error);
+            }
+          );
+        }
+      );
+      state.name = action.name;
+      state.birthday = action.birthday;
+      state.id = action.id;
+      return { name: state.name, birthday: state.birthday, id: state.id };
     }
 
     // 他のアクションの処理
     //return state;
   };
+  
 
   const [currentBabyState, currentBabyDispatch] = useReducer(reducer, initialState);
 
     // コンポーネントがマウントされたときにSQLiteからデータを取得し、Contextを更新
   useEffect(() => {
+    const db = openDatabase('DB.db');
     db.transaction((tx) => {
     tx.executeSql(
         'SELECT * FROM currentBaby LIMIT 1',
@@ -75,17 +70,12 @@ export function CurrentBabyProvider({ children }) {
         (_, result) => {
         const data = result.rows.item(0);
         if (data) {
-            //currentBabyDispatch({
-              //type: 'addBaby',
-              //name: data.name,
-              //birthday: data.birthday,
-              //id: data.Id,
-              //currentBaby: data,
-            //});
-            //setCurrentBaby(data)
-            currentBaby.push(data)
-            
-            //console.log(data)
+            currentBabyDispatch({
+              type: 'addBaby',
+              name: data.name,
+              birthday: data.birthday,
+              id: data.id,
+            });
         }
         },
         (_, error) => {
@@ -93,7 +83,7 @@ export function CurrentBabyProvider({ children }) {
         }
     );
     });
-}, [currentBaby]); // 初回のみ実行
+  }, []); // 初回のみ実行
 
   const contextValue = useMemo(() => {
     return { currentBabyState, currentBabyDispatch };
@@ -104,5 +94,5 @@ export function CurrentBabyProvider({ children }) {
       {children}
     </CurrentBabyContext.Provider>
   );
-
 }
+

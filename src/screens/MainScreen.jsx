@@ -19,12 +19,31 @@ import DailyTable from '../components/DailyTable';
 import { useBabyContext } from '../context/BabyContext';
 import { useDateTimeContext } from '../context/DateTimeContext';
 import { useBabyRecordContext } from '../context/BabyRecordContext';
+import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 
 export default function MainScreen(props) {
     const { baby } = useBabyContext();
-    const { currentBaby } = useBabyContext();
+    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
+    const { dateTimeState, dateTimeDispatch } = useDateTimeContext();
+    const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
 
+    const [name, setName] = useState('');
+    const [id, setId] = useState('');
+    const [birthday, setBirthday] = useState('');
     const babyData = [];
+    const isFocused = useIsFocused()
+    
+    const [todayData, setTodayData] = useState([]);
+    const [babyRecord, setBabyRecord] = useState([]);
+    const [day, setDay] = useState(dateTimeState.day - 1);
+    const [isLoading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setName()
+        setBirthday()
+        setId()    
+    }, [currentBabyState, isFocused]);
+
     if(baby !== "") {
         baby.forEach((doc) => {
             const data = doc.data();
@@ -35,34 +54,6 @@ export default function MainScreen(props) {
             });
         });
     }
-    
-    const { dateTimeState, dateTimeDispatch } = useDateTimeContext();
-    const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
-
-    const [todayData, setTodayData] = useState([]);
-    const [indexCount, setIndexCount] = useState(0);
-    const [babyRecord, setBabyRecord] = useState([]);
-    const [day, setDay] = useState(dateTimeState.day - 1);
-
-    const [isLoading, setLoading] = useState(false);
-
-    const isFocused = useIsFocused()
-
-    const [babyNameData, setBabyNameData] = useState('');
-    const [babyIdData, setBabyIdData] = useState('');
-    const [babyBirthdayData, setBabyBirthdayData] = useState('');
-
-    useEffect(() => {
-        const currentBabyData = [];
-        if(currentBaby !== "") {
-            currentBaby.forEach((doc) => {
-                const data = doc.data();
-                setBabyNameData(data.babyName)
-                setBabyIdData(data.babyId)
-                setBabyBirthdayData(data.birthday)
-            });
-        }
-    }, [currentBaby, isFocused]);
 
     useEffect(() => {
         setLoading(true);
@@ -72,9 +63,9 @@ export default function MainScreen(props) {
         };
         cleanupFuncs.auth = firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-                if(babyIdData !== '') {
+                if(currentBabyState.id !== '') {
                     const db = firebase.firestore();
-                    const ref = db.collection(`users/${user.uid}/babyData`).doc(babyIdData)
+                    const ref = db.collection(`users/${user.uid}/babyData`).doc(currentBabyState.id.toString())
                     .collection(`${dateTimeState.year}_${dateTimeState.month}`).orderBy('updatedAt', 'asc');
                     //.collection(`${dateTimeState.year}/${dateTimeState.month}/${dateTimeState.day}`).orderBy('updatedAt', 'asc');
                     cleanupFuncs.memos = ref.onSnapshot((snapshot) => {
@@ -119,7 +110,7 @@ export default function MainScreen(props) {
             cleanupFuncs.auth();
             cleanupFuncs.memos();
         };
-    }, [babyIdData, dateTimeState]);
+    }, [currentBabyState.id, dateTimeState]);
 
     if (babyData.length == 0) {
         return (

@@ -1,42 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import firebase from 'firebase';
-import { useBabyContext } from '../../context/BabyContext';
-
+import * as SQLite from 'expo-sqlite';
+import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { CheckBox } from 'react-native-elements'
 
 export default function ToiletInputForm(props) {
     const { selectTime } = props;
     const { toggleModal } = props;
 
-    const { currentBaby } = useBabyContext();
-    const [babyIdData, setBabyIdData] = useState('');
-
-    useEffect(() => {
-        const currentBabyData = [];
-        if(currentBaby !== "") {
-            currentBaby.forEach((doc) => {
-                const data = doc.data();
-                setBabyIdData(data.babyId)
-                //setBabyNameData(data.babyName)
-                //setBabyBirthdayData(data.birthday)
-            });
-        }
-    }, []);
+    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const date = new Date(selectTime);
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
     
-    const [oshikko, setOshikko] = useState(false);
-    const [unchi, setUnchi] = useState(false);
+    const [oshikko, setOshikko] = useState(0);
+    const [unchi, setUnchi] = useState(0);
     const [bodyText, setBodyText] = useState('');
+
+    const saveToiletDataToSQLite = () => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+        (tx) => {
+            tx.executeSql(
+            'INSERT INTO ToiletRecord_2023_09 (babyId, day, oshikko, unchi, bodyText, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
+            [
+                currentBabyState.id,
+                day, 
+                oshikko,
+                unchi,
+                bodyText,
+                new Date(selectTime).toISOString()
+            ],
+            (_, result) => {
+                toggleModal()
+            },
+            (_, error) => {
+                console.error('データの挿入中にエラーが発生しました:', error);
+            }
+            );
+        }
+        );
+    };
     
     function handlePress() {
         const db = firebase.firestore();
         const { currentUser } = firebase.auth();
-        const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(babyIdData)
+        const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(currentBabyState.id.toString())
         .collection(`${year}_${month}`)
 
         if( oshikko || unchi ) {
@@ -68,13 +80,17 @@ export default function ToiletInputForm(props) {
                 <View style={styles.radioButton}>
                     <CheckBox
                         title='おしっこ'
-                        checked={oshikko}
-                        onPress={() => setOshikko(!oshikko)}
+                        //checked={oshikko}
+                        //onPress={() => setOshikko(!oshikko)}
+                        checked={oshikko === 1} // valueが1の場合に選択済み、それ以外の場合は未選択
+                        onPress={() => {setOshikko(oshikko === 1 ? 0 : 1);}}
                     />
                     <CheckBox
                         title='うんち'
-                        checked={unchi}
-                        onPress={() => setUnchi(!unchi)}
+                        //checked={unchi}
+                        //onPress={() => setUnchi(!unchi)}
+                        checked={unchi === 1} // valueが1の場合に選択済み、それ以外の場合は未選択
+                        onPress={() => {setUnchi(unchi === 1 ? 0 : 1);}}
                     />
                 </View>
             </View>
@@ -94,7 +110,7 @@ export default function ToiletInputForm(props) {
                 <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
                     <Text style={modalStyles.confirmButtonText}>close</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress} >
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveToiletDataToSQLite} >
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>

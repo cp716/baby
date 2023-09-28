@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import Modal from "react-native-modal";
 import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
@@ -14,13 +14,8 @@ export default function ModalSelectBaby(props) {
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
-    //const { currentBaby2 } = useBabyContext();
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
     const { babyState, babyDispatch } = useBabyContext();
-
-    
-
-    
 
     const [babyData, setBabyData] = useState([]); // SQLiteから取得したデータを格納するステート
     const [id, setId] = useState('');
@@ -34,11 +29,9 @@ export default function ModalSelectBaby(props) {
     // データ取得関数を初回実行
     useEffect(() => {
         loadBabyData();
-        setId(currentBabyState.currentBaby[0].id)
-        //setChecked(currentBabyState.currentBaby[0].id)
+        setId(currentBabyState.id)
+        setChecked(currentBabyState.id)
     }, [isFocused]);
-
-    console.log(currentBabyState.currentBaby)
 
     // SQLiteからデータを取得する関数
     const loadBabyData = () => {
@@ -74,12 +67,16 @@ export default function ModalSelectBaby(props) {
                             label={item.name + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
                             status={checked === item.id ? 'checked' : null}
                             onPress={() => {
-                                //console.log(item.id)
                                 setChecked(item.id)
                                 setId(item.id)
                                 setName(item.name)
                                 setBirthday(item.birthday)
-                                currentBabyDispatch({ type: "addBaby", currentBaby: item })
+                                currentBabyDispatch({
+                                    type: "addBaby",
+                                    name: item.name,
+                                    birthday: item.birthday,
+                                    id: item.id,
+                                });
                             }}
                         />
                     )

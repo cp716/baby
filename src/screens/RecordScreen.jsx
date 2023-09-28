@@ -5,7 +5,7 @@ import { StyleSheet, View, ScrollView, TouchableOpacity, Text } from 'react-nati
 import { Table, Row } from 'react-native-table-component';
 import Modal from "react-native-modal";
 import DatePicker from 'react-native-modern-datepicker';
-import { useBabyContext } from '../context/BabyContext';
+import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 
 const nowDateYear = new Date().getFullYear();
 const nowDateMonth = new Date().getMonth() + 1;
@@ -26,7 +26,6 @@ export default function RecordScreen() {
         setModalVisible(!isModalVisible);
     };
 
-    
     const [index, setIndex] = useState(initialIndex);
     const [date, setDate] = useState(`${nowDateYear}/${nowDateMonth.toString().padStart(2, "0")}/01`);
     let selectYear = date.slice( 0, 4 );
@@ -42,42 +41,24 @@ export default function RecordScreen() {
 
 
 
+    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
 
 
 
-    const { currentBaby } = useBabyContext();
 
-    const [baby, setBaby] = useState('');
     const [monthData, setMonthData] = useState([]);
     const [babyNameData, setBabyNameData] = useState('');
     const [babyIdData, setBabyIdData] = useState('');
     const [babyBirthdayData, setBabyBirthdayData] = useState('');
 
     useEffect(() => {
-        const currentBabyData = [];
-        if(currentBaby !== "") {
-            currentBaby.forEach((doc) => {
-                const data = doc.data();
-                setBabyNameData(data.babyName)
-                setBabyIdData(data.babyId)
-                setBabyBirthdayData(data.birthday)
-            });
-        }
-    }, [currentBaby]);
-
-    // unsubscribedCurrentBaby を定義
-    let unsubscribedCurrentBaby;
-
-    useEffect(() => {
         const db = firebase.firestore();
         let unsubscribedBaby = firebase.auth().onAuthStateChanged((user) => {
-            if (user && babyIdData) {
-                const babyRef = db.collection(`users/${user.uid}/babyData`).doc(babyIdData)
+            if (user && currentBabyState.id) {
+                const babyRef = db.collection(`users/${user.uid}/babyData`).doc(currentBabyState.id.toString())
                 .collection(`${selectYear}_${selectMonth}`).orderBy('updatedAt', 'asc'); 
                 unsubscribedBaby = babyRef.onSnapshot((babySnapshot) => {
-                    setBaby(babySnapshot);
-
                     const userMemos = [];
                     babySnapshot.forEach((doc) => {
                         const data = doc.data();
@@ -108,13 +89,8 @@ export default function RecordScreen() {
         });
         return () => {
             unsubscribedBaby();
-            
-            // クリーンアップ時にunsubscribedCurrentBabyも呼び出す
-            if (unsubscribedCurrentBaby) {
-                unsubscribedCurrentBaby();
-            }
         };
-    }, [babyIdData, date]);
+    }, [currentBabyState.id, date]);
 
     const tableHead = ['授乳', '哺乳瓶', 'ご飯', 'トイレ', '病気', '体温']
     const sybTableHead = ['左', '右', 'ミルク', '母乳', '炭水化物', 'タンパク質', 'ミネラル', '調味料', '飲み物', 'おしっこ', 'うんち', '鼻水', '咳', '嘔吐', '発疹', '怪我', '薬', '最高', '最低']

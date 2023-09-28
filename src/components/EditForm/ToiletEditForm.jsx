@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import firebase from 'firebase';
-import { useBabyContext } from '../../context/BabyContext';
+import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { CheckBox } from 'react-native-elements'
 
@@ -9,20 +9,7 @@ export default function ToiletEditForm(props) {
     const { babyData } = props;
     const { toggleModal } = props;
 
-    const { currentBaby } = useBabyContext();
-    const [babyIdData, setBabyIdData] = useState('');
-
-    useEffect(() => {
-        const currentBabyData = [];
-        if(currentBaby !== "") {
-            currentBaby.forEach((doc) => {
-                const data = doc.data();
-                setBabyIdData(data.babyId)
-                //setBabyNameData(data.babyName)
-                //setBabyBirthdayData(data.birthday)
-            });
-        }
-    }, []);
+    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const year = selectTime.getFullYear();
     const month = selectTime.getMonth() + 1;
@@ -37,7 +24,7 @@ export default function ToiletEditForm(props) {
         const { currentUser } = firebase.auth();
         if (currentUser ) {
             const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(babyIdData)
+            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
             .collection(`${year}_${month}`).doc(babyData.id)
             
             if( oshikko || unchi ) {
@@ -68,7 +55,7 @@ export default function ToiletEditForm(props) {
         const { currentUser } = firebase.auth();
         if(currentUser) {
             const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(babyIdData)
+            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
             .collection(`${year}_${month}`).doc(babyData.id)
             
             Alert.alert('削除します', 'よろしいですか？', [

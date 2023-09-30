@@ -10,19 +10,20 @@ import FreeEditForm from "../components/EditForm/FreeEditForm";
 import { useDateTimeContext } from '../context/DateTimeContext';
 
 export default function DetailScreen(props) {
-    const { navigation } = props;
     const { dateTimeState, dateTimeDispatch } = useDateTimeContext();
     const { babyData }  = props;
     const { toggleModal } = props;
 
-    const month = babyData.updatedAt.getMonth();
-    const day = babyData.updatedAt.getDate();
-    const hours = babyData.updatedAt.getHours();
-    const minutes = babyData.updatedAt.getMinutes();
+    const dateTime = new Date(babyData.updatedAt);
+
+    const month = dateTime.getMonth();
+    const day = dateTime.getDate();
+    const hours = dateTime.getHours();
+    const minutes = dateTime.getMinutes();
     const mdhm =  month + 1 + '月' + day + '日' + hours + '時' + minutes + '分';
 
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-    const [selectTime, setselectTime] = useState(babyData.updatedAt);
+    const [selectTime, setselectTime] = useState(dateTime);
     const [detailTime, setDetailTime] = useState(mdhm);
     
     //起動

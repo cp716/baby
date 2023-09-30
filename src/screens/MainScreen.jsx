@@ -1,7 +1,7 @@
 import React, { useEffect, useState }  from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useIsFocused } from '@react-navigation/native'
-
+import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
 import firebase from 'firebase';
 
 import MilkAddButton from '../components/AddButton/MilkAddButton';
@@ -35,14 +35,52 @@ export default function MainScreen(props) {
     
     const [todayData, setTodayData] = useState([]);
     const [babyRecord, setBabyRecord] = useState([]);
-    const [day, setDay] = useState(dateTimeState.day - 1);
+    const [day, setDay] = useState(dateTimeState.day);
     const [isLoading, setLoading] = useState(false);
 
     useEffect(() => {
         setName()
         setBirthday()
-        setId()    
-    }, [currentBabyState, isFocused]);
+        setId()
+        loadBabyData();
+    }, [currentBabyState, dateTimeState, todayData, isFocused]);
+
+
+
+    
+    const [todayData2, setTodayData2] = useState([]);
+    // SQLiteからデータを取得する関数
+    const database = SQLite.openDatabase('DB.db');
+    const loadBabyData = () => {
+        database.transaction((tx) => {
+            // テーブルの存在を確認
+            tx.executeSql(
+                'PRAGMA table_info(ToiletRecord_' + dateTimeState.year + '_' + String(dateTimeState.month).padStart(2, '0') + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                    'SELECT * FROM ToiletRecord_' + dateTimeState.year + '_' + String(dateTimeState.month).padStart(2, '0') + ' WHERE babyId = ? AND day = ?;',
+                    [currentBabyState.id, dateTimeState.day],
+                    (_, { rows }) => {
+                        const data = rows._array; // クエリ結果を配列に変換
+                        setTodayData2(data);
+                    },
+                    (_, error) => {
+                        console.error('データの取得中にエラーが発生しました:', error);
+                    }
+                    );
+                } else {
+                    console.log('テーブルが存在しません');
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
+        });
+    };
 
     if(baby !== "") {
         baby.forEach((doc) => {
@@ -122,7 +160,7 @@ export default function MainScreen(props) {
         );
     }
 
-    if (todayData.length === 0) {
+    if (todayData2.length === 0) {
         return (
             <View style={styles.container}>
                 <View style={[styles.dateTime , {height: '15%'}]}>
@@ -174,7 +212,7 @@ export default function MainScreen(props) {
                 </View>
             </View>
             <View style={{height: '40%'}}>
-                <CreateData todayData={todayData} />
+                <CreateData todayData2={todayData2} />
             </View>
             <View style={[styles.footer , {height: '40%'}]}>
                 <View style={styles.button}>

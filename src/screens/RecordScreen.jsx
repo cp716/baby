@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
 import Swiper from 'react-native-swiper'
 import { StyleSheet, View, ScrollView, TouchableOpacity, Text } from 'react-native';
 import { Table, Row } from 'react-native-table-component';
@@ -29,7 +30,10 @@ export default function RecordScreen() {
     const [index, setIndex] = useState(initialIndex);
     const [date, setDate] = useState(`${nowDateYear}/${nowDateMonth.toString().padStart(2, "0")}/01`);
     let selectYear = date.slice( 0, 4 );
-    let selectMonth = date.slice( 5, 7 ).replace(/^0+/, "");
+    let selectMonth = date.slice( 5, 7 );
+    //const [selectYear, setSelectYear] = useState(date.slice( 0, 4 ));
+    //const [selectMonth, setSelectMonth] = useState(date.slice( 5, 7 ));
+
 
     const groupBy = function(xs, key) {
         return xs.reduce(function(rv, x) {
@@ -37,7 +41,6 @@ export default function RecordScreen() {
             return rv;
         }, {});
     };
-
 
 
 
@@ -52,45 +55,44 @@ export default function RecordScreen() {
     const [babyIdData, setBabyIdData] = useState('');
     const [babyBirthdayData, setBabyBirthdayData] = useState('');
 
+
+    const [monthToiletData, setMonthToiletData] = useState([]);
+
     useEffect(() => {
-        const db = firebase.firestore();
-        let unsubscribedBaby = firebase.auth().onAuthStateChanged((user) => {
-            if (user && currentBabyState.id) {
-                const babyRef = db.collection(`users/${user.uid}/babyData`).doc(currentBabyState.id.toString())
-                .collection(`${selectYear}_${selectMonth}`).orderBy('updatedAt', 'asc'); 
-                unsubscribedBaby = babyRef.onSnapshot((babySnapshot) => {
-                    const userMemos = [];
-                    babySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        userMemos.push({
-                            id: doc.id,
-                            timeLeft: data.timeLeft,
-                            timeRight: data.timeRight,
-                            milk: data.milk,
-                            category: data.category,
-                            bonyu: data.bonyu,
-                            toilet: data.toilet,
-                            disease: data.disease,
-                            bodyTemperature: data.bodyTemperature,
-                            food: data.food,
-                            freeText: data.freeText,
-                            bodyText: data.bodyText,
-                            selectBaby: data.selectBaby,
-                            day: data.day,
-                            updatedAt: data.updatedAt.toDate(),
-                        });
-                    });
-                    setMonthData(userMemos);
-                }, (babyError) => {
-                    console.log(babyError);
-                    Alert.alert('babyデータの読み込みに失敗しました。');
-                });
-            }
+        loadBabyData();
+    }, [currentBabyState, date]);
+
+    const database = SQLite.openDatabase('DB.db');
+    const loadBabyData = () => {
+        database.transaction((tx) => {
+            // テーブルの存在を確認
+            tx.executeSql(
+                'PRAGMA table_info(ToiletRecord_' + date.slice( 0, 4 ) + '_' + date.slice( 5, 7 ) + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                    'SELECT * FROM ToiletRecord_' + date.slice( 0, 4 ) + '_' + date.slice( 5, 7 ) + ' WHERE babyId = ?;',
+                    [currentBabyState.id],
+                    (_, { rows }) => {
+                        const data = rows._array; // クエリ結果を配列に変換
+                        setMonthToiletData(data);
+                    },
+                    (_, error) => {
+                        console.error('データの取得中にエラーが発生しました:', error);
+                    }
+                    );
+                } else {
+                    console.log('テーブルが存在しません');
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
         });
-        return () => {
-            unsubscribedBaby();
-        };
-    }, [currentBabyState.id, date]);
+    };
 
     const tableHead = ['授乳', '哺乳瓶', 'ご飯', 'トイレ', '病気', '体温']
     const sybTableHead = ['左', '右', 'ミルク', '母乳', '炭水化物', 'タンパク質', 'ミネラル', '調味料', '飲み物', 'おしっこ', 'うんち', '鼻水', '咳', '嘔吐', '発疹', '怪我', '薬', '最高', '最低']
@@ -126,15 +128,15 @@ export default function RecordScreen() {
         let kegaCount = 0;
         let kusuriCount = 0;
 
-        const x = monthData.filter((data) => data.day == [i])
+        const x = monthToiletData.filter((data) => data.day == [i])
         const groupByCategory = groupBy(x, 'category');
         const junyu = groupByCategory.JUNYU
         const milk  = groupByCategory.MILK
         const bonyu  = groupByCategory.BONYU
-        const toilet  = groupByCategory.TOILET
+        const toilet  = monthToiletData.filter((data) => data.day == [i])
         const disease  = groupByCategory.DISEASE
         const food  = groupByCategory.FOOD
-
+console.log(toilet)
         for (let key in junyu) {
             junyLeftTotal += junyu[key].timeLeft
             junyRightTotal += junyu[key].timeRight
@@ -170,10 +172,10 @@ export default function RecordScreen() {
         }
 
         for (let key in toilet) {
-            if(toilet[key].toilet.oshikko) {
+            if(toilet[key].oshikko) {
                 oshikkoCount += 1
             }
-            if(toilet[key].toilet.unchi) {
+            if(toilet[key].unchi) {
                 unchiCount += 1
             }
         }
@@ -319,7 +321,7 @@ export default function RecordScreen() {
     const isTodayRow = (rowData) => {
         return rowData[0] === todayDay + '日';
     };
-    
+
     return (
         <View style={styles.container}>
             <View style={[styles.date , {height: '15%'}]}>
@@ -369,7 +371,7 @@ export default function RecordScreen() {
                 showsPagination={true}//下部マーク
                 loop={false}//連続ループ
                 index={index}
-                loadMinimal={true}
+                //loadMinimal={true}
                 //renderPagination={renderPagination}
             >
                 <View style={styles.table}>
@@ -380,7 +382,10 @@ export default function RecordScreen() {
                                     key={index}
                                     data={rowData}
                                     widthArr={[50]}
-                                    style={styles.row}
+                                    style={{
+                                        ...styles.row,
+                                        ...(isTodayRow(rowData) ? { backgroundColor: '#D3EBE9' } : {}), // 今日の行は背景色を変更
+                                    }}
                                     textStyle={styles.text}
                                 />
                             ))
@@ -448,7 +453,10 @@ export default function RecordScreen() {
                                     key={index}
                                     data={rowData}
                                     widthArr={[50]}
-                                    style={styles.row}
+                                    style={{
+                                        ...styles.row,
+                                        ...(isTodayRow(rowData) ? { backgroundColor: '#D3EBE9' } : {}), // 今日の行は背景色を変更
+                                    }}
                                     textStyle={styles.text}
                                 />
                             ))

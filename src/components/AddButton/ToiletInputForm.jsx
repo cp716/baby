@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import firebase from 'firebase';
 import * as SQLite from 'expo-sqlite';
@@ -13,28 +13,58 @@ export default function ToiletInputForm(props) {
 
     const date = new Date(selectTime);
     const year = date.getFullYear();
-    const month = date.getMonth() + 1;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = date.getDate();
     
     const [oshikko, setOshikko] = useState(0);
     const [unchi, setUnchi] = useState(0);
     const [bodyText, setBodyText] = useState('');
 
+    useEffect(() => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+            (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                'CREATE TABLE IF NOT EXISTS ToiletRecord_' + year + '_' + month + ' (id INTEGER PRIMARY KEY, babyId INTEGER, day INTEGER, category TEXT, oshikko INTEGER, unchi INTEGER, bodyText TEXT, updatedAt DATETIME)',
+                [],
+                () => {
+                    console.log('ToiletRecord_' + year + '_' + month + 'テーブルが作成されました');
+                },
+                (error) => {
+                    console.error('テーブルの作成中にエラーが発生しました:', error);
+                }
+                );
+            },
+            (error) => {
+                console.error('データベースのオープン中にエラーが発生しました:', error);
+            }
+        );
+    }, []);
+
     const saveToiletDataToSQLite = () => {
         const db = SQLite.openDatabase('DB.db');
         db.transaction(
         (tx) => {
             tx.executeSql(
-            'INSERT INTO ToiletRecord_2023_09 (babyId, day, oshikko, unchi, bodyText, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO ToiletRecord_' + year + '_' + month + ' (babyId, day, category, oshikko, unchi, bodyText, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [
                 currentBabyState.id,
-                day, 
+                day,
+                'TOILET',
                 oshikko,
                 unchi,
                 bodyText,
                 new Date(selectTime).toISOString()
             ],
             (_, result) => {
+                // 画面リフレッシュのためcurrentBabyStateを更新
+                currentBabyDispatch({
+                    type: 'addBaby',
+                    name: currentBabyState.name,
+                    birthday: currentBabyState.birthday,
+                    id: currentBabyState.id,
+                });
                 toggleModal()
             },
             (_, error) => {

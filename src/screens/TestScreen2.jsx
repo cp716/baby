@@ -42,16 +42,6 @@ export default function BabyAddScreen(props) {
             console.error('テーブルの作成中にエラーが発生しました:', error);
           }
         );
-        tx.executeSql(
-          'CREATE TABLE IF NOT EXISTS ToiletRecord_2023_09 (id INTEGER PRIMARY KEY, babyId INTEGER, day INTEGER, oshikko INTEGER, unchi INTEGER, bodyText TEXT, updatedAt DATETIME)',
-          [],
-          () => {
-            console.log('テーブルが作成されました');
-          },
-          (error) => {
-            console.error('テーブルの作成中にエラーが発生しました:', error);
-          }
-        );
       },
       (error) => {
         console.error('データベースのオープン中にエラーが発生しました:', error);

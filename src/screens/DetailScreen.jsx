@@ -14,7 +14,7 @@ export default function DetailScreen(props) {
     const { babyData }  = props;
     const { toggleModal } = props;
 
-    const dateTime = new Date(babyData.updatedAt);
+    const dateTime = new Date(babyData.record_time);
 
     const month = dateTime.getMonth();
     const day = dateTime.getDate();

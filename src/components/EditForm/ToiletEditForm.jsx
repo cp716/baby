@@ -18,7 +18,7 @@ export default function ToiletEditForm(props) {
     const [oshikko, setOshikko] = useState(babyData.oshikko);
     const [unchi, setUnchi] = useState(babyData.unchi);
 
-    const [detailBody, setBodyText] = useState(babyData.bodyText);
+    const [detailBody, setBodyText] = useState(babyData.memo);
 
     function handlePress() {
         if (oshikko || unchi) {
@@ -38,21 +38,37 @@ export default function ToiletEditForm(props) {
                             db.transaction(
                                 (tx) => {
                                     tx.executeSql(
-                                        'UPDATE ToiletRecord_' + year + '_' + month + ' SET bodyText = ?, oshikko = ?, unchi = ?, updatedAt = ? WHERE id = ?',
-                                        [detailBody, oshikko, unchi, selectTime.toISOString(), babyData.id],
+                                        'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
+                                        [
+                                            detailBody,
+                                            new Date(selectTime).toISOString(),
+                                            babyData.record_id
+                                        ],
                                         (_, result) => {
-                                            // 画面リフレッシュのためcurrentBabyStateを更新
-                                            currentBabyDispatch({
-                                                type: 'addBaby',
-                                                name: currentBabyState.name,
-                                                birthday: currentBabyState.birthday,
-                                                id: currentBabyState.id,
-                                            });
-                                            toggleModal();
+                                            tx.executeSql(
+                                                'UPDATE ToiletRecord_' + year + '_' + month + ' SET oshikko = ?, unchi = ? WHERE record_id = ?',
+                                                [
+                                                    oshikko,
+                                                    unchi,
+                                                    babyData.record_id
+                                                ],
+                                                (_, result) => {
+                                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                                    currentBabyDispatch({
+                                                        type: 'addBaby',
+                                                        name: currentBabyState.name,
+                                                        birthday: currentBabyState.birthday,
+                                                        id: currentBabyState.id,
+                                                    });
+                                                    toggleModal();
+                                                },
+                                                (_, error) => {
+                                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                                }
+                                            );
                                         },
                                         (_, error) => {
-                                            Alert.alert('更新中にエラーが発生しました');
-                                            console.error('データの更新中にエラーが発生しました:', error);
+                                            console.error('データの挿入中にエラーが発生しました:', error);
                                         }
                                     );
                                 }
@@ -81,17 +97,26 @@ export default function ToiletEditForm(props) {
                     db.transaction(
                     (tx) => {
                         tx.executeSql(
-                        'DELETE FROM ToiletRecord_' + year + '_' + month + ' WHERE id = ?',
-                        [babyData.id],
+                        'DELETE FROM CommonRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                        [babyData.record_id],
                         (_, result) => {
-                            //画面リフレッシュのためcurrentBabyStateを更新してデータ読み直し
-                            currentBabyDispatch({
-                                type: "addBaby",
-                                name: currentBabyState.name,
-                                birthday: currentBabyState.birthday,
-                                id: currentBabyState.id,
-                            });
-                            toggleModal()
+                            tx.executeSql(
+                                'DELETE FROM ToiletRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                                [babyData.record_id],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        id: currentBabyState.id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('削除中にエラーが発生しました:', error);
+                                }
+                            );
                         },
                         (_, error) => {
                             Alert.alert('削除中にエラーが発生しました');

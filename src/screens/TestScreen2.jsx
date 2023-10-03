@@ -42,6 +42,16 @@ export default function BabyAddScreen(props) {
             console.error('テーブルの作成中にエラーが発生しました:', error);
           }
         );
+        tx.executeSql(
+          'CREATE TABLE IF NOT EXISTS CommonRecord_2023_10 (record_id INTEGER PRIMARY KEY, baby_id INTEGER, day INTEGER, category TEXT NOT NULL, record_time DATETIME NOT NULL, memo TEXT, FOREIGN KEY (record_id) REFERENCES CommonRecord_2023_10(record_id))',
+          [],
+          () => {
+            console.log('テーブルが作成されました');
+          },
+          (error) => {
+            console.error('テーブルの作成中にエラーが発生しました:', error);
+          }
+        );
       },
       (error) => {
         console.error('データベースのオープン中にエラーが発生しました:', error);

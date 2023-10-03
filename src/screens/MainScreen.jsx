@@ -49,6 +49,11 @@ export default function MainScreen(props) {
 
     
     const [todayData2, setTodayData2] = useState([]);
+    const [foodData, setFoodData] = useState([]);
+
+    const commonRecordTable = `CommonRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
+    const toiletRecordTable = `ToiletRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
+
     // SQLiteからデータを取得する関数
     const database = SQLite.openDatabase('DB.db');
     const loadBabyData = () => {
@@ -61,15 +66,19 @@ export default function MainScreen(props) {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                    'SELECT * FROM ToiletRecord_' + dateTimeState.year + '_' + String(dateTimeState.month).padStart(2, '0') + ' WHERE babyId = ? AND day = ?;',
-                    [currentBabyState.id, dateTimeState.day],
-                    (_, { rows }) => {
-                        const data = rows._array; // クエリ結果を配列に変換
-                        setTodayData2(data);
-                    },
-                    (_, error) => {
-                        console.error('データの取得中にエラーが発生しました:', error);
-                    }
+                        'SELECT CommonRecord_2023_10.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ?;',
+                        [dateTimeState.day],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setTodayData2(data);
+                            //console.log('データの取得中...');
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
+                            setTodayData2([]); // エラー時にデータを空に設定するなどの処理を追加
+                        }
                     );
                 } else {
                     console.log('テーブルが存在しません');
@@ -81,6 +90,25 @@ export default function MainScreen(props) {
             );
         });
     };
+
+    console.log(todayData2)
+
+
+    for (let i = 0; i < todayData2.length; i++) {
+            const dataRecord = todayData2[i];
+        
+            // このループ内で、dataRecordを使用してデータにアクセスできます
+            // 例: データレコードのrecord_idカラムの値にアクセス
+            const recordId = dataRecord.record_id;
+            //console.log('record_id:', recordId);
+        
+            // 他のカラムにも同様にアクセスできます
+            // 例: データレコードのoshikkoカラムの値にアクセス
+            const oshikko = dataRecord.oshikko;
+            //console.log('oshikko:', oshikko);
+        
+            // その他のデータにも同じようにアクセス可能です
+        }
 
     if(baby !== "") {
         baby.forEach((doc) => {
@@ -130,7 +158,7 @@ export default function MainScreen(props) {
                     });
                     setTodayData(userMemos.filter((memo) => memo.day == [dateTimeState.day]));
                     //setTodayData(userMemos);
-                    babyRecordDispatch({ type: "return", data: babyRecord})
+                    //babyRecordDispatch({ type: "return", data: babyRecord})
                     setLoading(false);
                     }, () => {
                     setLoading(false);

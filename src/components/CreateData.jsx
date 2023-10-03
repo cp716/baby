@@ -20,7 +20,7 @@ export default function CreateData(props) {
     
     // updatedAtで降順にソート
     todayData2.sort((a, b) => {
-        return new Date(a.updatedAt) - new Date(b.updatedAt);
+        return new Date(a.record_time) - new Date(b.record_time);
     });
 
     function renderItem({ item }) {   
@@ -37,8 +37,8 @@ export default function CreateData(props) {
                         >
                             <CreateDataDesign date = {
                                 <Text style={styles.tableTitle}>
-                                    {String(new Date(item.updatedAt).getHours()).padStart(2, '0')}:
-                                    {String(new Date(item.updatedAt).getMinutes()).padStart(2, '0')}
+                                    {String(new Date(item.record_time).getHours()).padStart(2, '0')}:
+                                    {String(new Date(item.record_time).getMinutes()).padStart(2, '0')}
                                 </Text>
                             } />
                             <CreateDataDesign date = {
@@ -156,7 +156,7 @@ export default function CreateData(props) {
                                     })()}
                                 </Text>
                             } />
-                            <CreateMemoDataDesign date = {<Text style={styles.tableTitle} >{item.bodyText}</Text>} />
+                            <CreateMemoDataDesign date = {<Text style={styles.tableTitle} >{item.memo}</Text>} />
                             <Modal
                                 isVisible={isModalVisible}
                                 onBackdropPress={toggleModal}
@@ -181,14 +181,14 @@ export default function CreateData(props) {
             </View>
         )       
     } 
-        
+    
     return (
         <View style={styles.container}>
             <FlatList
                 //inverted//反転
                 data={todayData2} // ソート済みデータを渡す
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()} // keyExtractorの設定
+                keyExtractor={(item) => { return item.record_id; }}
             />
         </View>
     )
@@ -196,14 +196,14 @@ export default function CreateData(props) {
 
 CreateData.propTypes = {
     todayData2: arrayOf(shape({
-        id: number,
+        record_id: number,
         //timeLeft: number,
         //timeRight: number,
         //milk: number,
         //bonyu: number,
-        bodyText: string,
+        memo: string,
         category: string,
-        updatedAt: Date,
+        record_time: Date,
     })).isRequired,
 };
 

@@ -1,6 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { CheckBox } from 'react-native-elements'
 
@@ -14,41 +15,72 @@ export default function FoodInputForm(props) {
     const month = date.getMonth() + 1;
     const day = date.getDate();
     
-    const [foodCheck, setFoodCheck] = useState(false);
-    const [drinkCheck, setDrinkCheck] = useState(false);
+    const [foodCheck, setFoodCheck] = useState(0);
+    const [drinkCheck, setDrinkCheck] = useState(0);
     const [foodAmount, setFoodAmount] = useState('');
     const [drinkAmount, setDrinkAmount] = useState('');
     const [bodyText, setBodyText] = useState('');
 
-    function handlePress() {
-        const db = firebase.firestore();
-        const { currentUser } = firebase.auth();
-        const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(currentBabyState.id.toString())
-        .collection(`${year}_${month}`)
-        if( foodCheck || drinkCheck ) {
-            ref.add({
-                'category':'FOOD',
-                updatedAt: selectTime,
-                day: day,
-                bodyText,
-                food: {
-                    foodCheck: foodCheck,
-                    drinkCheck: drinkCheck,
-                    foodAmount: parseInt(foodAmount),
-                    drinkAmount: parseInt(drinkAmount),
+    useEffect(() => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+            (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                'CREATE TABLE IF NOT EXISTS FoodRecord_' + year + '_' + month + ' (id INTEGER PRIMARY KEY, babyId INTEGER, day INTEGER, category TEXT, food INTEGER, drink INTEGER, foodAmount INTEGER, drinkAmount INTEGER, bodyText TEXT, updatedAt DATETIME)',
+                [],
+                () => {
+                    console.log('FoodRecord_' + year + '_' + month + 'テーブルが作成されました');
                 },
-            })
-            .then((docRef) => {
-                console.log('書き込みました', docRef.id);
-            })
-            .catch((error) => {
-                console.log('失敗しました', error);
-            });
-            toggleModal()
-        } else {
-            Alert.alert("未入力です");
-        }
-    }
+                (error) => {
+                    console.error('テーブルの作成中にエラーが発生しました:', error);
+                }
+                );
+            },
+            (error) => {
+                console.error('データベースのオープン中にエラーが発生しました:', error);
+            }
+        );
+    }, []);
+    
+    const saveFoodDataToSQLite = () => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+            (tx) => {
+                if (foodCheck || drinkCheck) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
+                    tx.executeSql(
+                        'INSERT INTO FoodRecord_' + year + '_' + month + ' (babyId, day, category, food, drink, foodAmount, drinkAmount, bodyText, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        [
+                            currentBabyState.id,
+                            day,
+                            'FOOD',
+                            foodCheck,
+                            drinkCheck,
+                            foodAmount,
+                            drinkAmount,
+                            bodyText,
+                            new Date(selectTime).toISOString()
+                        ],
+                        (_, result) => {
+                            // 画面リフレッシュのためcurrentBabyStateを更新
+                            currentBabyDispatch({
+                                type: 'addBaby',
+                                name: currentBabyState.name,
+                                birthday: currentBabyState.birthday,
+                                id: currentBabyState.id,
+                            });
+                            toggleModal();
+                        },
+                        (_, error) => {
+                            console.error('データの挿入中にエラーが発生しました:', error);
+                        }
+                    );
+                } else {
+                    Alert.alert('チェックが入っていません');
+                }
+            }
+        );
+    };
     
     return (
         <ScrollView scrollEnabled={false}>
@@ -57,12 +89,12 @@ export default function FoodInputForm(props) {
                     <CheckBox
                         title='食事'
                         checked={foodCheck}
-                        onPress={() => setFoodCheck(!foodCheck)}
+                        onPress={() => {setFoodCheck(foodCheck === 1 ? 0 : 1);}}
                     />
                     <CheckBox
                         title='飲物'
                         checked={drinkCheck}
-                        onPress={() => setDrinkCheck(!drinkCheck)}
+                        onPress={() => {setDrinkCheck(drinkCheck === 1 ? 0 : 1);}}
                     />
                 </View>
             </View>
@@ -108,7 +140,7 @@ export default function FoodInputForm(props) {
                 <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
                     <Text style={modalStyles.confirmButtonText}>close</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress} >
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveFoodDataToSQLite} >
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>

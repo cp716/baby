@@ -59,7 +59,7 @@ export default function RecordScreen() {
     const [monthToiletData, setMonthToiletData] = useState([]);
 
     useEffect(() => {
-        loadBabyData();
+        //loadBabyData();
     }, [currentBabyState, date]);
 
     const database = SQLite.openDatabase('DB.db');
@@ -100,6 +100,27 @@ export default function RecordScreen() {
 
     const lastDay = new Date( selectYear, selectMonth, 0 ) ;
 
+    const babyDataGrouping = () => {
+
+    }
+
+    // フォーマット関数を定義
+    function formatTime(time) {
+        return time ? time + '分' : '-';
+    }
+
+    function formatMilkTotal(total) {
+        return total ? total + 'ml' : '-';
+    }
+
+    function formatCount(count) {
+        return count ? count + '回' : '-';
+    }
+
+    function formatTemperature(temperature) {
+        return temperature ? temperature + '°' : '-';
+    }
+
     const tableData = [];
     for (let i = 1; i < lastDay.getDate() + 1; i += 1) {
         let junyLeftTotal = 0;
@@ -136,7 +157,7 @@ export default function RecordScreen() {
         const toilet  = monthToiletData.filter((data) => data.day == [i])
         const disease  = groupByCategory.DISEASE
         const food  = groupByCategory.FOOD
-console.log(toilet)
+
         for (let key in junyu) {
             junyLeftTotal += junyu[key].timeLeft
             junyRightTotal += junyu[key].timeRight

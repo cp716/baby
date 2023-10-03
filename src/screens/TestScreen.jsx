@@ -38,7 +38,7 @@ export default function TestScreen() {
         (tx) => {
           // テーブル削除
           tx.executeSql(
-            'DROP TABLE IF EXISTS CommonRecord_2023_10',
+            'DROP TABLE IF EXISTS ToiletRecord_2023_09',
             [],
             () => {
               console.log('古いテーブルが削除されました');

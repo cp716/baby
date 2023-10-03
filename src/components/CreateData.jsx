@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import CreateDataDesign from './CreateDataDesign';
 import CreateMemoDataDesign from './CreateMemoDataDesign';
-import { shape, string, number, arrayOf } from 'prop-types';
 import DetailScreen from '../screens/DetailScreen';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Modal from "react-native-modal";
 
 export default function CreateData(props) {
-    const { todayData2 } = props;
+    const { toiletData } = props;
+    const { foodData } = props;
     const { currentBaby } = props;
 
     const [isModalVisible, setModalVisible] = useState(false);
@@ -17,9 +17,33 @@ export default function CreateData(props) {
         setModalVisible(!isModalVisible);
     };
     const [modalEntry, setModalEntry] = useState();
+
+    // idをキーとしてデータを統合するオブジェクトを作成
+    const combinedData = {};
+
+    // FOODデータを統合
+    foodData.forEach(item => {
+    const id = item.record_id;
+    if (!combinedData[id]) {
+        combinedData[id] = {};
+    }
+    Object.assign(combinedData[id], item);
+    });
+
+    // TOILETデータを統合
+    toiletData.forEach(item => {
+    const id = item.record_id;
+    if (!combinedData[id]) {
+        combinedData[id] = {};
+    }
+    Object.assign(combinedData[id], item);
+    });
     
+    // 統合されたデータを配列に変換
+    const combinedArray = Object.values(combinedData);
+
     // updatedAtで降順にソート
-    todayData2.sort((a, b) => {
+    combinedArray.sort((a, b) => {
         return new Date(a.record_time) - new Date(b.record_time);
     });
 
@@ -133,17 +157,17 @@ export default function CreateData(props) {
                                             )
                                         }else if (item.category == 'FOOD') {
                                             var food = "";
-                                            if(item.food.foodCheck) {
+                                            if(item.foodCheck) {
                                                 food += "「食事」"
                                             }
-                                            if(item.food.foodAmount) {
-                                                food += item.food.foodAmount + 'g'
+                                            if(item.foodAmount) {
+                                                food += item.foodAmount + 'g'
                                             }
-                                            if(item.food.drinkCheck) {
+                                            if(item.drinkCheck) {
                                                 food += "「飲物」"
                                             }
-                                            if(item.food.drinkAmount) {
-                                                food += item.food.drinkAmount + 'ml'
+                                            if(item.drinkAmount) {
+                                                food += item.drinkAmount + 'ml'
                                             }
                                             return (
                                                 food
@@ -186,26 +210,13 @@ export default function CreateData(props) {
         <View style={styles.container}>
             <FlatList
                 //inverted//反転
-                data={todayData2} // ソート済みデータを渡す
+                data={combinedArray} // ソート済みデータを渡す
                 renderItem={renderItem}
                 keyExtractor={(item) => { return item.record_id; }}
             />
         </View>
     )
 }
-
-CreateData.propTypes = {
-    todayData2: arrayOf(shape({
-        record_id: number,
-        //timeLeft: number,
-        //timeRight: number,
-        //milk: number,
-        //bonyu: number,
-        memo: string,
-        category: string,
-        record_time: Date,
-    })).isRequired,
-};
 
 const styles = StyleSheet.create({
     container: {

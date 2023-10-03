@@ -46,7 +46,6 @@ export default function ToiletInputForm(props) {
         db.transaction(
             (tx) => {
                 if (oshikko || unchi) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
-
                     tx.executeSql(
                         'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
                         [
@@ -84,9 +83,6 @@ export default function ToiletInputForm(props) {
                             console.error('データの挿入中にエラーが発生しました:', error);
                         }
                     );
-                    
-
-                    
                 } else {
                     Alert.alert('チェックが入っていません');
                 }

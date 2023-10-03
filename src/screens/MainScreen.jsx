@@ -1,8 +1,6 @@
 import React, { useEffect, useState }  from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import { useIsFocused } from '@react-navigation/native'
-import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
-import firebase from 'firebase';
+import { View, Text, StyleSheet } from 'react-native';
+import * as SQLite from 'expo-sqlite';
 
 import MilkAddButton from '../components/AddButton/MilkAddButton';
 import ToiletAddButton from '../components/AddButton/ToiletAddButton';
@@ -16,43 +14,28 @@ import TableTitle from '../components/TableTitle';
 import CreateData from '../components/CreateData';
 import DailyTable from '../components/DailyTable';
 
-import { useBabyContext } from '../context/BabyContext';
 import { useDateTimeContext } from '../context/DateTimeContext';
 import { useBabyRecordContext } from '../context/BabyRecordContext';
 import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 
 export default function MainScreen(props) {
-    const { baby } = useBabyContext();
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
     const { dateTimeState, dateTimeDispatch } = useDateTimeContext();
     const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
 
-    const [name, setName] = useState('');
-    const [id, setId] = useState('');
-    const [birthday, setBirthday] = useState('');
-    const babyData = [];
-    const isFocused = useIsFocused()
-    
     const [todayData, setTodayData] = useState([]);
-    const [babyRecord, setBabyRecord] = useState([]);
-    const [day, setDay] = useState(dateTimeState.day);
     const [isLoading, setLoading] = useState(false);
 
     useEffect(() => {
-        setName()
-        setBirthday()
-        setId()
         loadBabyData();
-    }, [currentBabyState, dateTimeState, todayData, isFocused]);
-
-
-
+    }, [currentBabyState, dateTimeState]);
     
-    const [todayData2, setTodayData2] = useState([]);
+    const [toiletData, setToiletData] = useState([]);
     const [foodData, setFoodData] = useState([]);
 
     const commonRecordTable = `CommonRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const toiletRecordTable = `ToiletRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
+    const foodRecordTable = `FoodRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
 
     // SQLiteからデータを取得する関数
     const database = SQLite.openDatabase('DB.db');
@@ -60,24 +43,49 @@ export default function MainScreen(props) {
         database.transaction((tx) => {
             // テーブルの存在を確認
             tx.executeSql(
-                'PRAGMA table_info(ToiletRecord_' + dateTimeState.year + '_' + String(dateTimeState.month).padStart(2, '0') + ');',
+                'PRAGMA table_info(' + toiletRecordTable + ');',
                 [],
                 (_, { rows }) => {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                        'SELECT CommonRecord_2023_10.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ?;',
-                        [dateTimeState.day],
+                        'SELECT CommonRecord_2023_10.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        [dateTimeState.day, currentBabyState.id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
-                            setTodayData2(data);
-                            //console.log('データの取得中...');
+                            setToiletData(data.filter(item => item.category === 'TOILET'))
                         },
                         (_, error) => {
                             console.error('データの取得中にエラーが発生しました:', error);
                             // エラー詳細情報をコンソールに表示する
                             console.log('エラー詳細:', error);
-                            setTodayData2([]); // エラー時にデータを空に設定するなどの処理を追加
+                        }
+                    );
+                } else {
+                    console.log('テーブルが存在しません');
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
+            tx.executeSql(
+                'PRAGMA table_info(' + foodRecordTable + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                        'SELECT CommonRecord_2023_10.*, ' + foodRecordTable + '.food, ' + foodRecordTable + '.drink, ' + foodRecordTable + '.foodAmount, ' + foodRecordTable + '.drinkAmount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        [dateTimeState.day, currentBabyState.id],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setFoodData(data.filter(item => item.category === 'FOOD'));
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
                         }
                     );
                 } else {
@@ -91,94 +99,7 @@ export default function MainScreen(props) {
         });
     };
 
-    console.log(todayData2)
-
-
-    for (let i = 0; i < todayData2.length; i++) {
-            const dataRecord = todayData2[i];
-        
-            // このループ内で、dataRecordを使用してデータにアクセスできます
-            // 例: データレコードのrecord_idカラムの値にアクセス
-            const recordId = dataRecord.record_id;
-            //console.log('record_id:', recordId);
-        
-            // 他のカラムにも同様にアクセスできます
-            // 例: データレコードのoshikkoカラムの値にアクセス
-            const oshikko = dataRecord.oshikko;
-            //console.log('oshikko:', oshikko);
-        
-            // その他のデータにも同じようにアクセス可能です
-        }
-
-    if(baby !== "") {
-        baby.forEach((doc) => {
-            const data = doc.data();
-            babyData.push({
-                id: doc.id,
-                babyName: data.babyName,
-                birthday: data.birthday,
-            });
-        });
-    }
-
-    useEffect(() => {
-        setLoading(true);
-        const cleanupFuncs = {
-            auth: () => {},
-            memos: () => {},
-        };
-        cleanupFuncs.auth = firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                if(currentBabyState.id !== '') {
-                    const db = firebase.firestore();
-                    const ref = db.collection(`users/${user.uid}/babyData`).doc(currentBabyState.id.toString())
-                    .collection(`${dateTimeState.year}_${dateTimeState.month}`).orderBy('updatedAt', 'asc');
-                    //.collection(`${dateTimeState.year}/${dateTimeState.month}/${dateTimeState.day}`).orderBy('updatedAt', 'asc');
-                    cleanupFuncs.memos = ref.onSnapshot((snapshot) => {
-                    const userMemos = [];
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        userMemos.push({
-                            id: doc.id,
-                            timeLeft: data.timeLeft,
-                            timeRight: data.timeRight,
-                            milk: data.milk,
-                            category: data.category,
-                            bonyu: data.bonyu,
-                            toilet: data.toilet,
-                            disease: data.disease,
-                            bodyTemperature: data.bodyTemperature,
-                            food: data.food,
-                            freeText: data.freeText,
-                            bodyText: data.bodyText,
-                            selectBaby: data.selectBaby,
-                            day: data.day,
-                            updatedAt: data.updatedAt.toDate(),
-                        });
-                    });
-                    setTodayData(userMemos.filter((memo) => memo.day == [dateTimeState.day]));
-                    //setTodayData(userMemos);
-                    //babyRecordDispatch({ type: "return", data: babyRecord})
-                    setLoading(false);
-                    }, () => {
-                    setLoading(false);
-                    });
-                }
-            } else {
-                firebase.auth().signInAnonymously()
-                .catch(() => {
-                    Alert.alert('エラー', 'アプリを再起動してください');
-                })
-                .then(() => { setLoading(false); });
-            }
-        });
-        return () => {
-            cleanupFuncs.auth();
-            cleanupFuncs.memos();
-        };
-    }, [currentBabyState.id, dateTimeState]);
-
-    if (babyData.length == 0) {
+    if (currentBabyState.id === "") {
         return (
             <View style={styles.container}>
                 <View style={[emptyStyles.inner, {height: '100%'}]}>
@@ -188,7 +109,7 @@ export default function MainScreen(props) {
         );
     }
 
-    if (todayData2.length === 0) {
+    if (toiletData.length === 0 && foodData.length === 0) {
         return (
             <View style={styles.container}>
                 <View style={[styles.dateTime , {height: '15%'}]}>
@@ -240,7 +161,7 @@ export default function MainScreen(props) {
                 </View>
             </View>
             <View style={{height: '40%'}}>
-                <CreateData todayData2={todayData2} />
+                <CreateData toiletData={toiletData} foodData={foodData}/>
             </View>
             <View style={[styles.footer , {height: '40%'}]}>
                 <View style={styles.button}>

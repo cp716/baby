@@ -27,7 +27,7 @@ export default function FoodInputForm(props) {
             (tx) => {
                 // テーブルが存在しない場合は作成
                 tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS FoodRecord_' + year + '_' + month + ' (id INTEGER PRIMARY KEY, babyId INTEGER, day INTEGER, category TEXT, food INTEGER, drink INTEGER, foodAmount INTEGER, drinkAmount INTEGER, bodyText TEXT, updatedAt DATETIME)',
+                'CREATE TABLE IF NOT EXISTS FoodRecord_' + year + '_' + month + ' (record_id INTEGER, food INTEGER, drink INTEGER, foodAmount INTEGER, drinkAmount INTEGER)',
                 [],
                 () => {
                     console.log('FoodRecord_' + year + '_' + month + 'テーブルが作成されました');
@@ -42,8 +42,59 @@ export default function FoodInputForm(props) {
             }
         );
     }, []);
-    
+
     const saveFoodDataToSQLite = () => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+            (tx) => {
+                if (foodCheck || drinkCheck) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
+                    tx.executeSql(
+                        'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                        [
+                            currentBabyState.id,
+                            day,
+                            'FOOD',
+                            bodyText,
+                            new Date(selectTime).toISOString()
+                        ],
+                        (_, result) => {
+                            const lastInsertId = result.insertId;
+                            tx.executeSql(
+                                'INSERT INTO FoodRecord_' + year + '_' + month + ' (record_id, food, drink, foodAmount, drinkAmount) VALUES (?, ?, ?, ?, ?)',
+                                [
+                                    lastInsertId,
+                                    foodCheck,
+                                    drinkCheck,
+                                    foodAmount,
+                                    drinkAmount
+                                ],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        id: currentBabyState.id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                }
+                            );
+                        },
+                        (_, error) => {
+                            console.error('データの挿入中にエラーが発生しました:', error);
+                        }
+                    );
+                } else {
+                    Alert.alert('チェックが入っていません');
+                }
+            }
+        );
+    };
+    
+    const save1111111FoodDataToSQLite = () => {
         const db = SQLite.openDatabase('DB.db');
         db.transaction(
             (tx) => {

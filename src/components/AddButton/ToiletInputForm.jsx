@@ -7,7 +7,6 @@ import { CheckBox } from 'react-native-elements'
 export default function ToiletInputForm(props) {
     const { selectTime } = props;
     const { toggleModal } = props;
-
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const date = new Date(selectTime);
@@ -28,7 +27,7 @@ export default function ToiletInputForm(props) {
                 'CREATE TABLE IF NOT EXISTS ToiletRecord_' + year + '_' + month + ' (record_id INTEGER, oshikko INTEGER, unchi INTEGER)',
                 [],
                 () => {
-                    console.log('ToiletRecord_' + year + '_' + month + 'テーブルが作成されました');
+                    //console.log('ToiletRecord_' + year + '_' + month + 'テーブルが作成されました');
                 },
                 (error) => {
                     console.error('テーブルの作成中にエラーが発生しました:', error);

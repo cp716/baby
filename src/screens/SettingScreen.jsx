@@ -12,7 +12,11 @@ export default function SettingScreen(props) {
     const { navigation } = props;
     const [user, setUser] = useState();
 
-
+    useEffect(() => {
+        navigation.setOptions({
+            headerTitle: '設定',
+        });
+    }, []);
 
     useEffect(() => {
         setUser();

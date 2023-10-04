@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import CreateDataDesign from './CreateDataDesign';
@@ -157,13 +157,13 @@ export default function CreateData(props) {
                                             )
                                         }else if (item.category == 'FOOD') {
                                             var food = "";
-                                            if(item.foodCheck) {
+                                            if(item.food) {
                                                 food += "「食事」"
                                             }
                                             if(item.foodAmount) {
                                                 food += item.foodAmount + 'g'
                                             }
-                                            if(item.drinkCheck) {
+                                            if(item.drink) {
                                                 food += "「飲物」"
                                             }
                                             if(item.drinkAmount) {

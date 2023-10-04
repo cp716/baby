@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { Button, View, StyleSheet, Text } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import FoodInputForm from "./FoodInputForm";
 import Modal from "react-native-modal";
@@ -13,7 +13,7 @@ export default function FoodAddButton() {
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
-
+    
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [selectTime, setselectTime] = useState();
     const [detailTime, setDetailTime] = useState();
@@ -57,7 +57,6 @@ export default function FoodAddButton() {
                     toggleModal();
                     getNewDate(new Date(Math.floor(new Date().getTime()/1000/60/5)*1000*60*5));
                 }}
-                //style={{ top: 80, bottom: 'auto'}}
             />
             <Modal isVisible={isModalVisible}
                 onBackdropPress={toggleModal}

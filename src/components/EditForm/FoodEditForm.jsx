@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { CheckBox } from 'react-native-elements'
@@ -11,14 +11,13 @@ export default function FoodEditForm(props) {
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const year = selectTime.getFullYear();
-    const month = selectTime.getMonth() + 1;
-    const day = selectTime.getDate();
+    const month = String(selectTime.getMonth() + 1).padStart(2, '0');
 
-    const [foodCheck, setFoodCheck] = useState(babyData.food.foodCheck);
-    const [drinkCheck, setDrinkCheck] = useState(babyData.food.drinkCheck);
-    const [foodAmount, setFoodAmount] = useState(babyData.food.foodAmount);
-    const [drinkAmount, setDrinkAmount] = useState(babyData.food.drinkAmount);
-    const [detailBody, setBodyText] = useState(babyData.bodyText);
+    const [foodCheck, setFoodCheck] = useState(babyData.food);
+    const [drinkCheck, setDrinkCheck] = useState(babyData.drink);
+    const [foodAmount, setFoodAmount] = useState(babyData.foodAmount);
+    const [drinkAmount, setDrinkAmount] = useState(babyData.drinkAmount);
+    const [detailBody, setBodyText] = useState(babyData.memo);
 
     if(isNaN(foodAmount)) {
         setFoodAmount('')
@@ -28,63 +27,115 @@ export default function FoodEditForm(props) {
     }
 
     function handlePress() {
-        const { currentUser } = firebase.auth();
-        if (currentUser ) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
-            .collection(`${year}_${month}`).doc(babyData.id)
-            if( foodCheck || drinkCheck ) {
-                return (
-                    ref.set({
-                        'category':'FOOD',
-                        bodyText: detailBody,
-                        updatedAt: selectTime,
-                        food: {
-                            foodCheck: foodCheck,
-                            drinkCheck: drinkCheck,
-                            foodAmount: parseInt(foodAmount),
-                            drinkAmount: parseInt(drinkAmount),
-                        }
-                    }, { merge: true })
-                    .then(() => {
-                        toggleModal()
-                    })
-                    .catch((error) => {
-                        Alert.alert(error.code);
-                    })
-                );
-            } else {
-                Alert.alert("未入力です");
-            }
-            
+        if (foodCheck || drinkCheck) {
+            Alert.alert(
+                '更新します', 'よろしいですか？',
+                [
+                    {
+                        text: 'キャンセル',
+                        style: 'cancel',
+                        onPress: () => {},
+                    },
+                    {
+                        text: '更新',
+                        style: 'default',
+                        onPress: () => {
+                            const db = SQLite.openDatabase('DB.db');
+                            db.transaction(
+                                (tx) => {
+                                    tx.executeSql(
+                                        'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
+                                        [
+                                            detailBody,
+                                            new Date(selectTime).toISOString(),
+                                            babyData.record_id
+                                        ],
+                                        (_, result) => {
+                                            tx.executeSql(
+                                                'UPDATE FoodRecord_' + year + '_' + month + ' SET food = ?, drink = ?, foodAmount = ?, drinkAmount = ? WHERE record_id = ?',
+                                                [
+                                                    foodCheck,
+                                                    drinkCheck,
+                                                    foodAmount,
+                                                    drinkAmount,
+                                                    babyData.record_id
+                                                ],
+                                                (_, result) => {
+                                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                                    currentBabyDispatch({
+                                                        type: 'addBaby',
+                                                        name: currentBabyState.name,
+                                                        birthday: currentBabyState.birthday,
+                                                        id: currentBabyState.id,
+                                                    });
+                                                    toggleModal();
+                                                },
+                                                (_, error) => {
+                                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                                }
+                                            );
+                                        },
+                                        (_, error) => {
+                                            console.error('データの挿入中にエラーが発生しました:', error);
+                                        }
+                                    );
+                                }
+                            );
+                        },
+                    },
+                ],
+            );
+        } else {
+            Alert.alert('チェックが入っていません');
         }
     }
 
     function deleteItem() {
-        const { currentUser } = firebase.auth();
-        if(currentUser) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString()
-            )
-            .collection(`${year}_${month}`).doc(babyData.id)
-            
-            Alert.alert('削除します', 'よろしいですか？', [
-                {
-                    text: 'キャンセル',
-                    onPress: () => {},
+        Alert.alert('削除します', 'よろしいですか？', [
+            {
+                text: 'キャンセル',
+                style: 'cancel',
+                onPress: () => {},
+            },
+            {
+                text: '削除',
+                style: 'destructive',
+                onPress: () => {
+                    const db = SQLite.openDatabase('DB.db');
+                    db.transaction(
+                    (tx) => {
+                        tx.executeSql(
+                        'DELETE FROM CommonRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                        [babyData.record_id],
+                        (_, result) => {
+                            tx.executeSql(
+                                'DELETE FROM FoodRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                                [babyData.record_id],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        id: currentBabyState.id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('削除中にエラーが発生しました:', error);
+                                }
+                            );
+                        },
+                        (_, error) => {
+                            Alert.alert('削除中にエラーが発生しました');
+                            console.error('データの削除中にエラーが発生しました:', error);
+                        }
+                        );
+                    }
+                    );
                 },
-                {
-                    text: '削除する',
-                    style: 'destructive',
-                    onPress: () => {
-                        toggleModal()
-                        ref.delete().catch(() => {
-                            Alert.alert('削除に失敗しました');
-                        });
-                    },
-                },
-            ]);
-        }
+            },
+        ]);
     }
 
     return (

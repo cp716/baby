@@ -1,6 +1,7 @@
 import React, { useEffect, useState }  from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import * as SQLite from 'expo-sqlite';
+import { useIsFocused } from '@react-navigation/native'
 
 import MilkAddButton from '../components/AddButton/MilkAddButton';
 import ToiletAddButton from '../components/AddButton/ToiletAddButton';
@@ -19,12 +20,20 @@ import { useBabyRecordContext } from '../context/BabyRecordContext';
 import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 
 export default function MainScreen(props) {
+    const { navigation } = props;
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
     const { dateTimeState, dateTimeDispatch } = useDateTimeContext();
     const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
+    const isFocused = useIsFocused()
 
     const [todayData, setTodayData] = useState([]);
     const [isLoading, setLoading] = useState(false);
+
+    useEffect(() => {
+        navigation.setOptions({
+            headerTitle: currentBabyState.name + 'の記録',
+        });
+    }, [currentBabyState]);
 
     useEffect(() => {
         loadBabyData();
@@ -37,7 +46,7 @@ export default function MainScreen(props) {
     const toiletRecordTable = `ToiletRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const foodRecordTable = `FoodRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
 
-    // SQLiteからデータを取得する関数
+    // SQLiteの各テーブルからデータを取得
     const database = SQLite.openDatabase('DB.db');
     const loadBabyData = () => {
         database.transaction((tx) => {
@@ -49,7 +58,7 @@ export default function MainScreen(props) {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                        'SELECT CommonRecord_2023_10.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        'SELECT ' + commonRecordTable + '.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
                         [dateTimeState.day, currentBabyState.id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
@@ -62,7 +71,8 @@ export default function MainScreen(props) {
                         }
                     );
                 } else {
-                    console.log('テーブルが存在しません');
+                    //console.log('ToiletRecordテーブルが存在しません');
+                    setToiletData([])
                 }
                 },
                 (_, error) => {
@@ -76,7 +86,7 @@ export default function MainScreen(props) {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                        'SELECT CommonRecord_2023_10.*, ' + foodRecordTable + '.food, ' + foodRecordTable + '.drink, ' + foodRecordTable + '.foodAmount, ' + foodRecordTable + '.drinkAmount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        'SELECT ' + commonRecordTable + '.*, ' + foodRecordTable + '.food, ' + foodRecordTable + '.drink, ' + foodRecordTable + '.foodAmount, ' + foodRecordTable + '.drinkAmount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
                         [dateTimeState.day, currentBabyState.id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
@@ -89,7 +99,8 @@ export default function MainScreen(props) {
                         }
                     );
                 } else {
-                    console.log('テーブルが存在しません');
+                    //console.log('FoodRecordテーブルが存在しません');
+                    setFoodData([]);
                 }
                 },
                 (_, error) => {
@@ -98,6 +109,29 @@ export default function MainScreen(props) {
             );
         });
     };
+
+    useEffect(() => {
+        // CommonRecordTable作成
+        const database = SQLite.openDatabase('DB.db');
+        database.transaction(
+            (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                'CREATE TABLE IF NOT EXISTS ' + commonRecordTable + ' (record_id INTEGER PRIMARY KEY, baby_id INTEGER, day INTEGER, category TEXT NOT NULL, record_time DATETIME NOT NULL, memo TEXT, FOREIGN KEY (record_id) REFERENCES ' + commonRecordTable + '(record_id))',
+                [],
+                () => {
+                    //console.log(commonRecordTable + 'テーブルが作成されました');
+                },
+                (error) => {
+                    console.error('テーブルの作成中にエラーが発生しました:', error);
+                }
+                );
+            },
+            (error) => {
+                console.error('データベースのオープン中にエラーが発生しました:', error);
+            }
+            );
+    }, [dateTimeState]);
 
     if (currentBabyState.id === "") {
         return (
@@ -109,7 +143,7 @@ export default function MainScreen(props) {
         );
     }
 
-    if (toiletData.length === 0 && foodData.length === 0) {
+    if (!toiletData.length  && !foodData.length ) {
         return (
             <View style={styles.container}>
                 <View style={[styles.dateTime , {height: '15%'}]}>
@@ -165,7 +199,7 @@ export default function MainScreen(props) {
             </View>
             <View style={[styles.footer , {height: '40%'}]}>
                 <View style={styles.button}>
-                    <DailyTable todayData={todayData} />
+                    <DailyTable todayData={todayData} toiletData={toiletData} foodData={foodData}/>
                 </View>
                 <View style={styles.button}>
                     <DiseaseAddButton />

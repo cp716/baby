@@ -21,7 +21,9 @@ if (nowDateDay <= 10) {
     initialIndex = 2;
 }
 
-export default function RecordScreen() {
+export default function RecordScreen(props) {
+    const { navigation } = props;
+    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
     const [isModalVisible, setModalVisible] = useState(false);
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
@@ -34,6 +36,11 @@ export default function RecordScreen() {
     //const [selectYear, setSelectYear] = useState(date.slice( 0, 4 ));
     //const [selectMonth, setSelectMonth] = useState(date.slice( 5, 7 ));
 
+    useEffect(() => {
+        navigation.setOptions({
+            headerTitle: currentBabyState.name + 'の記録',
+        });
+    }, [currentBabyState]);
 
     const groupBy = function(xs, key) {
         return xs.reduce(function(rv, x) {
@@ -44,7 +51,6 @@ export default function RecordScreen() {
 
 
 
-    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
 
 
@@ -59,32 +65,71 @@ export default function RecordScreen() {
     const [monthToiletData, setMonthToiletData] = useState([]);
 
     useEffect(() => {
-        //loadBabyData();
+        loadBabyData();
     }, [currentBabyState, date]);
 
+    const [toiletData, setToiletData] = useState([]);
+    const [foodData, setFoodData] = useState([]);
+
+    const commonRecordTable = `CommonRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
+    const toiletRecordTable = `ToiletRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
+    const foodRecordTable = `FoodRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
+
+    // SQLiteの各テーブルからデータを取得
     const database = SQLite.openDatabase('DB.db');
     const loadBabyData = () => {
         database.transaction((tx) => {
             // テーブルの存在を確認
             tx.executeSql(
-                'PRAGMA table_info(ToiletRecord_' + date.slice( 0, 4 ) + '_' + date.slice( 5, 7 ) + ');',
+                'PRAGMA table_info(' + toiletRecordTable + ');',
                 [],
                 (_, { rows }) => {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                    'SELECT * FROM ToiletRecord_' + date.slice( 0, 4 ) + '_' + date.slice( 5, 7 ) + ' WHERE babyId = ?;',
-                    [currentBabyState.id],
-                    (_, { rows }) => {
-                        const data = rows._array; // クエリ結果を配列に変換
-                        setMonthToiletData(data);
-                    },
-                    (_, error) => {
-                        console.error('データの取得中にエラーが発生しました:', error);
-                    }
+                        'SELECT ' + commonRecordTable + '.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
+                        [currentBabyState.id],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setToiletData(data.filter(item => item.category === 'TOILET'))
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
+                        }
                     );
                 } else {
-                    console.log('テーブルが存在しません');
+                    //console.log('ToiletRecordテーブルが存在しません');
+                    setToiletData([])
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
+            tx.executeSql(
+                'PRAGMA table_info(' + foodRecordTable + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                        'SELECT ' + commonRecordTable + '.*, ' + foodRecordTable + '.food, ' + foodRecordTable + '.drink, ' + foodRecordTable + '.foodAmount, ' + foodRecordTable + '.drinkAmount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
+                        [currentBabyState.id],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setFoodData(data.filter(item => item.category === 'FOOD'));
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
+                        }
+                    );
+                } else {
+                    //console.log('FoodRecordテーブルが存在しません');
+                    setFoodData([]);
                 }
                 },
                 (_, error) => {
@@ -95,8 +140,8 @@ export default function RecordScreen() {
     };
 
     const tableHead = ['授乳', '哺乳瓶', 'ご飯', 'トイレ', '病気', '体温']
-    const sybTableHead = ['左', '右', 'ミルク', '母乳', '炭水化物', 'タンパク質', 'ミネラル', '調味料', '飲み物', 'おしっこ', 'うんち', '鼻水', '咳', '嘔吐', '発疹', '怪我', '薬', '最高', '最低']
-    const widthArr = [100, 100, 250, 100, 300, 100]
+    const sybTableHead = ['左', '右', 'ミルク', '母乳', '食事', '食事量', '飲物', '飲物量', 'おしっこ', 'うんち', '鼻水', '咳', '嘔吐', '発疹', '怪我', '薬', '最高', '最低']
+    const widthArr = [100, 100, 200, 100, 300, 100]
 
     const lastDay = new Date( selectYear, selectMonth, 0 ) ;
 
@@ -136,11 +181,9 @@ export default function RecordScreen() {
         let minBodyTemperature = 0;
 
         let foodCount = 0;
-        let tansuikabutsuCount = 0;
-        let tampakushitsuCount = 0;
-        let bitaminCount = 0;
-        let chomiryoCount = 0;
-        let drinkTotal = 0;
+        let drinkCount = 0;
+        let foodAmount = 0;
+        let drinkAmount = 0;
 
         let hanamizuCount = 0;
         let sekiCount = 0;
@@ -154,9 +197,9 @@ export default function RecordScreen() {
         const junyu = groupByCategory.JUNYU
         const milk  = groupByCategory.MILK
         const bonyu  = groupByCategory.BONYU
-        const toilet  = monthToiletData.filter((data) => data.day == [i])
+        const toilet  = toiletData.filter((data) => data.day == [i])
         const disease  = groupByCategory.DISEASE
-        const food  = groupByCategory.FOOD
+        const food  = foodData.filter((data) => data.day == [i])
 
         for (let key in junyu) {
             junyLeftTotal += junyu[key].timeLeft
@@ -212,22 +255,42 @@ export default function RecordScreen() {
         }
 
         for (let key in food) {
-            if(food[key].food.tansuikabutsu) {
-                tansuikabutsuCount += 1
+            if(food[key].food) {
+                foodCount += 1
             }
-            if(food[key].food.tampakushitsu) {
-                tampakushitsuCount += 1
+            if(food[key].drink) {
+                drinkCount += 1
             }
-            if(food[key].food.bitamin) {
-                bitaminCount += 1
-            }
-            if(food[key].food.chomiryo) {
-                chomiryoCount += 1
-            }
-            if(!isNaN(food[key].food.drink)) {
-                drinkTotal += food[key].food.drink
-            }
-            foodCount += 1
+            //if(!isNaN(food[key].food.drink)) {
+            //    drinkTotal += food[key].food.drink
+            //}
+        }
+        if(foodCount == 0) {
+            foodCount = '-'
+        } else {
+            foodCount = foodCount + '回'
+        }
+        if(drinkCount == 0) {
+            drinkCount = '-'
+        } else {
+            drinkCount = drinkCount + '回'
+        }
+
+        for (let key in food) {
+            foodAmount += food[key].foodAmount
+        }
+        if(foodAmount == 0) {
+            foodAmount = '-'
+        } else {
+            foodAmount = foodAmount + '\nml'
+        }
+        for (let key in food) {
+            drinkAmount += food[key].drinkAmount
+        }
+        if(drinkAmount == 0) {
+            drinkAmount = '-'
+        } else {
+            drinkAmount = drinkAmount + '\nml'
         }
 
         for (let key in disease) {
@@ -304,11 +367,10 @@ export default function RecordScreen() {
         rowData.push(`${junyRightTotal}`);
         rowData.push(`${milkTotal}`);
         rowData.push(`${bonyuTotal}`);
-        rowData.push(`${tansuikabutsuCount}`);
-        rowData.push(`${tampakushitsuCount}`);
-        rowData.push(`${bitaminCount}`);
-        rowData.push(`${chomiryoCount}`);
-        rowData.push(`${drinkTotal}`);
+        rowData.push(`${foodCount}`);
+        rowData.push(`${foodAmount}`);
+        rowData.push(`${drinkCount}`);
+        rowData.push(`${drinkAmount}`);
         rowData.push(`${oshikkoCount}`);
         rowData.push(`${unchiCount}`);
         rowData.push(`${hanamizuCount}`);
@@ -415,13 +477,13 @@ export default function RecordScreen() {
                     <ScrollView horizontal={true} style={styles.dataWrapper}>
                         <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
                             <Row data={tableHead} widthArr={widthArr} style={styles.header} textStyle={styles.text}/>
-                            <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
+                            <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
                             {
                                 tableData.slice(0,10).map((rowData, index) => (
                                     <Row
                                         key={index}
                                         data={rowData}
-                                        widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]}
+                                        widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50]}
                                         style={styles.row}
                                         textStyle={styles.dataText}
                                     />
@@ -451,13 +513,13 @@ export default function RecordScreen() {
                     <ScrollView horizontal={true} style={styles.dataWrapper}>
                         <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
                             <Row data={tableHead} widthArr={widthArr} style={styles.header} textStyle={styles.text}/>
-                            <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
+                            <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
                             {
                                 tableData.slice(10,20).map((rowData, index) => (
                                     <Row
                                         key={index}
                                         data={rowData}
-                                        widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]}
+                                        widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50]}
                                         style={styles.row}
                                         textStyle={styles.dataText}
                                     />
@@ -486,13 +548,13 @@ export default function RecordScreen() {
                     <ScrollView horizontal={true} style={styles.dataWrapper}>
                         <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
                             <Row data={tableHead} widthArr={widthArr} style={styles.header} textStyle={styles.text}/>
-                            <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
+                            <Row data={sybTableHead} widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]} style={styles.header} textStyle={styles.text}/>
                             {
                                 tableData.slice(20).map((rowData, index) => (
                                     <Row
                                         key={index}
                                         data={rowData}
-                                        widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50,50, 50, 50, 50, 50, 50, 50, 50, 50]}
+                                        widthArr={[50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]}
                                         style={styles.row}
                                         textStyle={styles.dataText}
                                     />

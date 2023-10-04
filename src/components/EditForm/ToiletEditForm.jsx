@@ -4,20 +4,17 @@ import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { CheckBox } from 'react-native-elements'
 
-
 export default function ToiletEditForm(props) {
     const { selectTime } = props;
     const { babyData } = props;
     const { toggleModal } = props;
-
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
-
+    
     const year = selectTime.getFullYear();
     const month = String(selectTime.getMonth() + 1).padStart(2, '0');
 
     const [oshikko, setOshikko] = useState(babyData.oshikko);
     const [unchi, setUnchi] = useState(babyData.unchi);
-
     const [detailBody, setBodyText] = useState(babyData.memo);
 
     function handlePress() {

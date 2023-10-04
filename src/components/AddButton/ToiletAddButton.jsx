@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Button, View, StyleSheet, Text, Image } from "react-native";
+import { Button, View, StyleSheet, Text } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import ToiletInputForm from "./ToiletInputForm";
-import ModalSelectBaby from "../ModalSelectBaby";
 import Modal from "react-native-modal";
 import CircleButton from "../CircleButton";
 import { useDateTimeContext } from "../../context/DateTimeContext";
@@ -13,11 +12,6 @@ export default function ToiletAddButton() {
     const [isModalVisible, setModalVisible] = useState(false);
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
-    };
-
-    const [isBabyModalVisible, setBabyModalVisible] = useState(false);
-    const toggleBabyModal = () => {
-        setBabyModalVisible(!isBabyModalVisible);
     };
 
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);

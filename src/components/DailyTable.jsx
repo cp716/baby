@@ -4,6 +4,9 @@ import { Table, TableWrapper, Row, Col } from 'react-native-table-component';
 
 export default function DailyTable(props) {
     const { todayData } = props;
+    const { toiletData } = props;
+    const { foodData } = props;
+
     let junyLeftTotal = 0;
     let junyRightTotal = 0;
     let milkTotal = 0;
@@ -11,8 +14,8 @@ export default function DailyTable(props) {
     let bonyuCount = 0;
     let oshikkoCount = 0;
     let unchiCount = 0;
-    let bodyTemperature = '記録なし';
-    let bodyTemperatureTime = ''
+    let bodyTemperature = '-';
+    let bodyTemperatureTime = '-'
     let foodCount = 0;
     let drinkTotal = 0;
 
@@ -27,9 +30,7 @@ export default function DailyTable(props) {
     const junyu = groupByCategory.JUNYU
     const milk  = groupByCategory.MILK
     const bonyu  = groupByCategory.BONYU
-    const toilet  = groupByCategory.TOILET
     const disease  = groupByCategory.DISEASE
-    const food  = groupByCategory.FOOD
 
     for (let key in junyu) {
         junyLeftTotal += junyu[key].timeLeft
@@ -42,15 +43,15 @@ export default function DailyTable(props) {
         bonyuTotal += bonyu[key].bonyu
         bonyuCount += 1
     }
-    for (let key in toilet) {
-        if(toilet[key].toilet.oshikko && toilet[key].toilet.unchi) {
+    for (let key in toiletData) {
+        if(toiletData[key].oshikko && toiletData[key].unchi) {
             oshikkoCount += 1
             unchiCount += 1
         }
-        if(toilet[key].toilet.oshikko && !toilet[key].toilet.unchi) {
+        if(toiletData[key].oshikko && !toiletData[key].unchi) {
             oshikkoCount += 1
         }
-        if(!toilet[key].toilet.oshikko && toilet[key].toilet.unchi) {
+        if(!toiletData[key].oshikko && toiletData[key].unchi) {
             unchiCount += 1
         }
     }
@@ -60,11 +61,17 @@ export default function DailyTable(props) {
             bodyTemperatureTime = (disease[key].updatedAt.getHours()) + '時' + (disease[key].updatedAt.getMinutes()) + '分'
         }
     }
-    for (let key in food) {
-        if(!isNaN(food[key].food.drink)) {
-            drinkTotal += food[key].food.drink
+    for (let key in foodData) {
+        if(foodData[key].food && foodData[key].drink) {
+            foodCount += 1
+            drinkTotal += 1
         }
-        foodCount += 1
+        if(foodData[key].food && !foodData[key].drink) {
+            foodCount += 1
+        }
+        if(!foodData[key].food && foodData[key].drink) {
+            drinkTotal += 1
+        }
     }
 
     const tableHead_1 = ['授乳', '哺乳瓶', '飲食']

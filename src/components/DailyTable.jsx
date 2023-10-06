@@ -4,8 +4,26 @@ import { Table, TableWrapper, Row, Col } from 'react-native-table-component';
 
 export default function DailyTable(props) {
     const { todayData } = props;
+    const { milkData } = props;
     const { toiletData } = props;
     const { foodData } = props;
+
+    // フォーマット関数を定義
+    function formatTime(time) {
+        return time ? time + '分' : '-';
+    }
+
+    function formatAmount(total) {
+        return total ? total + 'ml' : '-';
+    }
+
+    function formatCount(count) {
+        return count ? count + '回' : '-';
+    }
+
+    function formatTemperature(temperature) {
+        return temperature ? temperature + '°' : '-';
+    }
 
     let junyLeftTotal = 0;
     let junyRightTotal = 0;
@@ -27,20 +45,17 @@ export default function DailyTable(props) {
     };
     
     const groupByCategory = groupBy(todayData, 'category');
-    const junyu = groupByCategory.JUNYU
-    const milk  = groupByCategory.MILK
-    const bonyu  = groupByCategory.BONYU
     const disease  = groupByCategory.DISEASE
 
-    for (let key in junyu) {
-        junyLeftTotal += junyu[key].timeLeft
-        junyRightTotal += junyu[key].timeRight
+    for (let key in milkData) {
+        junyLeftTotal += milkData[key].junyu_left
+        junyRightTotal += milkData[key].junyu_right
     }
-    for (let key in milk) {
-        milkTotal += milk[key].milk
+    for (let key in milkData) {
+        milkTotal += milkData[key].milk
     }
-    for (let key in bonyu) {
-        bonyuTotal += bonyu[key].bonyu
+    for (let key in milkData) {
+        bonyuTotal += milkData[key].bonyu
         bonyuCount += 1
     }
     for (let key in toiletData) {
@@ -75,9 +90,9 @@ export default function DailyTable(props) {
     }
 
     const tableHead_1 = ['授乳', '哺乳瓶', '飲食']
-    const tableData_1 = ['左\n' + junyLeftTotal + '分', '右\n' + junyRightTotal + '分', 'ミルク\n' + milkTotal + 'ml', '母乳\n' + bonyuTotal + 'ml', 'ご飯\n' + foodCount + '回', '飲物\n' + drinkTotal + 'ml']
+    const tableData_1 = ['左\n' + formatTime(junyLeftTotal), '右\n' + formatTime(junyRightTotal), 'ミルク\n' + formatAmount(milkTotal), '母乳\n' + formatAmount(bonyuTotal), 'ご飯\n' + formatCount(foodCount), '飲物\n' + formatCount(drinkTotal)]
     const tableHead_2 = ['トイレ', '睡眠', '体温', '身長', '体重']
-    const tableData_2 = ['尿\n' + oshikkoCount + '回', 'うんち\n' + unchiCount + '回', 'XX分', bodyTemperature + '℃', 'XXcm', 'XXkg']
+    const tableData_2 = ['尿\n' + formatCount(oshikkoCount), 'うんち\n' + formatCount(unchiCount), 'XX分', bodyTemperature + '℃', 'XXcm', 'XXkg']
     const widthArr_1 = [110, 110, 110]
     const widthArr_2 = [55, 55, 55, 55, 55, 55]
     const widthArr_3 = [110, 55, 55, 55, 55]

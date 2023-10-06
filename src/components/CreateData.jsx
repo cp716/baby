@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Modal from "react-native-modal";
 
 export default function CreateData(props) {
+    const { milkData } = props;
     const { toiletData } = props;
     const { foodData } = props;
     const { currentBaby } = props;
@@ -21,22 +22,31 @@ export default function CreateData(props) {
     // idをキーとしてデータを統合するオブジェクトを作成
     const combinedData = {};
 
+    // MILKデータを統合
+    milkData.forEach(item => {
+        const id = item.record_id;
+        if (!combinedData[id]) {
+            combinedData[id] = {};
+        }
+        Object.assign(combinedData[id], item);
+    });
+    
     // FOODデータを統合
     foodData.forEach(item => {
-    const id = item.record_id;
-    if (!combinedData[id]) {
-        combinedData[id] = {};
-    }
-    Object.assign(combinedData[id], item);
+        const id = item.record_id;
+        if (!combinedData[id]) {
+            combinedData[id] = {};
+        }
+        Object.assign(combinedData[id], item);
     });
 
     // TOILETデータを統合
     toiletData.forEach(item => {
-    const id = item.record_id;
-    if (!combinedData[id]) {
-        combinedData[id] = {};
-    }
-    Object.assign(combinedData[id], item);
+        const id = item.record_id;
+        if (!combinedData[id]) {
+            combinedData[id] = {};
+        }
+        Object.assign(combinedData[id], item);
     });
     
     // 統合されたデータを配列に変換
@@ -107,8 +117,8 @@ export default function CreateData(props) {
                                 {(() => {
                                         if (item.category == 'JUNYU') {
                                             return (
-                                                '左' + item.timeLeft +'分\n' +
-                                                '右' + item.timeRight +'分'
+                                                '左' + item.junyu_left +'分\n' +
+                                                '右' + item.junyu_right +'分'
                                             );
                                         } else if (item.category == 'MILK') {
                                             return (

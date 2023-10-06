@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
-import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 
-export default function MilkInputForm(props) {
+export default function ToiletInputForm(props) {
     const { selectTime } = props;
     const { toggleModal } = props;
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const date = new Date(selectTime);
     const year = date.getFullYear();
-    const month = date.getMonth() + 1;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = date.getDate();
     
     const [timeLeft,  setTimeLeft] = useState('');
@@ -18,72 +18,149 @@ export default function MilkInputForm(props) {
     const [milk,  setMilk] = useState('');
     const [bonyu,  setBonyu] = useState('');
     const [bodyText, setBodyText] = useState('');
-    
-    function handlePress() {
-        const db = firebase.firestore();
-        const { currentUser } = firebase.auth();
-        const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(currentBabyState.id.toString())
-        .collection(`${year}_${month}`)
-        if(timeLeft || timeRight || milk || bonyu !== "") {
-            if (timeLeft || timeRight !== "") {
-                let left = 0;
-                let right = 0;
-                if (timeLeft !== "") {
-                    left = timeLeft
+
+    useEffect(() => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+            (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                'CREATE TABLE IF NOT EXISTS MilkRecord_' + year + '_' + month + ' (record_id INTEGER, milk INTEGER, bonyu INTEGER, junyu_left INTEGER, junyu_right INTEGER)',
+                [],
+                () => {
+                    //console.log('MilkRecord_' + year + '_' + month + 'テーブルが作成されました');
+                },
+                (error) => {
+                    console.error('テーブルの作成中にエラーが発生しました:', error);
                 }
-                if(timeRight !== "") {
-                    right = timeRight
+                );
+            },
+            (error) => {
+                console.error('データベースのオープン中にエラーが発生しました:', error);
+            }
+        );
+    }, []);
+
+    const saveMilkDataToSQLite = () => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+            (tx) => {
+                if (milk || bonyu || timeLeft || timeRight) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
+                    if (milk) {
+                        tx.executeSql(
+                            'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                            [
+                                currentBabyState.id,
+                                day,
+                                'MILK',
+                                bodyText,
+                                new Date(selectTime).toISOString()
+                            ],
+                            (_, result) => {
+                                const lastInsertId = result.insertId;
+                                tx.executeSql(
+                                    'INSERT INTO MilkRecord_' + year + '_' + month + ' (record_id, milk) VALUES (?, ?)',
+                                    [
+                                        lastInsertId,
+                                        milk,
+                                    ],
+                                    (_, result) => {
+                                        toggleModal();
+                                    },
+                                    (_, error) => {
+                                        console.error('データの挿入中にエラーが発生しました:', error);
+                                    }
+                                );
+                            },
+                            (_, error) => {
+                                console.error('データの挿入中にエラーが発生しました:', error);
+                            }
+                        );
+                    }
+                    if (bonyu) {
+                        tx.executeSql(
+                            'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                            [
+                                currentBabyState.id,
+                                day,
+                                'BONYU',
+                                bodyText,
+                                new Date(selectTime).toISOString()
+                            ],
+                            (_, result) => {
+                                const lastInsertId = result.insertId;
+                                tx.executeSql(
+                                    'INSERT INTO MilkRecord_' + year + '_' + month + ' (record_id, bonyu) VALUES (?, ?)',
+                                    [
+                                        lastInsertId,
+                                        bonyu,
+                                    ],
+                                    (_, result) => {
+                                        toggleModal();
+                                    },
+                                    (_, error) => {
+                                        console.error('データの挿入中にエラーが発生しました:', error);
+                                    }
+                                );
+                            },
+                            (_, error) => {
+                                console.error('データの挿入中にエラーが発生しました:', error);
+                            }
+                        );
+                    }
+                    if (timeLeft || timeRight) {
+                        let left = 0;
+                        let right = 0;
+                        if (timeLeft !== "") {
+                            left = timeLeft
+                        }
+                        if(timeRight !== "") {
+                            right = timeRight
+                        }
+                        tx.executeSql(
+                            'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                            [
+                                currentBabyState.id,
+                                day,
+                                'JUNYU',
+                                bodyText,
+                                new Date(selectTime).toISOString()
+                            ],
+                            (_, result) => {
+                                const lastInsertId = result.insertId;
+                                tx.executeSql(
+                                    'INSERT INTO MilkRecord_' + year + '_' + month + ' (record_id, junyu_left, junyu_right) VALUES (?, ?, ?)',
+                                    [
+                                        lastInsertId,
+                                        left,
+                                        right,
+                                    ],
+                                    (_, result) => {
+                                        toggleModal();
+                                    },
+                                    (_, error) => {
+                                        console.error('データの挿入中にエラーが発生しました:', error);
+                                    }
+                                );
+                            },
+                            (_, error) => {
+                                console.error('データの挿入中にエラーが発生しました:', error);
+                            }
+                        );
+                    }
+                    // 画面リフレッシュのためcurrentBabyStateを更新
+                    currentBabyDispatch({
+                        type: 'addBaby',
+                        name: currentBabyState.name,
+                        birthday: currentBabyState.birthday,
+                        id: currentBabyState.id,
+                    });
+                } else {
+                    Alert.alert('入力してください');
                 }
-                ref.add({
-                    'category':'JUNYU',
-                    updatedAt: selectTime,
-                    day: day,
-                    bodyText,
-                    timeLeft: left,
-                    timeRight: right,
-                })
-                .then((docRef) => {
-                    console.log('書き込みました', docRef.id);
-                })
-                .catch((error) => {
-                    console.log('失敗しました', error);
-                });
             }
-            if (milk !== "") {
-                ref.add({
-                    'category':'MILK',
-                    updatedAt: selectTime,
-                    day: day,
-                    bodyText,
-                    milk,
-                })
-                .then((docRef) => {
-                    console.log('書き込みました', docRef.id);
-                })
-                .catch((error) => {
-                    console.log('失敗しました', error);
-                });
-            }
-            if (bonyu !== "") {
-                ref.add({
-                    'category':'BONYU',
-                    updatedAt: selectTime,
-                    day: day,
-                    bodyText,
-                    bonyu,
-                })
-                .then((docRef) => {
-                    console.log('書き込みました', docRef.id);
-                })
-                .catch((error) => {
-                    console.log('失敗しました', error);
-                });
-            }
-            toggleModal()
-        } else {
-            Alert.alert("未入力です");
-        }
-    }
+        );
+    };
     
     return (
         <ScrollView scrollEnabled={false}>
@@ -155,7 +232,7 @@ export default function MilkInputForm(props) {
                 <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
                     <Text style={modalStyles.confirmButtonText}>close</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress} >
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveMilkDataToSQLite} >
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>

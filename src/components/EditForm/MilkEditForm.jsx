@@ -1,114 +1,217 @@
 import React, { useState } from 'react';
-import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 
-export default function MilkEditForm(props) {
+export default function ToiletEditForm(props) {
     const { selectTime } = props;
     const { babyData } = props;
     const { toggleModal } = props;
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
-
+    
     const year = selectTime.getFullYear();
-    const month = selectTime.getMonth() + 1;
-    const day = selectTime.getDate();
+    const month = String(selectTime.getMonth() + 1).padStart(2, '0');
 
-    const [detailLeft, setTimeLeft] = useState(("00" + babyData.timeLeft ).slice(2));
-    const [detailRight, setTimeRight] = useState(("00" + babyData.timeRight ).slice(2));
+    const [detailLeft, setTimeLeft] = useState(("00" + babyData.junyu_left ).slice(2));
+    const [detailRight, setTimeRight] = useState(("00" + babyData.junyu_right ).slice(2));
     const [detailMilk, setMilk] = useState(("000" + babyData.milk).slice(3));
     const [detailBonyu, setBonyu] = useState(("000" + babyData.bonyu).slice(3));
-    const [detailBody, setBodyText] = useState(babyData.bodyText);
+    const [detailBody, setBodyText] = useState(babyData.memo);
 
     function handlePress() {
-        const { currentUser } = firebase.auth();
-        if (currentUser ) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
-            .collection(`${year}_${month}`).doc(babyData.id)
-
-            if (babyData.category == 'JUNYU') {
-                let left = 0;
-                let right = 0;
-                if (babyData.timeLeft !== "") {
-                    left = Number(detailLeft)
-                }
-                if(babyData.timeRight !== "") {
-                    right = Number(detailRight)
-                }
-                return (
-                    ref.set({
-                        'category':'JUNYU',
-                        timeLeft: left,
-                        timeRight: right,
-                        bodyText: detailBody,
-                        updatedAt: selectTime
-                    }, { merge: true })
-                    .then(() => {
-                        toggleModal()
-                    })
-                    .catch((error) => {
-                        Alert.alert(error.code);
-                    })
-                );
-            } else if (babyData.category == 'MILK') {
-                return (
-                    ref.set({
-                        'category':'MILK',
-                        milk: Number(detailMilk),
-                        bodyText: detailBody,
-                        updatedAt: selectTime
-                    }, { merge: true })
-                    .then(() => {
-                        toggleModal()
-                    })
-                    .catch((error) => {
-                        Alert.alert(error.code);
-                    })
-                );
-            } else if (babyData.category == 'BONYU') {
-                return (
-                    ref.set({
-                        'category':'BONYU',
-                        bonyu: Number(detailBonyu),
-                        bodyText: detailBody,
-                        updatedAt: selectTime
-                    }, { merge: true })
-                    .then(() => {
-                        toggleModal()
-                    })
-                    .catch((error) => {
-                        Alert.alert(error.code);
-                    })
-                );
-            }
+        if (detailMilk || detailBonyu || detailLeft || detailRight) {
+            Alert.alert(
+                '更新します', 'よろしいですか？',
+                [
+                    {
+                        text: 'キャンセル',
+                        style: 'cancel',
+                        onPress: () => {},
+                    },
+                    {
+                        text: '更新',
+                        style: 'default',
+                        onPress: () => {
+                            const db = SQLite.openDatabase('DB.db');
+                            db.transaction(
+                                (tx) => {
+                                    if (babyData.category == 'MILK') {
+                                        return (
+                                            tx.executeSql(
+                                                'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
+                                                [
+                                                    detailBody,
+                                                    new Date(selectTime).toISOString(),
+                                                    babyData.record_id
+                                                ],
+                                                (_, result) => {
+                                                    tx.executeSql(
+                                                        'UPDATE MilkRecord_' + year + '_' + month + ' SET milk = ? WHERE record_id = ?',
+                                                        [
+                                                            Number(detailMilk),
+                                                            babyData.record_id
+                                                        ],
+                                                        (_, result) => {
+                                                            // 画面リフレッシュのためcurrentBabyStateを更新
+                                                            currentBabyDispatch({
+                                                                type: 'addBaby',
+                                                                name: currentBabyState.name,
+                                                                birthday: currentBabyState.birthday,
+                                                                id: currentBabyState.id,
+                                                            });
+                                                            toggleModal();
+                                                        },
+                                                        (_, error) => {
+                                                            console.error('データの挿入中にエラーが発生しました:', error);
+                                                        }
+                                                    );
+                                                },
+                                                (_, error) => {
+                                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                                }
+                                            )
+                                        );
+                                    }
+                                    if (babyData.category == 'BONYU') {
+                                        return (
+                                            tx.executeSql(
+                                                'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
+                                                [
+                                                    detailBody,
+                                                    new Date(selectTime).toISOString(),
+                                                    babyData.record_id
+                                                ],
+                                                (_, result) => {
+                                                    tx.executeSql(
+                                                        'UPDATE MilkRecord_' + year + '_' + month + ' SET bonyu = ? WHERE record_id = ?',
+                                                        [
+                                                            Number(detailBonyu),
+                                                            babyData.record_id
+                                                        ],
+                                                        (_, result) => {
+                                                            // 画面リフレッシュのためcurrentBabyStateを更新
+                                                            currentBabyDispatch({
+                                                                type: 'addBaby',
+                                                                name: currentBabyState.name,
+                                                                birthday: currentBabyState.birthday,
+                                                                id: currentBabyState.id,
+                                                            });
+                                                            toggleModal();
+                                                        },
+                                                        (_, error) => {
+                                                            console.error('データの挿入中にエラーが発生しました:', error);
+                                                        }
+                                                    );
+                                                },
+                                                (_, error) => {
+                                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                                }
+                                            )
+                                        );
+                                    }
+                                    if (babyData.category == 'JUNYU') {
+                                        let left = 0;
+                                        let right = 0;
+                                        if (babyData.timeLeft !== "") {
+                                            left = Number(detailLeft)
+                                        }
+                                        if(babyData.timeRight !== "") {
+                                            right = Number(detailRight)
+                                        }
+                                        return (
+                                            tx.executeSql(
+                                                'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
+                                                [
+                                                    detailBody,
+                                                    new Date(selectTime).toISOString(),
+                                                    babyData.record_id
+                                                ],
+                                                (_, result) => {
+                                                    tx.executeSql(
+                                                        'UPDATE MilkRecord_' + year + '_' + month + ' SET junyu_left = ?, junyu_right = ? WHERE record_id = ?',
+                                                        [
+                                                            left,
+                                                            right,
+                                                            babyData.record_id
+                                                        ],
+                                                        (_, result) => {
+                                                            // 画面リフレッシュのためcurrentBabyStateを更新
+                                                            currentBabyDispatch({
+                                                                type: 'addBaby',
+                                                                name: currentBabyState.name,
+                                                                birthday: currentBabyState.birthday,
+                                                                id: currentBabyState.id,
+                                                            });
+                                                            toggleModal();
+                                                        },
+                                                        (_, error) => {
+                                                            console.error('データの挿入中にエラーが発生しました:', error);
+                                                        }
+                                                    );
+                                                },
+                                                (_, error) => {
+                                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                                }
+                                            )
+                                        );
+                                    }
+                                }
+                            );
+                        },
+                    },
+                ],
+            );
+        } else {
+            Alert.alert('入力してください');
         }
     }
 
     function deleteItem() {
-        const { currentUser } = firebase.auth();
-        if(currentUser) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
-            .collection(`${year}_${month}`).doc(babyData.id)
-            
-            Alert.alert('削除します', 'よろしいですか？', [
-                {
-                    text: 'キャンセル',
-                    onPress: () => {},
+        Alert.alert('削除します', 'よろしいですか？', [
+            {
+                text: 'キャンセル',
+                style: 'cancel',
+                onPress: () => {},
+            },
+            {
+                text: '削除',
+                style: 'destructive',
+                onPress: () => {
+                    const db = SQLite.openDatabase('DB.db');
+                    db.transaction(
+                    (tx) => {
+                        tx.executeSql(
+                        'DELETE FROM CommonRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                        [babyData.record_id],
+                        (_, result) => {
+                            tx.executeSql(
+                                'DELETE FROM MilkRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                                [babyData.record_id],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        id: currentBabyState.id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('削除中にエラーが発生しました:', error);
+                                }
+                            );
+                        },
+                        (_, error) => {
+                            Alert.alert('削除中にエラーが発生しました');
+                            console.error('データの削除中にエラーが発生しました:', error);
+                        }
+                        );
+                    }
+                    );
                 },
-                {
-                    text: '削除する',
-                    style: 'destructive',
-                    onPress: () => {
-                        //navigation.goBack();
-                        toggleModal()
-                        ref.delete().catch(() => {
-                            Alert.alert('削除に失敗しました');
-                        });
-                    },
-                },
-            ]);
-        }
+            },
+        ]);
     }
 
     return (

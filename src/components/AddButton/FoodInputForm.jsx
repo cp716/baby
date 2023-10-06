@@ -20,6 +20,13 @@ export default function FoodInputForm(props) {
     const [drinkAmount, setDrinkAmount] = useState('');
     const [bodyText, setBodyText] = useState('');
 
+    if(isNaN(foodAmount)) {
+        setFoodAmount('')
+    }
+    if(isNaN(drinkAmount)) {
+        setDrinkAmount('')
+    }
+
     useEffect(() => {
         const db = SQLite.openDatabase('DB.db');
         db.transaction(
@@ -100,12 +107,25 @@ export default function FoodInputForm(props) {
                     <CheckBox
                         title='食事'
                         checked={foodCheck}
-                        onPress={() => {setFoodCheck(foodCheck === 1 ? 0 : 1);}}
+                        //onPress={() => {setFoodCheck(foodCheck === 1 ? 0 : 1);}}
+                        onPress={() => {
+                            if (foodAmount) {
+                                // foodAmount に値が入っている場合、クリアする
+                                setFoodAmount('');
+                            }
+                            setFoodCheck(!foodCheck);
+                        }}
                     />
                     <CheckBox
                         title='飲物'
                         checked={drinkCheck}
-                        onPress={() => {setDrinkCheck(drinkCheck === 1 ? 0 : 1);}}
+                        onPress={() => {
+                            if (setDrinkAmount) {
+                                // foodAmount に値が入っている場合、クリアする
+                                setDrinkAmount('');
+                            }
+                            setDrinkCheck(!drinkCheck);
+                        }}
                     />
                 </View>
             </View>

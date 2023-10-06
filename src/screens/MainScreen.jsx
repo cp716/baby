@@ -39,10 +39,12 @@ export default function MainScreen(props) {
         loadBabyData();
     }, [currentBabyState, dateTimeState]);
     
+    const [milkData, setMilkData] = useState([]);
     const [toiletData, setToiletData] = useState([]);
     const [foodData, setFoodData] = useState([]);
 
     const commonRecordTable = `CommonRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
+    const milkRecordTable = `MilkRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const toiletRecordTable = `ToiletRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const foodRecordTable = `FoodRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
 
@@ -50,7 +52,34 @@ export default function MainScreen(props) {
     const database = SQLite.openDatabase('DB.db');
     const loadBabyData = () => {
         database.transaction((tx) => {
-            // テーブルの存在を確認
+            tx.executeSql(
+                'PRAGMA table_info(' + milkRecordTable + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                        'SELECT ' + commonRecordTable + '.*, ' + milkRecordTable + '.milk, ' + milkRecordTable + '.bonyu, ' + milkRecordTable + '.junyu_left, ' + milkRecordTable + '.junyu_right FROM ' + commonRecordTable + ' LEFT JOIN ' + milkRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + milkRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        [dateTimeState.day, currentBabyState.id],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setMilkData(data.filter(item => ['MILK', 'BONYU', 'JUNYU'].includes(item.category)))
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
+                        }
+                    );
+                } else {
+                    //console.log('ToiletRecordテーブルが存在しません');
+                    setMilkData([])
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
             tx.executeSql(
                 'PRAGMA table_info(' + toiletRecordTable + ');',
                 [],
@@ -143,7 +172,7 @@ export default function MainScreen(props) {
         );
     }
 
-    if (!toiletData.length  && !foodData.length ) {
+    if (!milkData.length && !toiletData.length  && !foodData.length ) {
         return (
             <View style={styles.container}>
                 <View style={[styles.dateTime , {height: '15%'}]}>
@@ -195,11 +224,11 @@ export default function MainScreen(props) {
                 </View>
             </View>
             <View style={{height: '40%'}}>
-                <CreateData toiletData={toiletData} foodData={foodData}/>
+                <CreateData milkData={milkData} toiletData={toiletData} foodData={foodData}/>
             </View>
             <View style={[styles.footer , {height: '40%'}]}>
                 <View style={styles.button}>
-                    <DailyTable todayData={todayData} toiletData={toiletData} foodData={foodData}/>
+                    <DailyTable todayData={todayData} milkData={milkData} toiletData={toiletData} foodData={foodData}/>
                 </View>
                 <View style={styles.button}>
                     <DiseaseAddButton />

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import firebase from 'firebase';
 import * as SQLite from 'expo-sqlite'; // SQLiteをインポート
 import Swiper from 'react-native-swiper'
 import { StyleSheet, View, ScrollView, TouchableOpacity, Text } from 'react-native';
@@ -68,10 +67,12 @@ export default function RecordScreen(props) {
         loadBabyData();
     }, [currentBabyState, date]);
 
+    const [milkData, setMilkData] = useState([]);
     const [toiletData, setToiletData] = useState([]);
     const [foodData, setFoodData] = useState([]);
 
     const commonRecordTable = `CommonRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
+    const milkRecordTable = `MilkRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
     const toiletRecordTable = `ToiletRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
     const foodRecordTable = `FoodRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
 
@@ -79,7 +80,34 @@ export default function RecordScreen(props) {
     const database = SQLite.openDatabase('DB.db');
     const loadBabyData = () => {
         database.transaction((tx) => {
-            // テーブルの存在を確認
+            tx.executeSql(
+                'PRAGMA table_info(' + milkRecordTable + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                        'SELECT ' + commonRecordTable + '.*, ' + milkRecordTable + '.milk, ' + milkRecordTable + '.bonyu, ' + milkRecordTable + '.junyu_left, ' + milkRecordTable + '.junyu_right FROM ' + commonRecordTable + ' LEFT JOIN ' + milkRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + milkRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
+                        [currentBabyState.id],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setMilkData(data.filter(item => ['MILK', 'BONYU', 'JUNYU'].includes(item.category)))
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
+                        }
+                    );
+                } else {
+                    //console.log('ToiletRecordテーブルが存在しません');
+                    setMilkData([])
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
             tx.executeSql(
                 'PRAGMA table_info(' + toiletRecordTable + ');',
                 [],
@@ -154,8 +182,10 @@ export default function RecordScreen(props) {
         return time ? time + '分' : '-';
     }
 
-    function formatMilkTotal(total) {
-        return total ? total + 'ml' : '-';
+    function formatAmount(total) {
+        //return total ? total + 'ml' : '-';
+        //console(total)
+        return (total !== null && total !== undefined && total !== 0) ? total + 'ml' : '-';
     }
 
     function formatCount(count) {
@@ -194,45 +224,23 @@ export default function RecordScreen(props) {
 
         const x = monthToiletData.filter((data) => data.day == [i])
         const groupByCategory = groupBy(x, 'category');
-        const junyu = groupByCategory.JUNYU
-        const milk  = groupByCategory.MILK
-        const bonyu  = groupByCategory.BONYU
+        const milk  = milkData.filter((data) => data.day == [i])
         const toilet  = toiletData.filter((data) => data.day == [i])
         const disease  = groupByCategory.DISEASE
         const food  = foodData.filter((data) => data.day == [i])
 
-        for (let key in junyu) {
-            junyLeftTotal += junyu[key].timeLeft
-            junyRightTotal += junyu[key].timeRight
-        }
-        if(junyLeftTotal == 0) {
-            junyLeftTotal = '-'
-        } else {
-            junyLeftTotal = junyLeftTotal + '分'
-        }
-        if(junyRightTotal == 0) {
-            junyRightTotal = '-'
-        } else {
-            junyRightTotal = junyRightTotal + '分'
+        for (let key in milk) {
+            junyLeftTotal += milk[key].junyu_left
+            junyRightTotal += milk[key].junyu_right
         }
 
         for (let key in milk) {
             milkTotal += milk[key].milk
         }
-        if(milkTotal == 0) {
-            milkTotal = '-'
-        } else {
-            milkTotal = milkTotal + '\nml'
-        }
 
-        for (let key in bonyu) {
-            bonyuTotal += bonyu[key].bonyu
+        for (let key in milk) {
+            bonyuTotal += milk[key].bonyu
             bonyuCount += 1
-        }
-        if(bonyuTotal == 0) {
-            bonyuTotal = '-'
-        } else {
-            bonyuTotal = bonyuTotal + '\nml'
         }
 
         for (let key in toilet) {
@@ -242,16 +250,6 @@ export default function RecordScreen(props) {
             if(toilet[key].unchi) {
                 unchiCount += 1
             }
-        }
-        if(oshikkoCount == 0) {
-            oshikkoCount = '-'
-        } else {
-            oshikkoCount = oshikkoCount + '回'
-        }
-        if(unchiCount == 0) {
-            unchiCount = '-'
-        } else {
-            unchiCount = unchiCount + '回'
         }
 
         for (let key in food) {
@@ -265,32 +263,12 @@ export default function RecordScreen(props) {
             //    drinkTotal += food[key].food.drink
             //}
         }
-        if(foodCount == 0) {
-            foodCount = '-'
-        } else {
-            foodCount = foodCount + '回'
-        }
-        if(drinkCount == 0) {
-            drinkCount = '-'
-        } else {
-            drinkCount = drinkCount + '回'
-        }
 
         for (let key in food) {
             foodAmount += food[key].foodAmount
         }
-        if(foodAmount == 0) {
-            foodAmount = '-'
-        } else {
-            foodAmount = foodAmount + '\nml'
-        }
         for (let key in food) {
             drinkAmount += food[key].drinkAmount
-        }
-        if(drinkAmount == 0) {
-            drinkAmount = '-'
-        } else {
-            drinkAmount = drinkAmount + '\nml'
         }
 
         for (let key in disease) {
@@ -313,36 +291,6 @@ export default function RecordScreen(props) {
                 kusuriCount += 1
             }
         }
-        if(hanamizuCount == 0) {
-            hanamizuCount = '-'
-        } else {
-            hanamizuCount = hanamizuCount + '回'
-        }
-        if(sekiCount == 0) {
-            sekiCount = '-'
-        } else {
-            sekiCount = sekiCount + '回'
-        }
-        if(otoCount == 0) {
-            otoCount = '-'
-        } else {
-            otoCount = otoCount + '回'
-        }
-        if(hosshinCount == 0) {
-            hosshinCount = '-'
-        } else {
-            hosshinCount = hosshinCount + '回'
-        }
-        if(kegaCount == 0) {
-            kegaCount = '-'
-        } else {
-            kegaCount = kegaCount + '回'
-        }
-        if(kusuriCount == 0) {
-            kusuriCount = '-'
-        } else {
-            kusuriCount = kusuriCount + '回'
-        }
 
         for (let key in disease) {
             if(!isNaN(disease[key].disease.bodyTemperature)) {
@@ -350,29 +298,18 @@ export default function RecordScreen(props) {
                 minBodyTemperature = disease[key].disease.bodyTemperature
             }
         }
-        if(maxBodyTemperature == 0) {
-            maxBodyTemperature = '-'
-        } else {
-            maxBodyTemperature = maxBodyTemperature + '°'
-        }
-        if(minBodyTemperature == 0) {
-            minBodyTemperature = '-'
-        } else {
-            minBodyTemperature = minBodyTemperature + '°'
-        }
 
         const rowData = [];
-
-        rowData.push(`${junyLeftTotal}`);
-        rowData.push(`${junyRightTotal}`);
-        rowData.push(`${milkTotal}`);
-        rowData.push(`${bonyuTotal}`);
-        rowData.push(`${foodCount}`);
-        rowData.push(`${foodAmount}`);
-        rowData.push(`${drinkCount}`);
-        rowData.push(`${drinkAmount}`);
-        rowData.push(`${oshikkoCount}`);
-        rowData.push(`${unchiCount}`);
+        rowData.push(`${formatTime(junyLeftTotal)}`);
+        rowData.push(`${formatTime(junyRightTotal)}`);
+        rowData.push(`${formatAmount(milkTotal)}`);
+        rowData.push(`${formatAmount(bonyuTotal)}`);
+        rowData.push(`${formatCount(foodCount)}`);
+        rowData.push(`${formatAmount(foodAmount)}`);
+        rowData.push(`${formatCount(drinkCount)}`);
+        rowData.push(`${formatAmount(drinkAmount)}`);
+        rowData.push(`${formatCount(oshikkoCount)}`);
+        rowData.push(`${formatCount(unchiCount)}`);
         rowData.push(`${hanamizuCount}`);
         rowData.push(`${sekiCount}`);
         rowData.push(`${otoCount}`);

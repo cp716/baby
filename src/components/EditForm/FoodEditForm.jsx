@@ -15,8 +15,8 @@ export default function FoodEditForm(props) {
 
     const [foodCheck, setFoodCheck] = useState(babyData.food);
     const [drinkCheck, setDrinkCheck] = useState(babyData.drink);
-    const [foodAmount, setFoodAmount] = useState(babyData.foodAmount);
-    const [drinkAmount, setDrinkAmount] = useState(babyData.drinkAmount);
+    const [foodAmount, setFoodAmount] = useState(babyData.foodAmount === 0 ? '' : babyData.foodAmount);
+    const [drinkAmount, setDrinkAmount] = useState(babyData.drinkAmount === 0 ? '' : babyData.drinkAmount);
     const [detailBody, setBodyText] = useState(babyData.memo);
 
     if(isNaN(foodAmount)) {
@@ -41,6 +41,14 @@ export default function FoodEditForm(props) {
                         style: 'default',
                         onPress: () => {
                             const db = SQLite.openDatabase('DB.db');
+                            let food = 0;
+                            let drink = 0;
+                            if (foodAmount !== "") {
+                                food = foodAmount
+                            }
+                            if(drinkAmount !== "") {
+                                drink = drinkAmount
+                            }
                             db.transaction(
                                 (tx) => {
                                     tx.executeSql(
@@ -56,8 +64,8 @@ export default function FoodEditForm(props) {
                                                 [
                                                     foodCheck,
                                                     drinkCheck,
-                                                    foodAmount,
-                                                    drinkAmount,
+                                                    food,
+                                                    drink,
                                                     babyData.record_id
                                                 ],
                                                 (_, result) => {
@@ -172,7 +180,7 @@ export default function FoodEditForm(props) {
                         keyboardType="decimal-pad"
                         value={String(foodAmount)}
                         style={[styles.input, !foodCheck && styles.disabledInput]}
-                        onChangeText={(text) => { setFoodAmount(text); }}
+                        onChangeText={(text) => { setFoodAmount(Number(text)); }}
                         //autoFocus
                         placeholder = "量を入力"
                         textAlign={"center"}//入力表示位置
@@ -184,7 +192,7 @@ export default function FoodEditForm(props) {
                         keyboardType="decimal-pad"
                         value={String(drinkAmount)}
                         style={styles.input}
-                        onChangeText={(text) => { setDrinkAmount(text); }}
+                        onChangeText={(text) => { setDrinkAmount(Number(text)); }}
                         //autoFocus
                         placeholder = "量を入力"
                         textAlign={"center"}//入力表示位置

@@ -54,6 +54,14 @@ export default function FoodInputForm(props) {
         db.transaction(
             (tx) => {
                 if (foodCheck || drinkCheck) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
+                    let food = 0;
+                    let drink = 0;
+                    if (foodAmount !== "") {
+                        food = foodAmount
+                    }
+                    if(drinkAmount !== "") {
+                        drink = drinkAmount
+                    }
                     tx.executeSql(
                         'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
                         [
@@ -71,8 +79,8 @@ export default function FoodInputForm(props) {
                                     lastInsertId,
                                     foodCheck,
                                     drinkCheck,
-                                    foodAmount,
-                                    drinkAmount
+                                    food,
+                                    drink
                                 ],
                                 (_, result) => {
                                     // 画面リフレッシュのためcurrentBabyStateを更新
@@ -135,7 +143,7 @@ export default function FoodInputForm(props) {
                         keyboardType="decimal-pad"
                         value={foodAmount}
                         style={[styles.input, !foodCheck && styles.disabledInput]}
-                        onChangeText={(text) => { setFoodAmount(text); }}
+                        onChangeText={(text) => { setFoodAmount(Number(text)); }}
                         //autoFocus
                         placeholder = "量を入力"
                         textAlign={"center"}//入力表示位置
@@ -147,7 +155,7 @@ export default function FoodInputForm(props) {
                         keyboardType="decimal-pad"
                         value={drinkAmount}
                         style={[styles.input, !drinkCheck && styles.disabledInput]}
-                        onChangeText={(text) => { setDrinkAmount(text); }}
+                        onChangeText={(text) => { setDrinkAmount(Number(text)); }}
                         //autoFocus
                         placeholder = "量を入力"
                         textAlign={"center"}//入力表示位置

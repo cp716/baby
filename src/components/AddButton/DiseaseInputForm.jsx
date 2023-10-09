@@ -1,29 +1,111 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
-import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
-
 import { CheckBox } from 'react-native-elements'
 
 export default function DiseaseInputForm(props) {
     const { selectTime } = props;
     const { toggleModal } = props;
-
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const date = new Date(selectTime);
     const year = date.getFullYear();
-    const month = date.getMonth() + 1;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = date.getDate();
     
-    const [bodyTemperature, setBodyTemperature] = useState('');
     const [bodyText, setBodyText] = useState('');
-    const [hanamizu, setHanamizu] = useState(false);
-    const [seki, setSeki] = useState(false);
-    const [oto, setOto] = useState(false);
-    const [hosshin, setHosshin] = useState(false);
-    const [kega, setKega] = useState(false);
-    const [kusuri, setKusuri] = useState(false);
+    const [hanamizu, setHanamizu] = useState(0);
+    const [seki, setSeki] = useState(0);
+    const [oto, setOto] = useState(0);
+    const [hosshin, setHosshin] = useState(0);
+    const [kega, setKega] = useState(0);
+    const [kusuri, setKusuri] = useState(0);
+    const [bodyTemperature, setBodyTemperature] = useState('');
+
+    useEffect(() => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+            (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                'CREATE TABLE IF NOT EXISTS DiseaseRecord_' + year + '_' + month + ' (record_id INTEGER, hanamizu INTEGER, seki INTEGER, oto INTEGER, hosshin INTEGER, kega INTEGER, kusuri INTEGER, body_temperature REAL)',
+                [],
+                () => {
+                    //console.log('DiseaseRecord_' + year + '_' + month + 'テーブルが作成されました');
+                },
+                (error) => {
+                    console.error('テーブルの作成中にエラーが発生しました:', error);
+                }
+                );
+            },
+            (error) => {
+                console.error('データベースのオープン中にエラーが発生しました:', error);
+            }
+        );
+    }, []);
+
+    const saveDiseaseDataToSQLite = () => {
+        const db = SQLite.openDatabase('DB.db');
+        db.transaction(
+            (tx) => {
+                if (hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
+                    if(bodyTemperature >= 32 && bodyTemperature <= 43 || bodyTemperature == '') {
+                        let temperature = 0;
+                        if (bodyTemperature !== "") {
+                            temperature = bodyTemperature
+                        }
+                        tx.executeSql(
+                            'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                            [
+                                currentBabyState.id,
+                                day,
+                                'DISEASE',
+                                bodyText,
+                                new Date(selectTime).toISOString()
+                            ],
+                            (_, result) => {
+                                const lastInsertId = result.insertId;
+                                tx.executeSql(
+                                    'INSERT INTO DiseaseRecord_' + year + '_' + month + ' (record_id, hanamizu, seki, oto, hosshin, kega, kusuri, body_temperature) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                                    [
+                                        lastInsertId,
+                                        hanamizu,
+                                        seki,
+                                        oto,
+                                        hosshin,
+                                        kega,
+                                        kusuri,
+                                        parseFloat(temperature)
+                                    ],
+                                    (_, result) => {
+                                        // 画面リフレッシュのためcurrentBabyStateを更新
+                                        currentBabyDispatch({
+                                            type: 'addBaby',
+                                            name: currentBabyState.name,
+                                            birthday: currentBabyState.birthday,
+                                            id: currentBabyState.id,
+                                        });
+                                        toggleModal();
+                                    },
+                                    (_, error) => {
+                                        console.error('データの挿入中にエラーが発生しました:', error);
+                                    }
+                                );
+                            },
+                            (_, error) => {
+                                console.error('データの挿入中にエラーが発生しました:', error);
+                            }
+                        );
+                    } else {
+                        Alert.alert("32から43までで入力してください");
+                    }
+                } else {
+                    Alert.alert('チェックが入っていません');
+                }
+            }
+        );
+    };
 
     function handlePress() {
         const db = firebase.firestore();
@@ -69,34 +151,34 @@ export default function DiseaseInputForm(props) {
                     <CheckBox
                         title='鼻水'
                         checked={hanamizu}
-                        onPress={() => setHanamizu(!hanamizu)}
+                        onPress={() => {setHanamizu(hanamizu === 1 ? 0 : 1);}}
                     />
                     <CheckBox
                         title='咳'
                         checked={seki}
-                        onPress={() => setSeki(!seki)}
+                        onPress={() => {setSeki(seki === 1 ? 0 : 1);}}
                     />
                     <CheckBox
                         title='嘔吐'
                         checked={oto}
-                        onPress={() => setOto(!oto)}
+                        onPress={() => {setOto(oto === 1 ? 0 : 1);}}
                     />
                 </View>
                 <View style={styles.radioButton}>
                     <CheckBox
                         title='発疹'
                         checked={hosshin}
-                        onPress={() => setHosshin(!hosshin)}
+                        onPress={() => {setHosshin(hosshin === 1 ? 0 : 1);}}
                     />
                     <CheckBox
                         title='怪我'
                         checked={kega}
-                        onPress={() => setKega(!kega)}
+                        onPress={() => {setKega(kega === 1 ? 0 : 1);}}
                     />
                     <CheckBox
                         title='薬'
                         checked={kusuri}
-                        onPress={() => setKusuri(!kusuri)}
+                        onPress={() => {setKusuri(kusuri === 1 ? 0 : 1);}}
                     />
                 </View>
             </View>
@@ -106,7 +188,7 @@ export default function DiseaseInputForm(props) {
                         keyboardType="decimal-pad"
                         value={bodyTemperature}
                         style={styles.input}
-                        onChangeText={(text) => { setBodyTemperature(text); }}
+                        onChangeText={(text) => { setBodyTemperature(Number(text)); }}
                         //autoFocus
                         placeholder = "体温を入力"
                         textAlign={"center"}//入力表示位置
@@ -129,7 +211,7 @@ export default function DiseaseInputForm(props) {
                 <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
                     <Text style={modalStyles.confirmButtonText}>close</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress} >
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveDiseaseDataToSQLite} >
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>

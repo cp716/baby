@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { CheckBox } from 'react-native-elements'
@@ -8,20 +8,18 @@ export default function DiseaseEditForm(props) {
     const { selectTime } = props;
     const { babyData } = props;
     const { toggleModal } = props;
-
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
-
+    
     const year = selectTime.getFullYear();
-    const month = selectTime.getMonth() + 1;
-    const day = selectTime.getDate();
+    const month = String(selectTime.getMonth() + 1).padStart(2, '0');
 
-    const [hanamizu, setHanamizu] = useState(babyData.disease.hanamizu);
-    const [seki, setSeki] = useState(babyData.disease.seki);
-    const [oto, setOto] = useState(babyData.disease.oto);
-    const [hosshin, setHosshin] = useState(babyData.disease.hosshin);
-    const [kega, setKega] = useState(babyData.disease.kega);
-    const [kusuri, setKusuri] = useState(babyData.disease.kusuri);
-    const [bodyTemperature, setBodyTemperature] = useState(babyData.disease.bodyTemperature);
+    const [hanamizu, setHanamizu] = useState(babyData.hanamizu);
+    const [seki, setSeki] = useState(babyData.seki);
+    const [oto, setOto] = useState(babyData.oto);
+    const [hosshin, setHosshin] = useState(babyData.hosshin);
+    const [kega, setKega] = useState(babyData.kega);
+    const [kusuri, setKusuri] = useState(babyData.kusuri);
+    const [bodyTemperature, setBodyTemperature] = useState(babyData.body_temperature === 0 ? '' : babyData.body_temperature);
     const [detailBody, setBodyText] = useState(babyData.bodyText);
 
     if(isNaN(bodyTemperature)) {
@@ -29,6 +27,81 @@ export default function DiseaseEditForm(props) {
     }
 
     function handlePress() {
+        if (hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) {
+            if( bodyTemperature >= 32 && bodyTemperature <= 43 || bodyTemperature == '' ) {
+                Alert.alert(
+                    '更新します', 'よろしいですか？',
+                    [
+                        {
+                            text: 'キャンセル',
+                            style: 'cancel',
+                            onPress: () => {},
+                        },
+                        {
+                            text: '更新',
+                            style: 'default',
+                            onPress: () => {
+                                const db = SQLite.openDatabase('DB.db');
+                                let temperature = 0;
+                                if (bodyTemperature !== "") {
+                                    temperature = bodyTemperature
+                                }
+                                db.transaction(
+                                    (tx) => {
+                                        tx.executeSql(
+                                            'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
+                                            [
+                                                detailBody,
+                                                new Date(selectTime).toISOString(),
+                                                babyData.record_id
+                                            ],
+                                            (_, result) => {
+                                                tx.executeSql(
+                                                    'UPDATE DiseaseRecord_' + year + '_' + month + ' SET hanamizu = ?, seki = ?, oto = ?, hosshin = ?, kega = ?, kusuri = ?, body_temperature = ? WHERE record_id = ?',
+                                                    [
+                                                        hanamizu,
+                                                        seki,
+                                                        oto,
+                                                        hosshin,
+                                                        kega,
+                                                        kusuri,
+                                                        parseFloat(temperature),
+                                                        babyData.record_id
+                                                    ],
+                                                    (_, result) => {
+                                                        // 画面リフレッシュのためcurrentBabyStateを更新
+                                                        currentBabyDispatch({
+                                                            type: 'addBaby',
+                                                            name: currentBabyState.name,
+                                                            birthday: currentBabyState.birthday,
+                                                            id: currentBabyState.id,
+                                                        });
+                                                        toggleModal();
+                                                    },
+                                                    (_, error) => {
+                                                        console.error('データの挿入中にエラーが発生しました:', error);
+                                                    }
+                                                );
+                                            },
+                                            (_, error) => {
+                                                console.error('データの挿入中にエラーが発生しました:', error);
+                                            }
+                                        );
+                                    }
+                                );
+                            },
+                        },
+                    ],
+                );
+            } else {
+                Alert.alert("32から43までで入力してください");
+            }
+        } else {
+            Alert.alert('チェックが入っていません');
+        }
+    }
+
+    function handlePrsadasess() {
         const { currentUser } = firebase.auth();
         if (currentUser ) {
             const db = firebase.firestore();

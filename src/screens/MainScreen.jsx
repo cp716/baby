@@ -42,11 +42,13 @@ export default function MainScreen(props) {
     const [milkData, setMilkData] = useState([]);
     const [toiletData, setToiletData] = useState([]);
     const [foodData, setFoodData] = useState([]);
+    const [diseaseData, setDiseaseData] = useState([]);
 
     const commonRecordTable = `CommonRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const milkRecordTable = `MilkRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const toiletRecordTable = `ToiletRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const foodRecordTable = `FoodRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
+    const diseaseRecordTable = `DiseaseRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
 
     // SQLiteの各テーブルからデータを取得
     const database = SQLite.openDatabase('DB.db');
@@ -136,6 +138,34 @@ export default function MainScreen(props) {
                 console.error('テーブルの存在確認中にエラーが発生しました:', error);
                 }
             );
+            tx.executeSql(
+                'PRAGMA table_info(' + diseaseRecordTable + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                        'SELECT ' + commonRecordTable + '.*, ' + diseaseRecordTable + '.hanamizu, ' + diseaseRecordTable + '.seki, ' + diseaseRecordTable + '.oto, ' + diseaseRecordTable + '.hosshin, ' + diseaseRecordTable + '.kega, ' + diseaseRecordTable + '.kusuri, ' + diseaseRecordTable + '.body_temperature FROM ' + commonRecordTable + ' LEFT JOIN ' + diseaseRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + diseaseRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        [dateTimeState.day, currentBabyState.id],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setDiseaseData(data.filter(item => item.category === 'DISEASE'));
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
+                        }
+                    );
+                } else {
+                    //console.log('DiseaseRecordテーブルが存在しません');
+                    setDiseaseData([]);
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
         });
     };
 
@@ -172,7 +202,7 @@ export default function MainScreen(props) {
         );
     }
 
-    if (!milkData.length && !toiletData.length  && !foodData.length ) {
+    if (!milkData.length && !toiletData.length && !foodData.length && !diseaseData.length ) {
         return (
             <View style={styles.container}>
                 <View style={[styles.dateTime , {height: '15%'}]}>
@@ -224,11 +254,11 @@ export default function MainScreen(props) {
                 </View>
             </View>
             <View style={{height: '40%'}}>
-                <CreateData milkData={milkData} toiletData={toiletData} foodData={foodData}/>
+                <CreateData milkData={milkData} toiletData={toiletData} foodData={foodData} diseaseData={diseaseData}/>
             </View>
             <View style={[styles.footer , {height: '40%'}]}>
                 <View style={styles.button}>
-                    <DailyTable todayData={todayData} milkData={milkData} toiletData={toiletData} foodData={foodData}/>
+                    <DailyTable todayData={todayData} milkData={milkData} toiletData={toiletData} foodData={foodData} diseaseData={diseaseData}/>
                 </View>
                 <View style={styles.button}>
                     <DiseaseAddButton />

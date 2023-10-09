@@ -11,6 +11,7 @@ export default function CreateData(props) {
     const { milkData } = props;
     const { toiletData } = props;
     const { foodData } = props;
+    const { diseaseData } = props;
     const { currentBaby } = props;
 
     const [isModalVisible, setModalVisible] = useState(false);
@@ -42,6 +43,15 @@ export default function CreateData(props) {
 
     // TOILETデータを統合
     toiletData.forEach(item => {
+        const id = item.record_id;
+        if (!combinedData[id]) {
+            combinedData[id] = {};
+        }
+        Object.assign(combinedData[id], item);
+    });
+    
+    // DISEASEデータを統合
+    diseaseData.forEach(item => {
         const id = item.record_id;
         if (!combinedData[id]) {
             combinedData[id] = {};
@@ -141,26 +151,26 @@ export default function CreateData(props) {
                                             )
                                         }else if (item.category == 'DISEASE') {
                                             var disease = "";
-                                            if(item.disease.hanamizu) {
+                                            if(item.hanamizu) {
                                                 disease += "「鼻水」"
                                             }
-                                            if(item.disease.seki) {
+                                            if(item.seki) {
                                                 disease += "「咳」"
                                             }
-                                            if(item.disease.oto) {
+                                            if(item.oto) {
                                                 disease += "「嘔吐」"
                                             }
-                                            if(item.disease.hosshin) {
+                                            if(item.hosshin) {
                                                 disease += "「発疹」"
                                             }
-                                            if(item.disease.kega) {
+                                            if(item.kega) {
                                                 disease += "「怪我」"
                                             }
-                                            if(item.disease.kusuri) {
+                                            if(item.kusuri) {
                                                 disease += "「薬」"
                                             }
-                                            if(item.disease.bodyTemperature) {
-                                                disease += item.disease.bodyTemperature
+                                            if(item.body_temperature) {
+                                                disease += item.body_temperature
                                             }
                                             return (
                                                 disease

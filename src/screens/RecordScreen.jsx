@@ -41,20 +41,6 @@ export default function RecordScreen(props) {
         });
     }, [currentBabyState]);
 
-    const groupBy = function(xs, key) {
-        return xs.reduce(function(rv, x) {
-            (rv[x[key]] = rv[x[key]] || []).push(x);
-            return rv;
-        }, {});
-    };
-
-
-
-
-
-
-
-
     const [monthData, setMonthData] = useState([]);
     const [babyNameData, setBabyNameData] = useState('');
     const [babyIdData, setBabyIdData] = useState('');
@@ -70,11 +56,13 @@ export default function RecordScreen(props) {
     const [milkData, setMilkData] = useState([]);
     const [toiletData, setToiletData] = useState([]);
     const [foodData, setFoodData] = useState([]);
+    const [diseaseData, setDiseaseData] = useState([]);
 
     const commonRecordTable = `CommonRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
     const milkRecordTable = `MilkRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
     const toiletRecordTable = `ToiletRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
     const foodRecordTable = `FoodRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
+    const diseaseRecordTable = `DiseaseRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
 
     // SQLiteの各テーブルからデータを取得
     const database = SQLite.openDatabase('DB.db');
@@ -164,6 +152,34 @@ export default function RecordScreen(props) {
                 console.error('テーブルの存在確認中にエラーが発生しました:', error);
                 }
             );
+            tx.executeSql(
+                'PRAGMA table_info(' + diseaseRecordTable + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                        'SELECT ' + commonRecordTable + '.*, ' + diseaseRecordTable + '.hanamizu, ' + diseaseRecordTable + '.seki, ' + diseaseRecordTable + '.oto, ' + diseaseRecordTable + '.hosshin, ' + diseaseRecordTable + '.kega, ' + diseaseRecordTable + '.kusuri, ' + diseaseRecordTable + '.body_temperature FROM ' + commonRecordTable + ' LEFT JOIN ' + diseaseRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + diseaseRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
+                        [currentBabyState.id],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setDiseaseData(data.filter(item => item.category === 'DISEASE'));
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
+                        }
+                    );
+                } else {
+                    //console.log('DiseaseRecordテーブルが存在しません');
+                    setDiseaseData([]);
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
         });
     };
 
@@ -173,18 +189,12 @@ export default function RecordScreen(props) {
 
     const lastDay = new Date( selectYear, selectMonth, 0 ) ;
 
-    const babyDataGrouping = () => {
-
-    }
-
     // フォーマット関数を定義
     function formatTime(time) {
         return time ? time + '分' : '-';
     }
 
     function formatAmount(total) {
-        //return total ? total + 'ml' : '-';
-        //console(total)
         return (total !== null && total !== undefined && total !== 0) ? total + 'ml' : '-';
     }
 
@@ -193,7 +203,7 @@ export default function RecordScreen(props) {
     }
 
     function formatTemperature(temperature) {
-        return temperature ? temperature + '°' : '-';
+        return (temperature !== null && temperature !== undefined && temperature !== 0 && temperature !== Infinity && temperature !== -Infinity) ? temperature + '℃' : '-';
     }
 
     const tableData = [];
@@ -207,8 +217,8 @@ export default function RecordScreen(props) {
         let oshikkoCount = 0;
         let unchiCount = 0;
         
-        let maxBodyTemperature = 0;
-        let minBodyTemperature = 0;
+        let maxBodyTemperature = -Infinity; // 最初にマイナス無限大で初期化
+        let minBodyTemperature = Infinity; // 最初に無限大で初期化
 
         let foodCount = 0;
         let drinkCount = 0;
@@ -222,11 +232,9 @@ export default function RecordScreen(props) {
         let kegaCount = 0;
         let kusuriCount = 0;
 
-        const x = monthToiletData.filter((data) => data.day == [i])
-        const groupByCategory = groupBy(x, 'category');
         const milk  = milkData.filter((data) => data.day == [i])
         const toilet  = toiletData.filter((data) => data.day == [i])
-        const disease  = groupByCategory.DISEASE
+        const disease  = diseaseData.filter((data) => data.day == [i])
         const food  = foodData.filter((data) => data.day == [i])
 
         for (let key in milk) {
@@ -272,30 +280,40 @@ export default function RecordScreen(props) {
         }
 
         for (let key in disease) {
-            if(disease[key].disease.hanamizu) {
+            if(disease[key].hanamizu) {
                 hanamizuCount += 1
             }
-            if(disease[key].disease.seki) {
+            if(disease[key].seki) {
                 sekiCount += 1
             }
-            if(disease[key].disease.oto) {
+            if(disease[key].oto) {
                 otoCount += 1
             }
-            if(disease[key].disease.hosshin) {
+            if(disease[key].hosshin) {
                 hosshinCount += 1
             }
-            if(disease[key].disease.kega) {
+            if(disease[key].kega) {
                 kegaCount += 1
             }
-            if(disease[key].disease.kusuri) {
+            if(disease[key].kusuri) {
                 kusuriCount += 1
             }
-        }
+            for (let key in disease) {
+                if (!isNaN(disease[key].body_temperature)) {
+                    const temperature = parseFloat(disease[key].body_temperature); // body_temperature を数値に変換
+                    if (temperature > maxBodyTemperature) {
+                        maxBodyTemperature = temperature; // より大きい値が見つかれば更新
+                    }
+                }
+            }
+            for (let key in disease) {
+                if (!isNaN(disease[key].body_temperature)) {
 
-        for (let key in disease) {
-            if(!isNaN(disease[key].disease.bodyTemperature)) {
-                maxBodyTemperature = disease[key].disease.bodyTemperature
-                minBodyTemperature = disease[key].disease.bodyTemperature
+                    const temperature = parseFloat(disease[key].body_temperature); // body_temperature を数値に変換
+                    if (temperature < minBodyTemperature && temperature !== 0) {
+                        minBodyTemperature = temperature; // より小さい値が見つかれば更新
+                    }
+                }
             }
         }
 
@@ -310,14 +328,14 @@ export default function RecordScreen(props) {
         rowData.push(`${formatAmount(drinkAmount)}`);
         rowData.push(`${formatCount(oshikkoCount)}`);
         rowData.push(`${formatCount(unchiCount)}`);
-        rowData.push(`${hanamizuCount}`);
-        rowData.push(`${sekiCount}`);
-        rowData.push(`${otoCount}`);
-        rowData.push(`${hosshinCount}`);
-        rowData.push(`${kegaCount}`);
-        rowData.push(`${kusuriCount}`);
-        rowData.push(`${maxBodyTemperature}`);
-        rowData.push(`${minBodyTemperature}`);
+        rowData.push(`${formatCount(hanamizuCount)}`);
+        rowData.push(`${formatCount(sekiCount)}`);
+        rowData.push(`${formatCount(otoCount)}`);
+        rowData.push(`${formatCount(hosshinCount)}`);
+        rowData.push(`${formatCount(kegaCount)}`);
+        rowData.push(`${formatCount(kusuriCount)}`);
+        rowData.push(`${formatTemperature(maxBodyTemperature)}`);
+        rowData.push(`${formatTemperature(minBodyTemperature)}`);
         
         tableData.push(rowData);
     }

@@ -7,6 +7,7 @@ export default function DailyTable(props) {
     const { milkData } = props;
     const { toiletData } = props;
     const { foodData } = props;
+    const { diseaseData } = props;
 
     // フォーマット関数を定義
     function formatTime(time) {
@@ -21,8 +22,12 @@ export default function DailyTable(props) {
         return count ? count + '回' : '-';
     }
 
+    function formatTemperatureTime(temperature) {
+        return temperature ? temperature + '' : '-';
+    }
+
     function formatTemperature(temperature) {
-        return temperature ? temperature + '°' : '-';
+        return temperature ? temperature + '℃' : '-';
     }
 
     let junyLeftTotal = 0;
@@ -32,20 +37,10 @@ export default function DailyTable(props) {
     let bonyuCount = 0;
     let oshikkoCount = 0;
     let unchiCount = 0;
-    let bodyTemperature = '-';
-    let bodyTemperatureTime = '-'
+    let bodyTemperature = 0;
+    let bodyTemperatureTime = '';
     let foodCount = 0;
     let drinkTotal = 0;
-
-    const groupBy = function(xs, key) {
-        return xs.reduce(function(rv, x) {
-            (rv[x[key]] = rv[x[key]] || []).push(x);
-            return rv;
-        }, {});
-    };
-    
-    const groupByCategory = groupBy(todayData, 'category');
-    const disease  = groupByCategory.DISEASE
 
     for (let key in milkData) {
         junyLeftTotal += milkData[key].junyu_left
@@ -70,11 +65,24 @@ export default function DailyTable(props) {
             unchiCount += 1
         }
     }
-    for (let key in disease) {
-        if(!isNaN(disease[key].disease.bodyTemperature)) {
-            bodyTemperature = disease[key].disease.bodyTemperature
-            bodyTemperatureTime = (disease[key].updatedAt.getHours()) + '時' + (disease[key].updatedAt.getMinutes()) + '分'
+    
+    for (let key in diseaseData) {
+        const temperature = parseFloat(diseaseData[key].body_temperature); // body_temperature を数値に変換
+        const dateTimeString = diseaseData[key].record_time;
+        const dateTime = new Date(dateTimeString);
+        if (!isNaN(diseaseData[key].body_temperature) && temperature !== 0) {
+            const currentBodyTemperature = parseFloat(diseaseData[key].body_temperature);
+    
+            if (bodyTemperature === null || dateTime > bodyTemperatureTime) {
+                // 現在の体温が最新の場合、または bodyTemperature が null の場合
+                bodyTemperature = currentBodyTemperature;
+                bodyTemperatureTime = dateTime;
+            }
         }
+    }
+    // 最新の体温とその記録時間をフォーマットする場合
+    if (bodyTemperature !== null) {
+        bodyTemperatureTime = (new Date(bodyTemperatureTime).getHours()) + ':' + (new Date(bodyTemperatureTime).getMinutes());
     }
     for (let key in foodData) {
         if(foodData[key].food && foodData[key].drink) {
@@ -92,7 +100,7 @@ export default function DailyTable(props) {
     const tableHead_1 = ['授乳', '哺乳瓶', '飲食']
     const tableData_1 = ['左\n' + formatTime(junyLeftTotal), '右\n' + formatTime(junyRightTotal), 'ミルク\n' + formatAmount(milkTotal), '母乳\n' + formatAmount(bonyuTotal), 'ご飯\n' + formatCount(foodCount), '飲物\n' + formatCount(drinkTotal)]
     const tableHead_2 = ['トイレ', '睡眠', '体温', '身長', '体重']
-    const tableData_2 = ['尿\n' + formatCount(oshikkoCount), 'うんち\n' + formatCount(unchiCount), 'XX分', bodyTemperature + '℃', 'XXcm', 'XXkg']
+    const tableData_2 = ['尿\n' + formatCount(oshikkoCount), 'うんち\n' + formatCount(unchiCount), 'XX分', formatTemperatureTime(bodyTemperatureTime) + '\n' + formatTemperature(bodyTemperature), 'XXcm', 'XXkg']
     const widthArr_1 = [110, 110, 110]
     const widthArr_2 = [55, 55, 55, 55, 55, 55]
     const widthArr_3 = [110, 55, 55, 55, 55]

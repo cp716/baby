@@ -100,7 +100,7 @@ export default function DailyTable(props) {
     const tableHead_1 = ['授乳', '哺乳瓶', '飲食']
     const tableData_1 = ['左\n' + formatTime(junyLeftTotal), '右\n' + formatTime(junyRightTotal), 'ミルク\n' + formatAmount(milkTotal), '母乳\n' + formatAmount(bonyuTotal), 'ご飯\n' + formatCount(foodCount), '飲物\n' + formatCount(drinkTotal)]
     const tableHead_2 = ['トイレ', '睡眠', '体温', '身長', '体重']
-    const tableData_2 = ['尿\n' + formatCount(oshikkoCount), 'うんち\n' + formatCount(unchiCount), 'XX分', formatTemperatureTime(bodyTemperatureTime) + '\n' + formatTemperature(bodyTemperature), 'XXcm', 'XXkg']
+    const tableData_2 = ['尿\n' + formatCount(oshikkoCount), 'うんち\n' + formatCount(unchiCount), 'XX分', '最新\n' + formatTemperature(bodyTemperature), 'XXcm', 'XXkg']
     const widthArr_1 = [110, 110, 110]
     const widthArr_2 = [55, 55, 55, 55, 55, 55]
     const widthArr_3 = [110, 55, 55, 55, 55]

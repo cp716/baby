@@ -1,16 +1,15 @@
-import React, { Component, useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
-import { useBabyRecordContext } from '../context/BabyRecordContext';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { List } from 'react-native-paper';
 import firebase from 'firebase';
 
-import BabyAddButton from '../components/AddButton/BabyAddButton';
-import ModalSelectBaby2 from '../components/ModalSelectBaby2';
+import { useBabyContext } from '../context/BabyContext';
 import LogOutButton from '../components/LogOutButton';
 
 export default function SettingScreen(props) {
     const { navigation } = props;
     const [user, setUser] = useState();
+    const { babyState, babyDispatch } = useBabyContext();
 
     useEffect(() => {
         navigation.setOptions({
@@ -56,14 +55,22 @@ export default function SettingScreen(props) {
                 </List.Section>
                 <List.Section>
                     <List.Subheader style={styles.listSubheader}>赤ちゃん</List.Subheader>
-                    <List.Item
-                        title="赤ちゃん一覧"
-                        //description="Item description"
-                        left={props => <List.Icon {...props} icon="baby-face-outline" />}
-                        right={props => <List.Icon {...props} icon="chevron-right" />}
-                        style={styles.listItem}
-                        onPress={() => { navigation.navigate('BabyList'); }}
-                    />
+                    {(() => {
+                        console.log('setting')
+                        console.log(babyState.babyData)
+                        if (babyState.babyData.length > 0) {
+                            return (
+                                <List.Item
+                                    title="赤ちゃん一覧"
+                                    //description="Item description"
+                                    left={props => <List.Icon {...props} icon="baby-face-outline" />}
+                                    right={props => <List.Icon {...props} icon="chevron-right" />}
+                                    style={styles.listItem}
+                                    onPress={() => { navigation.navigate('BabyList'); }}
+                                />
+                            );
+                        }
+                    })()}
                     <List.Item
                         title="赤ちゃん登録"
                         //description="Item description"

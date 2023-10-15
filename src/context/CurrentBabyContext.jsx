@@ -64,24 +64,39 @@ export function CurrentBabyProvider({ children }) {
   useEffect(() => {
     const db = openDatabase('DB.db');
     db.transaction((tx) => {
-    tx.executeSql(
-        'SELECT * FROM currentBaby LIMIT 1',
+      tx.executeSql(
+        'PRAGMA table_info(currentBaby);',
         [],
-        (_, result) => {
-        const data = result.rows.item(0);
-        if (data) {
-            currentBabyDispatch({
-              type: 'addBaby',
-              name: data.name,
-              birthday: data.birthday,
-              id: data.id,
-            });
+        (_, { rows }) => {
+        if (rows.length > 0) {
+            // テーブルが存在する場合のみSELECT文を実行
+            tx.executeSql(
+              'SELECT * FROM currentBaby LIMIT 1',
+              [],
+              (_, result) => {
+              const data = result.rows.item(0);
+              if (data) {
+                  currentBabyDispatch({
+                    type: 'addBaby',
+                    name: data.name,
+                    birthday: data.birthday,
+                    id: data.id,
+                  });
+              }
+              },
+              (_, error) => {
+              console.error('データの取得中にエラーが発生しました:', error);
+              }
+          );
+        } else {
+            //console.log('ToiletRecordテーブルが存在しません');
         }
         },
         (_, error) => {
-        console.error('データの取得中にエラーが発生しました:', error);
+        console.error('テーブルの存在確認中にエラーが発生しました:', error);
         }
-    );
+      );
+      
     });
   }, []); // 初回のみ実行
 

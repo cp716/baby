@@ -7,7 +7,7 @@ import { List } from 'react-native-paper';
 
 export default function LogOutButton(props) {
     const navigation = useNavigation();
-    const [isLoading, setLoading] = useState(false);
+    //const [isLoading, setLoading] = useState(false);
 
     function handlePress() {
         Alert.alert('ログアウトします', 'よろしいですか？', [
@@ -18,7 +18,7 @@ export default function LogOutButton(props) {
             {
                 text: 'OK',
                 onPress: () => {
-                    setLoading(true);
+                    //setLoading(true);
                     firebase.auth().signOut()
                     .then(() => {
                         //navigation.navigate('Setting')
@@ -32,7 +32,7 @@ export default function LogOutButton(props) {
                         Alert.alert('ログアウトに失敗しました');
                     })
                     .then(() => {
-                        setLoading(false);
+                        //setLoading(false);
                     });;
                 },
             },
@@ -41,11 +41,10 @@ export default function LogOutButton(props) {
 
     return (
         <View style={styles.container}>
-            <Loading isLoading={isLoading} />
             <List.Item
                 title="ログアウト"
                 //description="Item description"
-                left={props => <List.Icon {...props} icon="baby-face-outline" />}
+                left={props => <List.Icon {...props} icon="penguin" />}
                 right={props => <List.Icon {...props} icon="chevron-right" />}
                 //style={styles.listItem}
                 onPress={() => { 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { List } from 'react-native-paper';
+import { List, IconButton } from 'react-native-paper';
 import firebase from 'firebase';
 
 import { useBabyContext } from '../context/BabyContext';
@@ -39,7 +39,7 @@ export default function SettingScreen(props) {
                     <List.Item
                         title="メールアドレス変更"
                         //description="Item description"
-                        left={props => <List.Icon {...props} icon="email-outline" />}
+                        left={props => <List.Icon {...props} icon="account-outline" />}
                         right={props => <List.Icon {...props} icon="chevron-right" />}
                         style={styles.listItem}
                         onPress={() => { navigation.navigate('MailChange'); }}
@@ -47,7 +47,7 @@ export default function SettingScreen(props) {
                     <List.Item
                         title="パスワード変更"
                         //description="Item description"
-                        left={props => <List.Icon {...props} icon="baby-face-outline" />}
+                        left={props => <List.Icon {...props} icon="account-outline" />}
                         right={props => <List.Icon {...props} icon="chevron-right" />}
                         //style={styles.listItem}
                         onPress={() => { navigation.navigate('PasswordChange'); }}
@@ -83,7 +83,7 @@ export default function SettingScreen(props) {
                     <List.Item
                         title="バックアップ"
                         //description="Item description"
-                        left={props => <List.Icon {...props} icon="email-outline" />}
+                        left={props => <List.Icon {...props} icon="penguin" />}
                         right={props => <List.Icon {...props} icon="chevron-right" />}
                         style={styles.listItem}
                         onPress={() => { navigation.navigate('Backup'); }}
@@ -91,16 +91,15 @@ export default function SettingScreen(props) {
                     <List.Item
                         title="お問い合わせ"
                         //description="Item description"
-                        left={props => <List.Icon {...props} icon="email-outline" />}
+                        left={props => <List.Icon {...props} icon="penguin" />}
                         right={props => <List.Icon {...props} icon="chevron-right" />}
                         style={styles.listItem}
                         onPress={() => { navigation.navigate('ContactForm'); }}
                     />
-                    <LogOutButton />
                     <List.Item
                         title="テスト"
                         //description="Item description"
-                        left={props => <List.Icon {...props} icon="email-outline" />}
+                        left={props => <List.Icon {...props} icon="penguin" />}
                         right={props => <List.Icon {...props} icon="chevron-right" />}
                         style={styles.listItem}
                         onPress={() => { navigation.navigate('Test'); }}
@@ -129,7 +128,7 @@ export default function SettingScreen(props) {
                 <List.Item
                     title="お問い合わせ"
                     //description="Item description"
-                    left={props => <List.Icon {...props} icon="email-outline" />}
+                    left={props => <List.Icon {...props} icon="penguin" />}
                     right={props => <List.Icon {...props} icon="chevron-right" />}
                     style={styles.listItem}
                     onPress={() => { navigation.navigate('ContactForm'); }}
@@ -137,7 +136,7 @@ export default function SettingScreen(props) {
                 <List.Item
                     title="会員登録"
                     //description="Item description"
-                    left={props => <List.Icon {...props} icon="email-outline" />}
+                    left={props => <List.Icon {...props} icon="penguin" />}
                     right={props => <List.Icon {...props} icon="chevron-right" />}
                     style={styles.listItem}
                     onPress={() => { navigation.navigate('SignUp'); }}
@@ -145,7 +144,7 @@ export default function SettingScreen(props) {
                 <List.Item
                     title="ログイン"
                     //description="Item description"
-                    left={props => <List.Icon {...props} icon="email-outline" />}
+                    left={props => <List.Icon {...props} icon="penguin" />}
                     right={props => <List.Icon {...props} icon="chevron-right" />}
                     style={styles.listItem}
                     onPress={() => { navigation.navigate('LogIn'); }}
@@ -153,7 +152,7 @@ export default function SettingScreen(props) {
                 <List.Item
                     title="テスト"
                     //description="Item description"
-                    left={props => <List.Icon {...props} icon="email-outline" />}
+                    left={props => <List.Icon {...props} icon="penguin" />}
                     right={props => <List.Icon {...props} icon="chevron-right" />}
                     style={styles.listItem}
                     onPress={() => { navigation.navigate('Test'); }}

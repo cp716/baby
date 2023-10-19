@@ -1,6 +1,7 @@
 import React, { useEffect, useState }  from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import * as SQLite from 'expo-sqlite';
+import firebase from 'firebase';
 import { useIsFocused } from '@react-navigation/native'
 
 import MilkAddButton from '../components/AddButton/MilkAddButton';
@@ -26,7 +27,22 @@ export default function MainScreen(props) {
     const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
     const isFocused = useIsFocused()
 
-    const [isLoading, setLoading] = useState(false);
+    useEffect(() => {
+        const cleanupFuncs = {
+            auth: () => {},
+        };
+        cleanupFuncs.auth = firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                
+            } else {
+                firebase.auth().signInAnonymously()
+                .catch(() => {
+                    Alert.alert('エラー', 'アプリを再起動してください');
+                })
+                .then(() => {  });
+            }
+        });
+    }, [dateTimeState]);
 
     useEffect(() => {
         navigation.setOptions({

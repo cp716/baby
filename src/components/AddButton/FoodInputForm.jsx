@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     inputContainer: {
         paddingHorizontal: 27,
         paddingVertical: 10,
-        height: 75,
+        height: 120,
         backgroundColor: '#859602'
         //flex: 1,
     },

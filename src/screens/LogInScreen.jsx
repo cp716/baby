@@ -18,7 +18,7 @@ export default function LogInScreen(props) {
 
     function handlePress() {
         const deleteUser = user;
-        setLoading(true);
+        //setLoading(true);
         firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredentail) => {
             const { user } = userCredentail;
@@ -32,9 +32,10 @@ export default function LogInScreen(props) {
         .catch((error) => {
             const errorMsg = translateErrors(error.code);
             Alert.alert(errorMsg.title, errorMsg.description);
+            console.log(error);
         })
         .then(() => {
-            setLoading(false);
+            //setLoading(false);
         });   
     }
 

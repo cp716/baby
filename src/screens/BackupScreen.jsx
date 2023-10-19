@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import * as SQLite from 'expo-sqlite';
+import { ProgressBar, Colors } from 'react-native-paper'; // ProgressBarを追加
+import Loading from '../components/Loading';
+
 import Button from '../components/Button';
 
 export default function BackupScreen() {
 
   const { currentUser } = firebase.auth();
+  const [backupInProgress, setBackupInProgress] = useState(false); // バックアップ中かどうかを管理するstate
+  const [isLoading, setLoading] = useState(false);
 
   // テーブルごとにデータを変換するための関数を定義
   function convertTableDataToFirestoreData(tableName, data) {
@@ -82,6 +87,7 @@ export default function BackupScreen() {
   }
 
   const saveAllTableDataToFirestore = async () => {
+    setLoading(true); // バックアップが開始されたことをマーク
     const database = SQLite.openDatabase('BABY.db');
   
     try {
@@ -157,18 +163,21 @@ export default function BackupScreen() {
         }
       }));
 
-      Alert.alert("全てのテーブルデータがFirestoreに保存されました");
+      Alert.alert("バックアップの作成が完了しました");
     } catch (error) {
       console.error('Firestoreへのデータの保存中にエラーが発生しました:', error);
+    } finally {
+      setLoading(false); // バックアップが完了したことをマーク
     }
   };
 
   return (
     <View style={styles.container}>
+      <Loading isLoading={isLoading} />
       <View style={styles.inner}>
-        <Text style={styles.title}>テスト画面</Text>
+        <Text style={styles.title}>バックアップ</Text>
         <Button
-          label="Firestoreに全てのテーブルデータを保存"
+          label="バックアップ作成"
           onPress={saveAllTableDataToFirestore}
         />
       </View>
@@ -217,5 +226,8 @@ const styles = StyleSheet.create({
   },
   buttonArea: {
     flexDirection: 'row',
+  },
+  progressBar: {
+    marginTop: 16, // ProgressBarのスタイルを調整
   },
 });

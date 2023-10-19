@@ -56,8 +56,6 @@ export default function SettingScreen(props) {
                 <List.Section>
                     <List.Subheader style={styles.listSubheader}>赤ちゃん</List.Subheader>
                     {(() => {
-                        console.log('setting')
-                        console.log(babyState.babyData)
                         if (babyState.babyData.length > 0) {
                             return (
                                 <List.Item
@@ -83,6 +81,14 @@ export default function SettingScreen(props) {
                 <List.Section>
                     <List.Subheader style={styles.listSubheader}>その他</List.Subheader>
                     <List.Item
+                        title="バックアップ"
+                        //description="Item description"
+                        left={props => <List.Icon {...props} icon="email-outline" />}
+                        right={props => <List.Icon {...props} icon="chevron-right" />}
+                        style={styles.listItem}
+                        onPress={() => { navigation.navigate('Backup'); }}
+                    />
+                    <List.Item
                         title="お問い合わせ"
                         //description="Item description"
                         left={props => <List.Icon {...props} icon="email-outline" />}
@@ -90,23 +96,15 @@ export default function SettingScreen(props) {
                         style={styles.listItem}
                         onPress={() => { navigation.navigate('ContactForm'); }}
                     />
-                    <List.Item
-                    title="テスト"
-                    //description="Item description"
-                    left={props => <List.Icon {...props} icon="email-outline" />}
-                    right={props => <List.Icon {...props} icon="chevron-right" />}
-                    style={styles.listItem}
-                    onPress={() => { navigation.navigate('Test'); }}
-                    />
-                    <List.Item
-                    title="テスト2"
-                    //description="Item description"
-                    left={props => <List.Icon {...props} icon="email-outline" />}
-                    right={props => <List.Icon {...props} icon="chevron-right" />}
-                    style={styles.listItem}
-                    onPress={() => { navigation.navigate('Test2'); }}
-                    />
                     <LogOutButton />
+                    <List.Item
+                        title="テスト"
+                        //description="Item description"
+                        left={props => <List.Icon {...props} icon="email-outline" />}
+                        right={props => <List.Icon {...props} icon="chevron-right" />}
+                        style={styles.listItem}
+                        onPress={() => { navigation.navigate('Test'); }}
+                    />
                 </List.Section>
             </View>
         )
@@ -121,12 +119,12 @@ export default function SettingScreen(props) {
             <List.Section>
                 <List.Subheader style={styles.listSubheader}>その他</List.Subheader>
                 <List.Item
-                        title="赤ちゃん登録"
-                        //description="Item description"
-                        left={props => <List.Icon {...props} icon="baby-face-outline" />}
-                        right={props => <List.Icon {...props} icon="chevron-right" />}
-                        style={styles.listItem}
-                        onPress={() => { navigation.navigate('BabyAdd'); }}
+                    title="赤ちゃん登録"
+                    //description="Item description"
+                    left={props => <List.Icon {...props} icon="baby-face-outline" />}
+                    right={props => <List.Icon {...props} icon="chevron-right" />}
+                    style={styles.listItem}
+                    onPress={() => { navigation.navigate('BabyAdd'); }}
                 />
                 <List.Item
                     title="お問い合わせ"

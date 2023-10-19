@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
-import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
+import { CheckBox } from 'react-native-elements'
 
 export default function FreeInputForm(props) {
     const { selectTime } = props;
@@ -10,38 +11,92 @@ export default function FreeInputForm(props) {
 
     const date = new Date(selectTime);
     const year = date.getFullYear();
-    const month = date.getMonth() + 1;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = date.getDate();
     
     const [freeText, setFreeText] = useState('');
     const [bodyText, setBodyText] = useState('');
 
-    function handlePress() {
-        const db = firebase.firestore();
-        const { currentUser } = firebase.auth();
-        const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(currentBabyState.id.toString())
-        .collection(`${year}_${month}`)
-        if( freeText !== "") {
-            if (freeText !== "") {
-                ref.add({
-                    'category':'FREE',
-                    updatedAt: selectTime,
-                    day: day,
-                    bodyText,
-                    freeText,
-                })
-                .then((docRef) => {
-                    console.log('書き込みました', docRef.id);
-                })
-                .catch((error) => {
-                    console.log('失敗しました', error);
-                });
+    useEffect(() => {
+        const db = SQLite.openDatabase('BABY.db');
+        db.transaction(
+            (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                    'CREATE TABLE IF NOT EXISTS CommonRecord_' + year + '_' + month + ' (record_id INTEGER PRIMARY KEY, baby_id INTEGER, day INTEGER, category TEXT NOT NULL, record_time DATETIME NOT NULL, memo TEXT, FOREIGN KEY (record_id) REFERENCES CommonRecord_' + year + '_' + month + '(record_id))',
+                    [],
+                    () => {
+                        //console.log(commonRecordTable + 'テーブルが作成されました');
+                    },
+                    (error) => {
+                        console.error('テーブルの作成中にエラーが発生しました:', error);
+                    }
+                    );
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                'CREATE TABLE IF NOT EXISTS FreeRecord_' + year + '_' + month + ' (record_id INTEGER, free_text TEXT)',
+                [],
+                () => {
+                    //console.log('FreeRecord_' + year + '_' + month + 'テーブルが作成されました');
+                },
+                (error) => {
+                    console.error('テーブルの作成中にエラーが発生しました:', error);
+                }
+                );
+            },
+            (error) => {
+                console.error('データベースのオープン中にエラーが発生しました:', error);
             }
-            toggleModal()
-        } else {
-            Alert.alert("未入力です");
-        }
-    }
+        );
+    }, []);
+
+    const saveToiletDataToSQLite = () => {
+        const db = SQLite.openDatabase('BABY.db');
+        db.transaction(
+            (tx) => {
+                if (freeText) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
+                    tx.executeSql(
+                        'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                        [
+                            currentBabyState.baby_id,
+                            day,
+                            'FREE',
+                            bodyText,
+                            new Date(selectTime).toISOString()
+                        ],
+                        (_, result) => {
+                            const lastInsertId = result.insertId;
+                            tx.executeSql(
+                                'INSERT INTO FreeRecord_' + year + '_' + month + ' (record_id, free_text) VALUES (?, ?)',
+                                [
+                                    lastInsertId,
+                                    freeText,
+                                ],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        baby_id: currentBabyState.baby_id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                }
+                            );
+                        },
+                        (_, error) => {
+                            console.error('データの挿入中にエラーが発生しました:', error);
+                        }
+                    );
+                } else {
+                    Alert.alert('チェックが入っていません');
+                }
+            }
+        );
+    };
     
     return (
         <ScrollView scrollEnabled={false}>
@@ -73,7 +128,7 @@ export default function FreeInputForm(props) {
                 <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
                     <Text style={modalStyles.confirmButtonText}>close</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress} >
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveToiletDataToSQLite} >
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>

@@ -41,7 +41,7 @@ export default function DiseaseEditForm(props) {
                             text: '更新',
                             style: 'default',
                             onPress: () => {
-                                const db = SQLite.openDatabase('DB.db');
+                                const db = SQLite.openDatabase('BABY.db');
                                 let temperature = 0;
                                 if (bodyTemperature !== "") {
                                     temperature = bodyTemperature
@@ -74,7 +74,7 @@ export default function DiseaseEditForm(props) {
                                                             type: 'addBaby',
                                                             name: currentBabyState.name,
                                                             birthday: currentBabyState.birthday,
-                                                            id: currentBabyState.id,
+                                                            baby_id: currentBabyState.baby_id,
                                                         });
                                                         toggleModal();
                                                     },
@@ -101,72 +101,54 @@ export default function DiseaseEditForm(props) {
         }
     }
 
-    function handlePrsadasess() {
-        const { currentUser } = firebase.auth();
-        if (currentUser ) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
-            .collection(`${year}_${month}`).doc(babyData.id)
-            
-            if( hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) {
-                if( bodyTemperature >= 32 && bodyTemperature <= 43 || bodyTemperature == '' ) {
-                    return (
-                        ref.set({
-                            'category':'DISEASE',
-                            bodyText: detailBody,
-                            updatedAt: selectTime,
-                            disease: {
-                                hanamizu: hanamizu,
-                                seki: seki,
-                                oto: oto,
-                                hosshin: hosshin,
-                                kega: kega,
-                                kusuri: kusuri,
-                                bodyTemperature: parseFloat(bodyTemperature)
-                            },
-                        }, { merge: true })
-                        .then(() => {
-                            toggleModal()
-                        })
-                        .catch((error) => {
-                            Alert.alert(error.code);
-                        })
-                    );
-                } else {
-                    Alert.alert("32から43までで入力してください");
-                }
-            } else {
-                Alert.alert("未入力です");
-            }
-        }
-    }
-
     function deleteItem() {
-        const { currentUser } = firebase.auth();
-        if(currentUser) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
-            .collection(`${year}_${month}`).doc(babyData.id)
-            
-            Alert.alert('削除します', 'よろしいですか？', [
-                {
-                    text: 'キャンセル',
-                    onPress: () => {},
+        Alert.alert('削除します', 'よろしいですか？', [
+            {
+                text: 'キャンセル',
+                style: 'cancel',
+                onPress: () => {},
+            },
+            {
+                text: '削除',
+                style: 'destructive',
+                onPress: () => {
+                    const db = SQLite.openDatabase('BABY.db');
+                    db.transaction(
+                    (tx) => {
+                        tx.executeSql(
+                        'DELETE FROM CommonRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                        [babyData.record_id],
+                        (_, result) => {
+                            tx.executeSql(
+                                'DELETE FROM DiseaseRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                                [babyData.record_id],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        baby_id: currentBabyState.baby_id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('削除中にエラーが発生しました:', error);
+                                }
+                            );
+                        },
+                        (_, error) => {
+                            Alert.alert('削除中にエラーが発生しました');
+                            console.error('データの削除中にエラーが発生しました:', error);
+                        }
+                        );
+                    }
+                    );
                 },
-                {
-                    text: '削除する',
-                    style: 'destructive',
-                    onPress: () => {
-                        toggleModal()
-                        ref.delete().catch(() => {
-                            Alert.alert('削除に失敗しました');
-                        });
-                    },
-                },
-            ]);
-        }
+            },
+        ]);
     }
-
+    
     return (
         <ScrollView scrollEnabled={false}>
             <View style={styles.radioButtonContainer}>

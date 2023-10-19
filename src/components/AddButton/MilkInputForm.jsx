@@ -20,9 +20,20 @@ export default function ToiletInputForm(props) {
     const [bodyText, setBodyText] = useState('');
 
     useEffect(() => {
-        const db = SQLite.openDatabase('DB.db');
+        const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                    'CREATE TABLE IF NOT EXISTS CommonRecord_' + year + '_' + month + ' (record_id INTEGER PRIMARY KEY, baby_id INTEGER, day INTEGER, category TEXT NOT NULL, record_time DATETIME NOT NULL, memo TEXT, FOREIGN KEY (record_id) REFERENCES CommonRecord_' + year + '_' + month + '(record_id))',
+                    [],
+                    () => {
+                        //console.log(commonRecordTable + 'テーブルが作成されました');
+                    },
+                    (error) => {
+                        console.error('テーブルの作成中にエラーが発生しました:', error);
+                    }
+                    );
                 // テーブルが存在しない場合は作成
                 tx.executeSql(
                 'CREATE TABLE IF NOT EXISTS MilkRecord_' + year + '_' + month + ' (record_id INTEGER, milk INTEGER, bonyu INTEGER, junyu_left INTEGER, junyu_right INTEGER)',
@@ -42,7 +53,7 @@ export default function ToiletInputForm(props) {
     }, []);
 
     const saveMilkDataToSQLite = () => {
-        const db = SQLite.openDatabase('DB.db');
+        const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
                 if (milk || bonyu || timeLeft || timeRight) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
@@ -50,7 +61,7 @@ export default function ToiletInputForm(props) {
                         tx.executeSql(
                             'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
                             [
-                                currentBabyState.id,
+                                currentBabyState.baby_id,
                                 day,
                                 'MILK',
                                 bodyText,
@@ -81,7 +92,7 @@ export default function ToiletInputForm(props) {
                         tx.executeSql(
                             'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
                             [
-                                currentBabyState.id,
+                                currentBabyState.baby_id,
                                 day,
                                 'BONYU',
                                 bodyText,
@@ -120,7 +131,7 @@ export default function ToiletInputForm(props) {
                         tx.executeSql(
                             'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
                             [
-                                currentBabyState.id,
+                                currentBabyState.baby_id,
                                 day,
                                 'JUNYU',
                                 bodyText,
@@ -153,7 +164,7 @@ export default function ToiletInputForm(props) {
                         type: 'addBaby',
                         name: currentBabyState.name,
                         birthday: currentBabyState.birthday,
-                        id: currentBabyState.id,
+                        baby_id: currentBabyState.baby_id,
                     });
                 } else {
                     Alert.alert('入力してください');

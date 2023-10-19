@@ -1,70 +1,128 @@
 import React, { useState } from 'react';
-import firebase from 'firebase';
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { CheckBox } from 'react-native-elements'
 
 export default function FreeEditForm(props) {
     const { selectTime } = props;
     const { babyData } = props;
     const { toggleModal } = props;
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
-
+    
     const year = selectTime.getFullYear();
-    const month = selectTime.getMonth() + 1;
-    const day = selectTime.getDate();
+    const month = String(selectTime.getMonth() + 1).padStart(2, '0');
 
-    const [freeText, setFreeText] = useState(babyData.freeText);
-    const [detailBody, setBodyText] = useState(babyData.bodyText);
+    const [freeText, setFreeText] = useState(babyData.free_text);
+    const [detailBody, setBodyText] = useState(babyData.memo);
 
     function handlePress() {
-        const { currentUser } = firebase.auth();
-        if (currentUser ) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
-            .collection(`${year}_${month}`).doc(babyData.id)
-            
-            return (
-                ref.set({
-                    'category':'FREE',
-                    freeText: freeText,
-                    bodyText: detailBody,
-                    updatedAt: selectTime
-                }, { merge: true })
-                .then(() => {
-                    toggleModal()
-                })
-                .catch((error) => {
-                    Alert.alert(error.code);
-                })
+        if (freeText) {
+            Alert.alert(
+                '更新します', 'よろしいですか？',
+                [
+                    {
+                        text: 'キャンセル',
+                        style: 'cancel',
+                        onPress: () => {},
+                    },
+                    {
+                        text: '更新',
+                        style: 'default',
+                        onPress: () => {
+                            const db = SQLite.openDatabase('BABY.db');
+                            db.transaction(
+                                (tx) => {
+                                    tx.executeSql(
+                                        'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
+                                        [
+                                            detailBody,
+                                            new Date(selectTime).toISOString(),
+                                            babyData.record_id
+                                        ],
+                                        (_, result) => {
+                                            tx.executeSql(
+                                                'UPDATE FreeRecord_' + year + '_' + month + ' SET free_text = ? WHERE record_id = ?',
+                                                [
+                                                    freeText,
+                                                    babyData.record_id
+                                                ],
+                                                (_, result) => {
+                                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                                    currentBabyDispatch({
+                                                        type: 'addBaby',
+                                                        name: currentBabyState.name,
+                                                        birthday: currentBabyState.birthday,
+                                                        baby_id: currentBabyState.baby_id,
+                                                    });
+                                                    toggleModal();
+                                                },
+                                                (_, error) => {
+                                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                                }
+                                            );
+                                        },
+                                        (_, error) => {
+                                            console.error('データの挿入中にエラーが発生しました:', error);
+                                        }
+                                    );
+                                }
+                            );
+                        },
+                    },
+                ],
             );
+        } else {
+            Alert.alert('チェックが入っていません');
         }
     }
 
     function deleteItem() {
-        const { currentUser } = firebase.auth();
-        if(currentUser) {
-            const db = firebase.firestore();
-            const ref = db.collection(`users/${currentUser.uid}/babyData/`).doc(currentBabyState.id.toString())
-            .collection(`${year}_${month}`).doc(babyData.id)
-            
-            Alert.alert('削除します', 'よろしいですか？', [
-                {
-                    text: 'キャンセル',
-                    onPress: () => {},
+        Alert.alert('削除します', 'よろしいですか？', [
+            {
+                text: 'キャンセル',
+                style: 'cancel',
+                onPress: () => {},
+            },
+            {
+                text: '削除',
+                style: 'destructive',
+                onPress: () => {
+                    const db = SQLite.openDatabase('BABY.db');
+                    db.transaction(
+                    (tx) => {
+                        tx.executeSql(
+                        'DELETE FROM CommonRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                        [babyData.record_id],
+                        (_, result) => {
+                            tx.executeSql(
+                                'DELETE FROM FreeRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                                [babyData.record_id],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        baby_id: currentBabyState.baby_id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('削除中にエラーが発生しました:', error);
+                                }
+                            );
+                        },
+                        (_, error) => {
+                            Alert.alert('削除中にエラーが発生しました');
+                            console.error('データの削除中にエラーが発生しました:', error);
+                        }
+                        );
+                    }
+                    );
                 },
-                {
-                    text: '削除する',
-                    style: 'destructive',
-                    onPress: () => {
-                        //navigation.goBack();
-                        toggleModal()
-                        ref.delete().catch(() => {
-                            Alert.alert('削除に失敗しました');
-                        });
-                    },
-                },
-            ]);
-        }
+            },
+        ]);
     }
 
     return (

@@ -12,6 +12,7 @@ export default function CreateData(props) {
     const { toiletData } = props;
     const { foodData } = props;
     const { diseaseData } = props;
+    const { freeData } = props;
     const { currentBaby } = props;
 
     const [isModalVisible, setModalVisible] = useState(false);
@@ -52,6 +53,15 @@ export default function CreateData(props) {
     
     // DISEASEデータを統合
     diseaseData.forEach(item => {
+        const id = item.record_id;
+        if (!combinedData[id]) {
+            combinedData[id] = {};
+        }
+        Object.assign(combinedData[id], item);
+    });
+
+    // FREEデータを統合
+    freeData.forEach(item => {
         const id = item.record_id;
         if (!combinedData[id]) {
             combinedData[id] = {};
@@ -194,7 +204,7 @@ export default function CreateData(props) {
                                             )
                                         }else if (item.category == 'FREE') {
                                             return (
-                                                item.freeText
+                                                item.free_text
                                             )
                                         }
                                     })()}

@@ -25,9 +25,9 @@ import BabyListScreen from './src/screens/BabyListScreen';
 import BabyEditScreen from './src/screens/BabyEditScreen';
 import BabySettingScreen from './src/screens/BabySettingScreen';
 import ContactFormScreen from './src/screens/ContactFormScreen';
+import BackupScreen from './src/screens/BackupScreen';
 
 import TestScreen from './src/screens/TestScreen';
-import TestScreen2 from './src/screens/TestScreen2';
 
 import { UserProvider } from './src/context/UserContext';
 import { BabyProvider } from './src/context/BabyContext';
@@ -72,9 +72,9 @@ function RightTab() {
         <Stack.Screen name="BabyAdd" component={BabyAddScreen} />
         <Stack.Screen name="BabyList" component={BabyListScreen} />
         <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
-        
+        <Stack.Screen name="Backup" component={BackupScreen} />
+
         <Stack.Screen name="Test" component={TestScreen} />
-        <Stack.Screen name="Test2" component={TestScreen2} />
 
       </Stack.Navigator>
     </View>

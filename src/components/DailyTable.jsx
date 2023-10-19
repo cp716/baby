@@ -3,7 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Table, TableWrapper, Row, Col } from 'react-native-table-component';
 
 export default function DailyTable(props) {
-    const { todayData } = props;
     const { milkData } = props;
     const { toiletData } = props;
     const { foodData } = props;

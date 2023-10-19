@@ -38,16 +38,16 @@ export function BabyProvider({ children }) {
 
     // コンポーネントがマウントされたときにSQLiteからデータを取得し、Contextを更新
   useEffect(() => {
-    const db = openDatabase('DB.db');
+    const db = openDatabase('BABY.db');
     db.transaction((tx) => {
       tx.executeSql(
-        'PRAGMA table_info(babyData);',
+        'PRAGMA table_info(baby_data);',
         [],
         (_, { rows }) => {
         if (rows.length > 0) {
             // テーブルが存在する場合のみSELECT文を実行
             tx.executeSql(
-              'SELECT * FROM babyData',
+              'SELECT * FROM baby_data',
               [],
               (_, result) => {
               const data = result.rows._array; // クエリ結果を配列に変換

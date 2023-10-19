@@ -26,7 +26,6 @@ export default function MainScreen(props) {
     const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
     const isFocused = useIsFocused()
 
-    const [todayData, setTodayData] = useState([]);
     const [isLoading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -43,15 +42,17 @@ export default function MainScreen(props) {
     const [toiletData, setToiletData] = useState([]);
     const [foodData, setFoodData] = useState([]);
     const [diseaseData, setDiseaseData] = useState([]);
+    const [freeData, setFreeData] = useState([]);
 
     const commonRecordTable = `CommonRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const milkRecordTable = `MilkRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const toiletRecordTable = `ToiletRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const foodRecordTable = `FoodRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
     const diseaseRecordTable = `DiseaseRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
+    const freeRecordTable = `FreeRecord_${dateTimeState.year}_${String(dateTimeState.month).padStart(2, '0')}`;
 
     // SQLiteの各テーブルからデータを取得
-    const database = SQLite.openDatabase('DB.db');
+    const database = SQLite.openDatabase('BABY.db');
     const loadBabyData = () => {
         database.transaction((tx) => {
             tx.executeSql(
@@ -62,7 +63,7 @@ export default function MainScreen(props) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
                         'SELECT ' + commonRecordTable + '.*, ' + milkRecordTable + '.milk, ' + milkRecordTable + '.bonyu, ' + milkRecordTable + '.junyu_left, ' + milkRecordTable + '.junyu_right FROM ' + commonRecordTable + ' LEFT JOIN ' + milkRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + milkRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
-                        [dateTimeState.day, currentBabyState.id],
+                        [dateTimeState.day, currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
                             setMilkData(data.filter(item => ['MILK', 'BONYU', 'JUNYU'].includes(item.category)))
@@ -90,7 +91,7 @@ export default function MainScreen(props) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
                         'SELECT ' + commonRecordTable + '.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
-                        [dateTimeState.day, currentBabyState.id],
+                        [dateTimeState.day, currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
                             setToiletData(data.filter(item => item.category === 'TOILET'))
@@ -118,7 +119,7 @@ export default function MainScreen(props) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
                         'SELECT ' + commonRecordTable + '.*, ' + foodRecordTable + '.food, ' + foodRecordTable + '.drink, ' + foodRecordTable + '.foodAmount, ' + foodRecordTable + '.drinkAmount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
-                        [dateTimeState.day, currentBabyState.id],
+                        [dateTimeState.day, currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
                             setFoodData(data.filter(item => item.category === 'FOOD'));
@@ -146,7 +147,7 @@ export default function MainScreen(props) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
                         'SELECT ' + commonRecordTable + '.*, ' + diseaseRecordTable + '.hanamizu, ' + diseaseRecordTable + '.seki, ' + diseaseRecordTable + '.oto, ' + diseaseRecordTable + '.hosshin, ' + diseaseRecordTable + '.kega, ' + diseaseRecordTable + '.kusuri, ' + diseaseRecordTable + '.body_temperature FROM ' + commonRecordTable + ' LEFT JOIN ' + diseaseRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + diseaseRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
-                        [dateTimeState.day, currentBabyState.id],
+                        [dateTimeState.day, currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
                             setDiseaseData(data.filter(item => item.category === 'DISEASE'));
@@ -166,33 +167,38 @@ export default function MainScreen(props) {
                 console.error('テーブルの存在確認中にエラーが発生しました:', error);
                 }
             );
+            tx.executeSql(
+                'PRAGMA table_info(' + freeRecordTable + ');',
+                [],
+                (_, { rows }) => {
+                if (rows.length > 0) {
+                    // テーブルが存在する場合のみSELECT文を実行
+                    tx.executeSql(
+                        'SELECT ' + commonRecordTable + '.*, ' + freeRecordTable + '.free_text FROM ' + commonRecordTable + ' LEFT JOIN ' + freeRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + freeRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        [dateTimeState.day, currentBabyState.baby_id],
+                        (_, { rows }) => {
+                            const data = rows._array; // クエリ結果を配列に変換
+                            setFreeData(data.filter(item => item.category === 'FREE'))
+                        },
+                        (_, error) => {
+                            console.error('データの取得中にエラーが発生しました:', error);
+                            // エラー詳細情報をコンソールに表示する
+                            console.log('エラー詳細:', error);
+                        }
+                    );
+                } else {
+                    //console.log('FreeRecordテーブルが存在しません');
+                    setFreeData([])
+                }
+                },
+                (_, error) => {
+                console.error('テーブルの存在確認中にエラーが発生しました:', error);
+                }
+            );
         });
     };
 
-    useEffect(() => {
-        // CommonRecordTable作成
-        const database = SQLite.openDatabase('DB.db');
-        database.transaction(
-            (tx) => {
-                // テーブルが存在しない場合は作成
-                tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS ' + commonRecordTable + ' (record_id INTEGER PRIMARY KEY, baby_id INTEGER, day INTEGER, category TEXT NOT NULL, record_time DATETIME NOT NULL, memo TEXT, FOREIGN KEY (record_id) REFERENCES ' + commonRecordTable + '(record_id))',
-                [],
-                () => {
-                    //console.log(commonRecordTable + 'テーブルが作成されました');
-                },
-                (error) => {
-                    console.error('テーブルの作成中にエラーが発生しました:', error);
-                }
-                );
-            },
-            (error) => {
-                console.error('データベースのオープン中にエラーが発生しました:', error);
-            }
-            );
-    }, [dateTimeState]);
-
-    if (currentBabyState.id === "") {
+    if (currentBabyState.baby_id === "") {
         return (
             <View style={styles.container}>
                 <View style={[emptyStyles.inner, {height: '100%'}]}>
@@ -202,7 +208,7 @@ export default function MainScreen(props) {
         );
     }
 
-    if (!milkData.length && !toiletData.length && !foodData.length && !diseaseData.length ) {
+    if (!milkData.length && !toiletData.length && !foodData.length && !diseaseData.length && !freeData.length ) {
         return (
             <View style={styles.container}>
                 <View style={[styles.dateTime , {height: '15%'}]}>
@@ -221,7 +227,7 @@ export default function MainScreen(props) {
                 </View>
                 <View style={[styles.footer , {height: '40%'}]}>
                     <View style={styles.button}>
-                        <DailyTable todayData={todayData} />
+                        <DailyTable milkData={milkData} toiletData={toiletData} foodData={foodData} diseaseData={diseaseData} freeData={freeData}/>
                     </View>
                     <View style={styles.button}>
                         <DiseaseAddButton />
@@ -254,11 +260,11 @@ export default function MainScreen(props) {
                 </View>
             </View>
             <View style={{height: '40%'}}>
-                <CreateData milkData={milkData} toiletData={toiletData} foodData={foodData} diseaseData={diseaseData}/>
+                <CreateData milkData={milkData} toiletData={toiletData} foodData={foodData} diseaseData={diseaseData} freeData={freeData}/>
             </View>
             <View style={[styles.footer , {height: '40%'}]}>
                 <View style={styles.button}>
-                    <DailyTable todayData={todayData} milkData={milkData} toiletData={toiletData} foodData={foodData} diseaseData={diseaseData}/>
+                    <DailyTable milkData={milkData} toiletData={toiletData} foodData={foodData} diseaseData={diseaseData} freeData={freeData}/>
                 </View>
                 <View style={styles.button}>
                     <DiseaseAddButton />

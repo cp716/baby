@@ -18,27 +18,27 @@ export default function BabyAddScreen(props) {
 
     useEffect(() => {
         // SQLiteデータベースを開くか作成する
-        const database = SQLite.openDatabase('DB.db');
+        const database = SQLite.openDatabase('BABY.db');
         setDb(database);
 
         database.transaction(
         (tx) => {
             // テーブルが存在しない場合は作成
             tx.executeSql(
-            'CREATE TABLE IF NOT EXISTS babyData (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, birthday DATETIME)',
+            'CREATE TABLE IF NOT EXISTS baby_data (baby_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, birthday DATETIME)',
             [],
             () => {
-                console.log('テーブルが作成されました');
+                //console.log('テーブルが作成されました');
             },
             (error) => {
                 console.error('テーブルの作成中にエラーが発生しました:', error);
             }
             );
             tx.executeSql(
-            'CREATE TABLE IF NOT EXISTS currentBaby (id INTEGER PRIMARY KEY, name TEXT, birthday DATETIME)',
+            'CREATE TABLE IF NOT EXISTS current_baby (baby_id INTEGER PRIMARY KEY, name TEXT, birthday DATETIME)',
             [],
             () => {
-                console.log('テーブルが作成されました');
+                //console.log('テーブルが作成されました');
             },
             (error) => {
                 console.error('テーブルの作成中にエラーが発生しました:', error);
@@ -80,21 +80,20 @@ export default function BabyAddScreen(props) {
         db.transaction(
         (tx) => {
             tx.executeSql(
-            'INSERT INTO babyData (name, birthday) VALUES (?, ?)',
+            'INSERT INTO baby_data (name, birthday) VALUES (?, ?)',
             [name, new Date(birthday).toISOString()],
             (_, result) => {
                 setMessage('データがテーブルに挿入されました');
                 const insertedId = result.insertId; // 挿入した行のIDを取得
                 tx.executeSql(
-                'SELECT EXISTS (SELECT 1 FROM currentBaby)',
+                'SELECT EXISTS (SELECT 1 FROM current_baby)',
                 [],
                 (_, resultSet) => {
                     const dataExists = resultSet.rows.item(0)[Object.keys(resultSet.rows.item(0))[0]];
-                    console.log(resultSet)
                     if (dataExists == 1) {
                     // データが存在する場合、UPDATEを実行
                     tx.executeSql(
-                        'UPDATE currentBaby SET name = ?, birthday = ?, id = ?',
+                        'UPDATE current_baby SET name = ?, birthday = ?, baby_id = ?',
                         [name, new Date(birthday).toISOString(), insertedId],
                         (_, result) => {
                         setMessage('データが更新されました');
@@ -107,7 +106,7 @@ export default function BabyAddScreen(props) {
                     } else {
                     // データが存在しない場合、INSERTを実行
                     tx.executeSql(
-                        'INSERT INTO currentBaby (name, birthday, id) VALUES (?, ?, ?)',
+                        'INSERT INTO current_baby (name, birthday, baby_id) VALUES (?, ?, ?)',
                         [name, new Date(birthday).toISOString(), insertedId],
                         (_, result) => {
                         setMessage('データが挿入されました');
@@ -124,7 +123,7 @@ export default function BabyAddScreen(props) {
                     console.error('データの存在チェック中にエラーが発生しました:', error);
                 }
                 );
-                currentBabyDispatch({ type: "addBaby", name: name, birthday: new Date(birthday).toISOString(), id: insertedId })
+                currentBabyDispatch({ type: "addBaby", name: name, birthday: new Date(birthday).toISOString(), baby_id: insertedId })
                 navigation.goBack();
             },
             (_, error) => {

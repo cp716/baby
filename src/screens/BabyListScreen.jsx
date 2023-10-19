@@ -28,14 +28,14 @@ export default function BabyListScreen(props) {
     const [babyData, setBabyData] = useState([]); // SQLiteから取得したデータを格納するステート
 
     // SQLiteデータベースを開くか作成する
-    const database = SQLite.openDatabase('DB.db');
+    const database = SQLite.openDatabase('BABY.db');
 
     // SQLiteからデータを取得する関数
     const loadBabyData = () => {
         database.transaction((tx) => {
             // babyDataテーブルからデータを取得
             tx.executeSql(
-                'SELECT * FROM babyData',
+                'SELECT * FROM baby_data',
                 [],
                 (_, { rows }) => {
                     const data = rows._array; // クエリ結果を配列に変換
@@ -65,13 +65,12 @@ export default function BabyListScreen(props) {
                 {(() => {
                     return(
                         <RadioButton.Item
-                            value={item.id}
+                            value={item.baby_id}
                             label={item.name + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
-                            status={checked === item.id ? 'checked' : null}
+                            status={checked === item.baby_id ? 'checked' : null}
                             onPress={() => {
-                                console.log(item.id)
-                                setChecked(item.id)
-                                setId(item.id)
+                                setChecked(item.baby_id)
+                                setId(item.baby_id)
                                 setName(item.name)
                                 setBirthday(item.birthday)
                             }}
@@ -100,7 +99,7 @@ export default function BabyListScreen(props) {
                         inverted // 反転
                         data={babyData}
                         renderItem={renderItem}
-                        keyExtractor={(item) => item.id.toString()} // idを文字列に変換
+                        keyExtractor={(item) => item.baby_id.toString()} // idを文字列に変換
                         ItemSeparatorComponent={ItemSeparator}
                     />
                 </View>

@@ -65,7 +65,7 @@ export default function RecordScreen(props) {
     const diseaseRecordTable = `DiseaseRecord_${selectYear}_${String(selectMonth).padStart(2, '0')}`;
 
     // SQLiteの各テーブルからデータを取得
-    const database = SQLite.openDatabase('DB.db');
+    const database = SQLite.openDatabase('BABY.db');
     const loadBabyData = () => {
         database.transaction((tx) => {
             tx.executeSql(
@@ -76,7 +76,7 @@ export default function RecordScreen(props) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
                         'SELECT ' + commonRecordTable + '.*, ' + milkRecordTable + '.milk, ' + milkRecordTable + '.bonyu, ' + milkRecordTable + '.junyu_left, ' + milkRecordTable + '.junyu_right FROM ' + commonRecordTable + ' LEFT JOIN ' + milkRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + milkRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
-                        [currentBabyState.id],
+                        [currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
                             setMilkData(data.filter(item => ['MILK', 'BONYU', 'JUNYU'].includes(item.category)))
@@ -104,7 +104,7 @@ export default function RecordScreen(props) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
                         'SELECT ' + commonRecordTable + '.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
-                        [currentBabyState.id],
+                        [currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
                             setToiletData(data.filter(item => item.category === 'TOILET'))
@@ -132,7 +132,7 @@ export default function RecordScreen(props) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
                         'SELECT ' + commonRecordTable + '.*, ' + foodRecordTable + '.food, ' + foodRecordTable + '.drink, ' + foodRecordTable + '.foodAmount, ' + foodRecordTable + '.drinkAmount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
-                        [currentBabyState.id],
+                        [currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
                             setFoodData(data.filter(item => item.category === 'FOOD'));
@@ -160,7 +160,7 @@ export default function RecordScreen(props) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
                         'SELECT ' + commonRecordTable + '.*, ' + diseaseRecordTable + '.hanamizu, ' + diseaseRecordTable + '.seki, ' + diseaseRecordTable + '.oto, ' + diseaseRecordTable + '.hosshin, ' + diseaseRecordTable + '.kega, ' + diseaseRecordTable + '.kusuri, ' + diseaseRecordTable + '.body_temperature FROM ' + commonRecordTable + ' LEFT JOIN ' + diseaseRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + diseaseRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
-                        [currentBabyState.id],
+                        [currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
                             setDiseaseData(data.filter(item => item.category === 'DISEASE'));

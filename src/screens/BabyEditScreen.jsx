@@ -3,8 +3,10 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'reac
 import * as SQLite from 'expo-sqlite';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Button from '../components/Button';
+import { useCurrentBabyContext } from '../context/CurrentBabyContext';
 
 export default function BabyEditScreen(props) {
+    const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
     const { route, navigation } = props;
     const { id, name, birthday } = route.params;
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -21,8 +23,6 @@ export default function BabyEditScreen(props) {
         setDetailBirthday(year + '年' + (month + 1) + '月' + day + '日')
     }, [birthday]);
 
-    console.log(new Date(birthday))
-
     useEffect(() => {
         setBirthdayData(new Date(birthday));
     }, [birthday]);
@@ -37,15 +37,20 @@ export default function BabyEditScreen(props) {
                 text: 'はい',
                 onPress: () => {
                     if (nameData !== "") {
-                        const db = SQLite.openDatabase('DB.db');
-                
+                        const db = SQLite.openDatabase('BABY.db');
                         db.transaction(
                             (tx) => {
                             tx.executeSql(
-                                'UPDATE babyData SET name = ?, birthday = ? WHERE id = ?',
+                                'UPDATE baby_data SET name = ?, birthday = ? WHERE baby_id = ?',
                                 [nameData, birthdayData.toISOString(), idData],
                                 (_, result) => {
-                                Alert.alert('更新が完了しました');
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: nameData,
+                                        birthday: birthdayData,
+                                        baby_id: idData,
+                                    });
+                                    Alert.alert('更新が完了しました');
                                 navigation.goBack();
                                 },
                                 (_, error) => {
@@ -60,56 +65,55 @@ export default function BabyEditScreen(props) {
                     }
                 },
             },
-        ]);
-
-
-
-
-        
+        ]);       
     };
 
     const deleteBabyData = () => {
-        Alert.alert('「' + nameData + '」に関する全ての記録が削除されます', 'よろしいですか？', [
-            {
-                text: 'キャンセル',
-                onPress: () => {},
-            },
-            {
-                text: 'はい',
-                style: 'destructive',
-                onPress: () => {
-                    Alert.alert('削除後はデータの復旧ができません', '本当によろしいですか？', [
-                        {
-                            text: 'キャンセル',
-                            onPress: () => {},
-                        },
-                        {
-                            text: '削除',
-                            style: 'destructive',
-                            onPress: () => {
-                                const db = SQLite.openDatabase('DB.db');
-                                db.transaction(
-                                (tx) => {
-                                    tx.executeSql(
-                                    'DELETE FROM babyData WHERE id = ?',
-                                    [idData],
-                                    (_, result) => {
-                                        Alert.alert('削除が完了しました');
-                                        navigation.goBack();
-                                    },
-                                    (_, error) => {
-                                        Alert.alert('削除中にエラーが発生しました');
-                                        console.error('データの削除中にエラーが発生しました:', error);
+        if (currentBabyState.baby_id !== id) {
+            Alert.alert('「' + nameData + '」に関する全ての記録が削除されます', 'よろしいですか？', [
+                {
+                    text: 'キャンセル',
+                    onPress: () => {},
+                },
+                {
+                    text: 'はい',
+                    style: 'destructive',
+                    onPress: () => {
+                        Alert.alert('削除後はデータの復旧ができません', '本当によろしいですか？', [
+                            {
+                                text: 'キャンセル',
+                                onPress: () => {},
+                            },
+                            {
+                                text: '削除',
+                                style: 'destructive',
+                                onPress: () => {
+                                    const db = SQLite.openDatabase('BABY.db');
+                                    db.transaction(
+                                    (tx) => {
+                                        tx.executeSql(
+                                        'DELETE FROM baby_data WHERE baby_id = ?',
+                                        [idData],
+                                        (_, result) => {
+                                            Alert.alert('削除が完了しました');
+                                            navigation.goBack();
+                                        },
+                                        (_, error) => {
+                                            Alert.alert('削除中にエラーが発生しました');
+                                            console.error('データの削除中にエラーが発生しました:', error);
+                                        }
+                                        );
                                     }
                                     );
-                                }
-                                );
+                                },
                             },
-                        },
-                    ]);
+                        ]);
+                    },
                 },
-            },
-        ]);
+            ]);
+        } else {
+            Alert.alert('現在表示中の赤ちゃんは削除できません');
+        }
     };
 
     //起動

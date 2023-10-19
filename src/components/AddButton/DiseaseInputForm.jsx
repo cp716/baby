@@ -24,9 +24,20 @@ export default function DiseaseInputForm(props) {
     const [bodyTemperature, setBodyTemperature] = useState('');
 
     useEffect(() => {
-        const db = SQLite.openDatabase('DB.db');
+        const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                    'CREATE TABLE IF NOT EXISTS CommonRecord_' + year + '_' + month + ' (record_id INTEGER PRIMARY KEY, baby_id INTEGER, day INTEGER, category TEXT NOT NULL, record_time DATETIME NOT NULL, memo TEXT, FOREIGN KEY (record_id) REFERENCES CommonRecord_' + year + '_' + month + '(record_id))',
+                    [],
+                    () => {
+                        //console.log(commonRecordTable + 'テーブルが作成されました');
+                    },
+                    (error) => {
+                        console.error('テーブルの作成中にエラーが発生しました:', error);
+                    }
+                    );
                 // テーブルが存在しない場合は作成
                 tx.executeSql(
                 'CREATE TABLE IF NOT EXISTS DiseaseRecord_' + year + '_' + month + ' (record_id INTEGER, hanamizu INTEGER, seki INTEGER, oto INTEGER, hosshin INTEGER, kega INTEGER, kusuri INTEGER, body_temperature REAL)',
@@ -46,7 +57,7 @@ export default function DiseaseInputForm(props) {
     }, []);
 
     const saveDiseaseDataToSQLite = () => {
-        const db = SQLite.openDatabase('DB.db');
+        const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
                 if (hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
@@ -58,7 +69,7 @@ export default function DiseaseInputForm(props) {
                         tx.executeSql(
                             'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
                             [
-                                currentBabyState.id,
+                                currentBabyState.baby_id,
                                 day,
                                 'DISEASE',
                                 bodyText,
@@ -84,7 +95,7 @@ export default function DiseaseInputForm(props) {
                                             type: 'addBaby',
                                             name: currentBabyState.name,
                                             birthday: currentBabyState.birthday,
-                                            id: currentBabyState.id,
+                                            baby_id: currentBabyState.baby_id,
                                         });
                                         toggleModal();
                                     },
@@ -106,43 +117,6 @@ export default function DiseaseInputForm(props) {
             }
         );
     };
-
-    function handlePress() {
-        const db = firebase.firestore();
-        const { currentUser } = firebase.auth();
-        const ref = db.collection(`users/${currentUser.uid}/babyData`).doc(currentBabyState.id.toString())
-        .collection(`${year}_${month}`)    
-        if( hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) {
-            if(bodyTemperature >= 32 && bodyTemperature <= 43 || bodyTemperature == '') {
-                ref.add({
-                    'category':'DISEASE',
-                    updatedAt: selectTime,
-                    day: day,
-                    bodyText,
-                    disease: {
-                        hanamizu: hanamizu,
-                        seki: seki,
-                        oto: oto,
-                        hosshin: hosshin,
-                        kega: kega,
-                        kusuri: kusuri,
-                        bodyTemperature: parseFloat(bodyTemperature),
-                    },
-                })
-                .then((docRef) => {
-                    console.log('書き込みました', docRef.id);
-                })
-                .catch((error) => {
-                    console.log('失敗しました', error);
-                });
-                toggleModal()
-            } else {
-                Alert.alert("32から43までで入力してください");
-            }
-        } else {
-            Alert.alert("未入力です");
-        }
-    }
     
     return (
         <ScrollView scrollEnabled={false}>

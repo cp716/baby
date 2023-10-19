@@ -28,9 +28,20 @@ export default function FoodInputForm(props) {
     }
 
     useEffect(() => {
-        const db = SQLite.openDatabase('DB.db');
+        const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                    'CREATE TABLE IF NOT EXISTS CommonRecord_' + year + '_' + month + ' (record_id INTEGER PRIMARY KEY, baby_id INTEGER, day INTEGER, category TEXT NOT NULL, record_time DATETIME NOT NULL, memo TEXT, FOREIGN KEY (record_id) REFERENCES CommonRecord_' + year + '_' + month + '(record_id))',
+                    [],
+                    () => {
+                        //console.log(commonRecordTable + 'テーブルが作成されました');
+                    },
+                    (error) => {
+                        console.error('テーブルの作成中にエラーが発生しました:', error);
+                    }
+                    );
                 // テーブルが存在しない場合は作成
                 tx.executeSql(
                 'CREATE TABLE IF NOT EXISTS FoodRecord_' + year + '_' + month + ' (record_id INTEGER, food INTEGER, drink INTEGER, foodAmount INTEGER, drinkAmount INTEGER)',
@@ -50,7 +61,7 @@ export default function FoodInputForm(props) {
     }, []);
 
     const saveFoodDataToSQLite = () => {
-        const db = SQLite.openDatabase('DB.db');
+        const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
                 if (foodCheck || drinkCheck) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
@@ -65,7 +76,7 @@ export default function FoodInputForm(props) {
                     tx.executeSql(
                         'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
                         [
-                            currentBabyState.id,
+                            currentBabyState.baby_id,
                             day,
                             'FOOD',
                             bodyText,
@@ -88,7 +99,7 @@ export default function FoodInputForm(props) {
                                         type: 'addBaby',
                                         name: currentBabyState.name,
                                         birthday: currentBabyState.birthday,
-                                        id: currentBabyState.id,
+                                        baby_id: currentBabyState.baby_id,
                                     });
                                     toggleModal();
                                 },

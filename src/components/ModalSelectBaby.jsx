@@ -24,13 +24,13 @@ export default function ModalSelectBaby(props) {
     //const { toggleBabyModal } = props;
     const [checked, setChecked] = useState(id);
     // SQLiteデータベースを開くか作成する
-    const database = SQLite.openDatabase('DB.db');
+    const database = SQLite.openDatabase('BABY.db');
 
     // データ取得関数を初回実行
     useEffect(() => {
         loadBabyData();
-        setId(currentBabyState.id)
-        setChecked(currentBabyState.id)
+        setId(currentBabyState.baby_id)
+        setChecked(currentBabyState.baby_id)
     }, [isFocused]);
 
     // SQLiteからデータを取得する関数
@@ -38,7 +38,7 @@ export default function ModalSelectBaby(props) {
         database.transaction((tx) => {
             // babyDataテーブルからデータを取得
             tx.executeSql(
-                'SELECT * FROM babyData',
+                'SELECT * FROM baby_data',
                 [],
                 (_, { rows }) => {
                     const data = rows._array; // クエリ結果を配列に変換
@@ -63,19 +63,19 @@ export default function ModalSelectBaby(props) {
                 {(() => {
                     return(
                         <RadioButton.Item
-                            value={item.id}
+                            value={item.baby_id}
                             label={item.name + '\n誕生日:' + year + '年' + (month + 1) + '月' + day + '日'}
-                            status={checked === item.id ? 'checked' : null}
+                            status={checked === item.baby_id ? 'checked' : null}
                             onPress={() => {
-                                setChecked(item.id)
-                                setId(item.id)
+                                setChecked(item.baby_id)
+                                setId(item.baby_id)
                                 setName(item.name)
                                 setBirthday(item.birthday)
                                 currentBabyDispatch({
                                     type: "addBaby",
                                     name: item.name,
                                     birthday: item.birthday,
-                                    id: item.id,
+                                    baby_id: item.baby_id,
                                 });
                             }}
                         />
@@ -115,7 +115,7 @@ export default function ModalSelectBaby(props) {
                                 inverted // 反転
                                 data={babyData}
                                 renderItem={renderItem}
-                                keyExtractor={(item) => item.id.toString()} // idを文字列に変換
+                                keyExtractor={(item) => item.baby_id.toString()} // idを文字列に変換
                                 ItemSeparatorComponent={ItemSeparator}
                             />
                         </View>

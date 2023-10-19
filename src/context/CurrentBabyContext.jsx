@@ -22,7 +22,7 @@ export function CurrentBabyProvider({ children }) {
     return {
         name: '',
         birthday: '',
-        id: '',
+        baby_id: '',
     };
   }, []);
 
@@ -32,12 +32,12 @@ export function CurrentBabyProvider({ children }) {
     //＝＝＝＝＝＝＝＝
     if (action.type === "addBaby") {
       // SQLiteにデータを保存
-      const db = openDatabase('DB.db');
+      const db = openDatabase('BABY.db');
       db.transaction(
         (tx) => {
           tx.executeSql(
-            'UPDATE currentBaby SET name = ?, birthday = ?, id = ?',
-            [action.name, action.birthday, action.id],
+            'UPDATE current_baby SET name = ?, birthday = ?, baby_id = ?',
+            [action.name, action.birthday, action.baby_id],
             (_, result) => {
               // データが保存されたらContextを更新
             },
@@ -49,8 +49,8 @@ export function CurrentBabyProvider({ children }) {
       );
       state.name = action.name;
       state.birthday = action.birthday;
-      state.id = action.id;
-      return { name: state.name, birthday: state.birthday, id: state.id };
+      state.baby_id = action.baby_id;
+      return { name: state.name, birthday: state.birthday, baby_id: state.baby_id };
     }
 
     // 他のアクションの処理
@@ -62,16 +62,16 @@ export function CurrentBabyProvider({ children }) {
 
     // コンポーネントがマウントされたときにSQLiteからデータを取得し、Contextを更新
   useEffect(() => {
-    const db = openDatabase('DB.db');
+    const db = openDatabase('BABY.db');
     db.transaction((tx) => {
       tx.executeSql(
-        'PRAGMA table_info(currentBaby);',
+        'PRAGMA table_info(current_baby);',
         [],
         (_, { rows }) => {
         if (rows.length > 0) {
             // テーブルが存在する場合のみSELECT文を実行
             tx.executeSql(
-              'SELECT * FROM currentBaby LIMIT 1',
+              'SELECT * FROM current_baby LIMIT 1',
               [],
               (_, result) => {
               const data = result.rows.item(0);
@@ -80,7 +80,7 @@ export function CurrentBabyProvider({ children }) {
                     type: 'addBaby',
                     name: data.name,
                     birthday: data.birthday,
-                    id: data.id,
+                    baby_id: data.baby_id,
                   });
               }
               },

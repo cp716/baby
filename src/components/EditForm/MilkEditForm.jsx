@@ -32,7 +32,7 @@ export default function ToiletEditForm(props) {
                         text: '更新',
                         style: 'default',
                         onPress: () => {
-                            const db = SQLite.openDatabase('DB.db');
+                            const db = SQLite.openDatabase('BABY.db');
                             db.transaction(
                                 (tx) => {
                                     if (babyData.category == 'MILK') {
@@ -57,7 +57,7 @@ export default function ToiletEditForm(props) {
                                                                 type: 'addBaby',
                                                                 name: currentBabyState.name,
                                                                 birthday: currentBabyState.birthday,
-                                                                id: currentBabyState.id,
+                                                                baby_id: currentBabyState.baby_id,
                                                             });
                                                             toggleModal();
                                                         },
@@ -94,7 +94,7 @@ export default function ToiletEditForm(props) {
                                                                 type: 'addBaby',
                                                                 name: currentBabyState.name,
                                                                 birthday: currentBabyState.birthday,
-                                                                id: currentBabyState.id,
+                                                                baby_id: currentBabyState.baby_id,
                                                             });
                                                             toggleModal();
                                                         },
@@ -140,7 +140,7 @@ export default function ToiletEditForm(props) {
                                                                 type: 'addBaby',
                                                                 name: currentBabyState.name,
                                                                 birthday: currentBabyState.birthday,
-                                                                id: currentBabyState.id,
+                                                                baby_id: currentBabyState.baby_id,
                                                             });
                                                             toggleModal();
                                                         },
@@ -177,7 +177,7 @@ export default function ToiletEditForm(props) {
                 text: '削除',
                 style: 'destructive',
                 onPress: () => {
-                    const db = SQLite.openDatabase('DB.db');
+                    const db = SQLite.openDatabase('BABY.db');
                     db.transaction(
                     (tx) => {
                         tx.executeSql(
@@ -193,7 +193,7 @@ export default function ToiletEditForm(props) {
                                         type: 'addBaby',
                                         name: currentBabyState.name,
                                         birthday: currentBabyState.birthday,
-                                        id: currentBabyState.id,
+                                        baby_id: currentBabyState.baby_id,
                                     });
                                     toggleModal();
                                 },

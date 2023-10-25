@@ -29,16 +29,14 @@ const styles = StyleSheet.create({
         width: 80,
         height: 50,
         borderRadius: 15,
-        borderColor: '#737373',
-        borderWidth: 0.5,
+        borderColor: 'transparent', // borderColorを透明に設定
+        borderWidth: 0, // borderWidthを0に設定
         justifyContent: 'center',
         alignItems: 'center',
-        //position: 'absolute',
-        //left: 40,
-        shadowColor: '#000000',//ios
-        shadowOffset: { width: 0, height: 8 },//ios
-        shadowOpacity: 0.25,//ios
-        shadowRadius: 8,//ios
-        elevation: 8,//Android
-    },
+        shadowColor: '#000000', // ios
+        shadowOffset: { width: 0, height: 4 }, // ios
+        shadowOpacity: 0.25, // ios
+        shadowRadius: 4, // ios
+        //elevation: 8, // Android
+    }
 });

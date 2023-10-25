@@ -38,8 +38,13 @@ export default function RecordScreen(props) {
     useEffect(() => {
         navigation.setOptions({
             headerTitle: currentBabyState.name + 'の記録',
+            headerTitleStyle: {
+                //fontFamily: 'San Francisco',
+                fontSize: 20, // フォントサイズを調整できます
+                color: 'black', // テキストの色をカスタマイズ
+            },
         });
-    }, [currentBabyState]);
+    }, []);
 
     const [monthData, setMonthData] = useState([]);
     const [babyNameData, setBabyNameData] = useState('');
@@ -558,7 +563,7 @@ const styles = StyleSheet.create({
     dataText: { textAlign: 'center', fontWeight: 'bold' },
     //wrapper: { padding: '5%' },
     dataWrapper: { marginLeft: -1 }, //flexDirection: 'column'
-    row: { height: 40 },
+    row: { height: 40 , backgroundColor: '#FFFFFF',},
     dot: {
         marginLeft: 5,
     }

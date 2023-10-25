@@ -13,14 +13,13 @@ export default function Datetime() {
     return (
         <View style={styles.date}>
             <TouchableOpacity onPress={() => dateTimeDispatch({ type: "decrement", year: dateTimeState.year, month: dateTimeState.month, day: dateTimeState.day, youbiCount: dateTimeState.youbiCount })} style={styles.dateText}>
-                <MaterialCommunityIcons name={'chevron-left-circle-outline'} size={35} color="#36C1A7" />
+                <MaterialCommunityIcons name={'chevron-left'} size={35} color="#36C1A7" />
             </TouchableOpacity>
-            
             <View style={styles.dateText}>
                 <ModalCalendar />
             </View>
             <TouchableOpacity onPress={() => dateTimeDispatch({ type: "increment", year: dateTimeState.year, month: dateTimeState.month, day: dateTimeState.day, youbiCount: dateTimeState.youbiCount})} style={styles.dateText}>
-                <MaterialCommunityIcons name={'chevron-right-circle-outline'} size={35} color="#36C1A7" />
+                <MaterialCommunityIcons name={'chevron-right'} size={35} color="#36C1A7" />
             </TouchableOpacity>
         </View>
     )
@@ -29,13 +28,17 @@ export default function Datetime() {
 const styles = StyleSheet.create({
     date: {
         flexDirection: 'row',
-        height: 70,
+        height: 60,
+        width: '90%',
         alignItems:'center',
         justifyContent: 'center',
+        backgroundColor : '#FFF',
+        borderColor : '#36C1A7',
+        borderWidth : 1,
+        borderRadius : 10,
     },
     dateText: {
-        fontSize: 20,
-        paddingHorizontal: 10,
+        paddingHorizontal: 5,
     },
     cursorText: {
         fontSize: 40,

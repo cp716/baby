@@ -36,23 +36,26 @@ export default function TestScreen() {
     if (db) {
       db.transaction(
         (tx) => {
-          // 全てのテーブルを削除
+          // データベース内の全てのテーブルを取得
           tx.executeSql(
             'SELECT name FROM sqlite_master WHERE type="table";',
             [],
             (_, resultSet) => {
               const tableNames = resultSet.rows._array.map((row) => row.name);
               tableNames.forEach((tableName) => {
-                tx.executeSql(
-                  `DROP TABLE IF EXISTS ${tableName}`,
-                  [],
-                  () => {
-                    console.log(`テーブル ${tableName} が削除されました`);
-                  },
-                  (error) => {
-                    console.error(`テーブル ${tableName} の削除中にエラーが発生しました:`, error);
-                  }
-                );
+                if (tableName !== 'sqlite_sequence') {
+                  // sqlite_sequence テーブル以外のテーブルを削除
+                  tx.executeSql(
+                    `DROP TABLE IF EXISTS ${tableName}`,
+                    [],
+                    () => {
+                      console.log(`テーブル ${tableName} が削除されました`);
+                    },
+                    (error) => {
+                      console.error(`テーブル ${tableName} の削除中にエラーが発生しました:`, error);
+                    }
+                  );
+                }
               });
             },
             (error) => {
@@ -65,7 +68,6 @@ export default function TestScreen() {
     }
   };
   
-
   const shareDatabaseAsJSON = async () => {
     try {
       // SQLiteデータベースからデータを取得

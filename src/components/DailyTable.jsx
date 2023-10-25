@@ -154,12 +154,13 @@ const styles = StyleSheet.create({
         //width: '30%',
     },
     tableRow_2: {
-        
+        backgroundColor: '#FFFFFF',
     },
     tableRow_3: {
         backgroundColor: '#D3EBE9',
     },
     tableRow_4: {
+        backgroundColor: '#FFFFFF',
         //borderBottomLeftRadius: 10,
         //borderBottomRightRadius: 10,
     },

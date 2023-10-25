@@ -164,10 +164,10 @@ export default function ModalCalendar() {
 
 const styles = StyleSheet.create({
     modalButton : {
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
-        borderWidth : 1,
-        borderRadius : 10,
+        //backgroundColor : '#FFF',
+        //borderColor : '#36C1A7',
+        //borderWidth : 1,
+        //borderRadius : 10,
     },
     modalButtonText : {
         color : '#36C1A7',

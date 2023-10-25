@@ -14,6 +14,22 @@ export default function SettingScreen(props) {
     useEffect(() => {
         navigation.setOptions({
             headerTitle: '設定',
+            headerTitleStyle: {
+                //fontFamily: 'San Francisco',
+                fontSize: 20, // フォントサイズを調整できます
+                color: 'black', // テキストの色をカスタマイズ
+            },
+        });
+    }, []);
+
+    useEffect(() => {
+        navigation.setOptions({
+            //headerTitle: currentBabyState.name + 'の記録',
+            headerTitleStyle: {
+                //fontFamily: 'San Francisco',
+                fontSize: 20, // フォントサイズを調整できます
+                color: 'black', // テキストの色をカスタマイズ
+            },
         });
     }, []);
 
@@ -49,7 +65,7 @@ export default function SettingScreen(props) {
                         //description="Item description"
                         left={props => <List.Icon {...props} icon="account-outline" />}
                         right={props => <List.Icon {...props} icon="chevron-right" />}
-                        //style={styles.listItem}
+                        style={styles.listItem}
                         onPress={() => { navigation.navigate('PasswordChange'); }}
                     />
                 </List.Section>
@@ -173,8 +189,8 @@ const styles = StyleSheet.create({
         //borderBottomWidth: 1,
     },
     listItem: {
-        //backgroundColor: '#F0F4F8',
-        //marginBottom:1,
+        backgroundColor: '#FFFFFF',
+        marginBottom:5,
         //borderTopWidth: 1,
         //borderBottomWidth: 1,
     }

@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons'; 
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import firebase from 'firebase';
 import { firebaseConfig } from './env';
+import { openDatabase } from 'expo-sqlite';
 
 import MainScreen from './src/screens/MainScreen';
 import DetailScreen from './src/screens/DetailScreen';
@@ -47,8 +47,13 @@ function RightTab() {
       <Stack.Navigator
         initialRouteName="Setting"
         screenOptions={{
-          headerStyle: { backgroundColor: "#FFDB59" },
-          headerTitleStyle: { color: "#111111"},
+          headerStyle: {
+            //backgroundColor: "#F97773",
+            backgroundColor: '#F0F4F8',
+            shadowOpacity: 0, // 影を削除
+            borderBottomWidth: 0, // ボーダーを削除
+          },
+          //headerTitleStyle: { color: "#FFFFFF"},
           headerTitle: 'koala',
           headerTintColor: '#111111',
           headerBackTitle: 'back',
@@ -73,7 +78,6 @@ function RightTab() {
         <Stack.Screen name="BabyList" component={BabyListScreen} />
         <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
         <Stack.Screen name="Backup" component={BackupScreen} />
-
         <Stack.Screen name="Test" component={TestScreen} />
 
       </Stack.Navigator>
@@ -87,8 +91,13 @@ function CenterTab() {
     <Stack.Navigator
       initialRouteName="Main"
       screenOptions={{
-        headerStyle: { backgroundColor: "#FFDB59" },
-        headerTitleStyle: { color: "#111111"},
+        headerStyle: {
+          //backgroundColor: "#F97773",
+          backgroundColor: '#F0F4F8',
+          shadowOpacity: 0, // 影を削除
+          borderBottomWidth: 0, // ボーダーを削除
+        },
+        headerTitleStyle: { fontSize: 20 },
         headerTitle: 'koala',
         headerTintColor: '#111111',
         headerBackTitle: 'back',
@@ -102,6 +111,7 @@ function CenterTab() {
         }}
         />
       <Stack.Screen name="Detail" component={DetailScreen} />
+      <Stack.Screen name="BabyAdd" component={BabyAddScreen} />
       <Stack.Screen name="Test" component={TestScreen} />
     </Stack.Navigator>
   </View>
@@ -114,8 +124,13 @@ function LeftTab() {
       <Stack.Navigator
         initialRouteName="Record"
         screenOptions={{
-          headerStyle: { backgroundColor: "#FFDB59" },
-          headerTitleStyle: { color: "#111111"},
+          headerStyle: {
+            //backgroundColor: "#F97773",
+            backgroundColor: '#F0F4F8',
+            shadowOpacity: 0, // 影を削除
+            borderBottomWidth: 0, // ボーダーを削除
+          },
+          //headerTitleStyle: { color: "#FFFFFF"},
           headerTitle: 'koala',
           headerTintColor: '#111111',
           headerBackTitle: 'back',
@@ -133,10 +148,61 @@ function LeftTab() {
   );
 }
 
+const HomeIcon = ({ focused, size }) => (
+  <MaterialCommunityIcons name="home-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
+);
+
+const DataIcon = ({ focused, size }) => (
+  <MaterialCommunityIcons name="note-text-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
+);
+
+const SettingIcon = ({ focused, size }) => (
+  <Ionicons name="settings-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
+);
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 export default function App() {
+
+  const [currentBaby, setCurrentBaby] = useState('');
+
+  useEffect(() => {
+    const db = openDatabase('BABY.db');
+    db.transaction((tx) => {
+      tx.executeSql(
+        'PRAGMA table_info(current_baby);',
+        [],
+        (_, { rows }) => {
+        if (rows.length > 0) {
+            // テーブルが存在する場合のみSELECT文を実行
+            tx.executeSql(
+              'SELECT * FROM current_baby LIMIT 1',
+              [],
+              (_, result) => {
+              const data = result.rows.item(0);
+              setCurrentBaby(data)
+              },
+              (_, error) => {
+              console.error('データの取得中にエラーが発生しました:', error);
+              }
+          );
+        } else {
+          //console.log('ToiletRecordテーブルが存在しません');
+        }
+        },
+        (_, error) => {
+        console.error('テーブルの存在確認中にエラーが発生しました:', error);
+        }
+      );
+      
+    });
+  }, []); // 初回のみ実行
+
+  const hideTabs = currentBaby === null || currentBaby === undefined;
+
+  console.log(hideTabs)
+  //const hideTabs = ""
   return (
     <NavigationContainer>
       <UserProvider>
@@ -146,14 +212,13 @@ export default function App() {
       <BabyRecordProvider>
         <Tab.Navigator
           initialRouteName="ホーム"
+          //screenOptions={{ tabBarVisible: !hideTabs }}
         >
           <Tab.Screen
             name="記録"
             component={LeftTab}
             options={{
-              tabBarIcon: ({ focused, size }) => (
-                <MaterialCommunityIcons name="note-text-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
-              ),
+              tabBarIcon: DataIcon,
               title: '',
             }}
           />
@@ -161,9 +226,7 @@ export default function App() {
             name="ホーム"
             component={CenterTab}
             options={{
-              tabBarIcon: ({ focused, size }) => (
-                <MaterialCommunityIcons name="home-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
-              ),
+              tabBarIcon: HomeIcon,
               title: '',
             }}
           />
@@ -171,9 +234,7 @@ export default function App() {
             name="設定"
             component={RightTab}
             options={{
-              tabBarIcon: ({ focused, size }) => (
-                <Ionicons name="settings-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
-              ),
+              tabBarIcon: SettingIcon,
               title: '',
             }}
           />

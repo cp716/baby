@@ -1,5 +1,5 @@
 import React, { useEffect, useState }  from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import firebase from 'firebase';
 import { useIsFocused } from '@react-navigation/native'
@@ -15,6 +15,7 @@ import Datetime from '../components/Datetime';
 import TableTitle from '../components/TableTitle';
 import CreateData from '../components/CreateData';
 import DailyTable from '../components/DailyTable';
+import Button from '../components/Button';
 
 import { useDateTimeContext } from '../context/DateTimeContext';
 import { useBabyRecordContext } from '../context/BabyRecordContext';
@@ -45,9 +46,16 @@ export default function MainScreen(props) {
     }, [dateTimeState]);
 
     useEffect(() => {
-        navigation.setOptions({
-            headerTitle: currentBabyState.name + 'の記録',
-        });
+        if (currentBabyState.baby_id !== "") {
+            navigation.setOptions({
+                headerTitle: currentBabyState.name + 'の記録',
+                headerTitleStyle: {
+                    //fontFamily: 'San Francisco',
+                    fontSize: 20, // フォントサイズを調整できます
+                    color: 'black', // テキストの色をカスタマイズ
+                },
+            });
+        }
     }, [currentBabyState]);
 
     useEffect(() => {
@@ -218,7 +226,13 @@ export default function MainScreen(props) {
         return (
             <View style={styles.container}>
                 <View style={[emptyStyles.inner, {height: '100%'}]}>
-                    <Text style={emptyStyles.title}>最初に赤ちゃんを登録してください</Text>
+                    <Text style={emptyStyles.title}>初めに赤ちゃんの情報を登録しましょう</Text>
+                    <Button
+                        label="次へ"
+                        onPress={() => { navigation.navigate('BabyAdd'); }}
+                    >
+                        <Text style={styles.footerLink}>次へ</Text>
+                    </Button>
                 </View>
             </View>
         );
@@ -303,13 +317,14 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F0F4F8',
+        //backgroundColor: '#FFFFFF',
     },
     footer: {
         //height:'25%',
         //width:'100%',
         //position:'absolute',
         //bottom: 0,
-        borderTopWidth: 1,
+        borderTopWidth: 0.5,
         borderTopColor : 'rgba(0, 0, 0, 100)',
         //paddingBottom: 50,
         //backgroundColor: '#937720',
@@ -331,7 +346,7 @@ const styles = StyleSheet.create({
         //marginBottom:1,
         //textAlign: 'center',
         justifyContent: 'center',
-        //alignItems: 'center',
+        alignItems: 'center',
         //position: 'absolute',
         //marginTop: 'auto',
         //marginBottom: 'auto',

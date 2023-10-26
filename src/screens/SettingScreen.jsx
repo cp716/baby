@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { List, IconButton } from 'react-native-paper';
 import firebase from 'firebase';
 
@@ -9,22 +9,12 @@ import LogOutButton from '../components/LogOutButton';
 export default function SettingScreen(props) {
     const { navigation } = props;
     const [user, setUser] = useState();
+    const [emailVerification, setEmailVerification] = useState();
     const { babyState, babyDispatch } = useBabyContext();
 
     useEffect(() => {
         navigation.setOptions({
             headerTitle: '設定',
-            headerTitleStyle: {
-                //fontFamily: 'San Francisco',
-                fontSize: 20, // フォントサイズを調整できます
-                color: 'black', // テキストの色をカスタマイズ
-            },
-        });
-    }, []);
-
-    useEffect(() => {
-        navigation.setOptions({
-            //headerTitle: currentBabyState.name + 'の記録',
             headerTitleStyle: {
                 //fontFamily: 'San Francisco',
                 fontSize: 20, // フォントサイズを調整できます
@@ -42,18 +32,30 @@ export default function SettingScreen(props) {
                 } else {
                     setUser(false);
                 }
+                if (user.emailVerified) {
+                    setEmailVerification(true)
+                    console.log('メールアドレスは認証済みです。');
+                } else {
+                    setEmailVerification(false)
+                    console.log('メールアドレスは未認証です。');
+                }
             }
+            
         });
         return unsubscribe;
     }, []);
+
 
     if (user) {
         return (
             <View style={styles.container}>
                 <List.Section>
-                    <List.Subheader style={styles.listSubheader}>アカウント</List.Subheader>
+                    <List.Subheader style={styles.listSubheader}>
+                        <Text>アカウント</Text>
+                        {emailVerification !== null ? (emailVerification ? <Text>(認証済)</Text> : <Text>(未認証)</Text>) : null}
+                    </List.Subheader>
                     <List.Item
-                        title="メールアドレス変更"
+                        title={emailVerification !== null ? (emailVerification ? <Text>メールアドレス変更</Text> : <Text>メールアドレス認証</Text>) : null}
                         //description="Item description"
                         left={props => <List.Icon {...props} icon="account-outline" />}
                         right={props => <List.Icon {...props} icon="chevron-right" />}
@@ -120,6 +122,7 @@ export default function SettingScreen(props) {
                         style={styles.listItem}
                         onPress={() => { navigation.navigate('Test'); }}
                     />
+                    <LogOutButton />
                 </List.Section>
             </View>
         )

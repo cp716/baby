@@ -1,44 +1,89 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, } from 'react-native';
-import firebase from 'firebase'
-import * as SQLite from 'expo-sqlite';
+import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
+import firebase from 'firebase';
 
 import Button from '../components/Button';
 import { translateErrors } from '../utils';
-
-// データベースファイルのパスを指定してデータベースを開く
-const db = SQLite.openDatabase('DB.db');
 
 export default function SignUpScreen(props) {
     const { navigation } = props;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     function handlePress() {
-        const { currentUser } = firebase.auth();
-        if (!currentUser) { return; }
-        const credential = firebase.auth.EmailAuthProvider.credential(email, password);
-        currentUser.linkWithCredential(credential)
-            .then((userCredential) => {
-                Alert.alert('登録完了', '登録したメールアドレスとパスワードは大切に保管してください。', [
-                    {
-                        text: 'OK',
-                        onPress: () => {
-                            navigation.reset({
-                                index: 0,
-                                routes: [{ name: 'Setting'}],
-                        });
-                        },
-                        },
-                ]);
+        const user = firebase.auth().currentUser; // Get the current user (anonymous user)
+
+        if (!user) {
+            return;
+        }
+
+        if (email !== confirmEmail) {
+            Alert.alert('エラー', 'メールアドレスと確認用のメールアドレスが一致しません。');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Alert.alert('エラー', 'パスワードと確認用のパスワードが一致しません。');
+            return;
+        }
+
+        // Firebaseにメールアドレスとパスワードでユーザー登録
+        firebase
+    .auth()
+    .createUserWithEmailAndPassword(email, password)
+    .then(() => {
+        // 新規ユーザー作成成功時の処理
+        // ユーザー登録が成功したら認証メールを送信
+        const newUser = firebase.auth().currentUser; // 新しいユーザーを取得
+        newUser
+            .sendEmailVerification()
+            .then(() => {
+                // 認証メールを送信した後にログイン
+                firebase
+                    .auth()
+                    .signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        // ログインに成功したら古い匿名ユーザーを削除
+                        user.delete()
+                            .then(() => {
+                                Alert.alert('登録完了', 'メールアドレス確認メールを送信しました。メールをご確認ください。', [
+                                    {
+                                        text: 'OK',
+                                        onPress: () => {
+                                            navigation.reset({
+                                                index: 0,
+                                                routes: [{ name: 'Setting' }],
+                                            });
+                                        },
+                                    },
+                                ]);
+                            })
+                            .catch((deleteError) => {
+                                console.log(deleteError);
+                            });
+                    })
+                    .catch((loginError) => {
+                        console.log(loginError);
+                        const errorMsg = translateErrors(loginError.code);
+                        Alert.alert(errorMsg.title, errorMsg.description);
+                    });
             })
             .catch((error) => {
-                console.log(error.code, error.massage);
+                console.log(error);
                 const errorMsg = translateErrors(error.code);
                 Alert.alert(errorMsg.title, errorMsg.description);
             });
+    })
+    .catch((error) => {
+        console.log(error);
+        const errorMsg = translateErrors(error.code);
+        Alert.alert(errorMsg.title, errorMsg.description);
+    });
+
     }
-    
+
     return (
         <View style={styles.container}>
             <View style={styles.inner}>
@@ -47,7 +92,9 @@ export default function SignUpScreen(props) {
                 <TextInput
                     style={styles.input}
                     value={email}
-                    onChangeText={(text) => { setEmail(text); }}
+                    onChangeText={(text) => {
+                        setEmail(text);
+                    }}
                     autoCapitalize="none"
                     keyboardType="email-address"
                     placeholder="入力してください"
@@ -57,8 +104,10 @@ export default function SignUpScreen(props) {
                 <Text style={styles.inputText}>メールアドレス（確認）</Text>
                 <TextInput
                     style={styles.input}
-                    value={email}
-                    onChangeText={(text) => { setEmail(text); }}
+                    value={confirmEmail}
+                    onChangeText={(text) => {
+                        setConfirmEmail(text);
+                    }}
                     autoCapitalize="none"
                     keyboardType="email-address"
                     placeholder="入力してください"
@@ -69,7 +118,9 @@ export default function SignUpScreen(props) {
                 <TextInput
                     style={styles.input}
                     value={password}
-                    onChangeText={(text) => { setPassword(text); }}
+                    onChangeText={(text) => {
+                        setPassword(text);
+                    }}
                     autoCapitalize="none"
                     placeholder="入力してください"
                     placeholderTextColor="#BFBFBF"
@@ -79,48 +130,21 @@ export default function SignUpScreen(props) {
                 <Text style={styles.inputText}>パスワード（確認）</Text>
                 <TextInput
                     style={styles.input}
-                    value={password}
-                    onChangeText={(text) => { setPassword(text); }}
+                    value={confirmPassword}
+                    onChangeText={(text) => {
+                        setConfirmPassword(text);
+                    }}
                     autoCapitalize="none"
                     placeholder="入力してください"
                     placeholderTextColor="#BFBFBF"
                     secureTextEntry
                     textContentType="password"
                 />
-                <Button
-                    label="登録"
-                    onPress={handlePress}
-                />
+                <Button label="登録" onPress={handlePress} />
             </View>
-            <Button
-    title="CREATE"
-    onPress={() => {
-        const db = SQLite.openDatabase('DB.db');
-        db.transaction((tx) => {
-            // 実行したいSQL
-            tx.executeSql(
-                "CREATE TABLE IF NOT EXISTS HealthData(id integer primary key not null, height real, weight real);",
-                null,
-                () => {
-                    // 成功時のコールバック
-                    console.log("CREATE TABLE Success.");
-                },
-                () => {
-                    // 失敗時のコールバック
-                    console.log("CREATE TABLE Failed.");
-                    return true;  // return true でロールバックする
-                });
-            },
-            () => { console.log("Failed All."); },
-            () => { console.log("Success All."); }
-            
-        );SQLite.openDatabase('DB.db');
-    }} />
         </View>
     );
 }
-
-
 
 const styles = StyleSheet.create({
     container: {
@@ -140,7 +164,6 @@ const styles = StyleSheet.create({
     inputText: {
         fontSize: 15,
         lineHeight: 32,
-        //fontWeight: 'bold',
         marginBottom: 1,
         color: '#737373',
     },
@@ -152,18 +175,5 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
         paddingHorizontal: 8,
         marginBottom: 16,
-    },
-    footerText: {
-        fontSize: 14,
-        lineHeight: 24,
-        marginRight: 8,
-    },
-    footerLink: {
-        fontSize: 14,
-        lineHeight: 24,
-        color: '#467FD3',
-    },
-    footer: {
-        flexDirection: 'row'
     },
 });

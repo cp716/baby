@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
 import firebase from 'firebase';
 
 import Button from '../components/Button';
@@ -21,26 +21,42 @@ export default function MailChangeScreen(props) {
                 setLoading(true);
 
                 // 新しいメールアドレスに変更する処理を実行
-                currentUser.updateEmail(newEmail)
+                currentUser
+                    .updateEmail(currentUser, newEmail)
                     .then(() => {
-                        Alert.alert('メールアドレスが変更されました', '新しいメールアドレスを使用してログインしてください。', [
-                            {
-                                text: 'OK',
-                                onPress: () => {
-                                    navigation.reset({
-                                        index: 0,
-                                        routes: [{ name: 'Setting' }],
-                                    });
-                                },
-                            },
-                        ]);
+                        // メールアドレスの変更が成功したら、確認メールを送信
+                        currentUser
+                            .sendEmailVerification()
+                            .then(() => {
+                                setLoading(false);
+                                Alert.alert(
+                                    'メールアドレスが変更されました',
+                                    '確認メールをご確認ください。メール内のリンクをクリックして変更を完了してください。',
+                                    [
+                                        {
+                                            text: 'OK',
+                                            onPress: () => {
+                                                navigation.reset({
+                                                    index: 0,
+                                                    routes: [{ name: 'Setting' }],
+                                                });
+                                            },
+                                        },
+                                    ]
+                                );
+                            })
+                            .catch((error) => {
+                                setLoading(false);
+                                console.log(error);
+                                const errorMsg = translateErrors(error.code);
+                                Alert.alert(errorMsg.title, errorMsg.description);
+                            });
                     })
                     .catch((error) => {
+                        setLoading(false);
+                        console.log(error);
                         const errorMsg = translateErrors(error.code);
                         Alert.alert(errorMsg.title, errorMsg.description);
-                    })
-                    .finally(() => {
-                        setLoading(false);
                     });
             }
         } else {
@@ -57,7 +73,9 @@ export default function MailChangeScreen(props) {
                 <TextInput
                     style={styles.input}
                     value={newEmail}
-                    onChangeText={(text) => { setNewEmail(text); }}
+                    onChangeText={(text) => {
+                        setNewEmail(text);
+                    }}
                     autoCapitalize="none"
                     keyboardType="email-address"
                     placeholder="入力してください"
@@ -68,17 +86,16 @@ export default function MailChangeScreen(props) {
                 <TextInput
                     style={styles.input}
                     value={confirmEmail}
-                    onChangeText={(text) => { setConfirmEmail(text); }}
+                    onChangeText={(text) => {
+                        setConfirmEmail(text);
+                    }}
                     autoCapitalize="none"
                     keyboardType="email-address"
                     placeholder="再度入力してください"
                     placeholderTextColor="#BFBFBF"
                     textContentType="emailAddress"
                 />
-                <Button
-                    label="確認"
-                    onPress={handlePress}
-                />
+                <Button label="確認" onPress={handlePress} />
             </View>
         </View>
     );

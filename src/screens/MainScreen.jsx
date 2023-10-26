@@ -1,5 +1,5 @@
 import React, { useEffect, useState }  from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import firebase from 'firebase';
 import { useIsFocused } from '@react-navigation/native'

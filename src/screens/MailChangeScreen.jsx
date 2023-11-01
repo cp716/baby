@@ -22,7 +22,7 @@ export default function MailChangeScreen(props) {
 
                 // 新しいメールアドレスに変更する処理を実行
                 currentUser
-                    .updateEmail(currentUser, newEmail)
+                    .updateEmail(newEmail)
                     .then(() => {
                         // メールアドレスの変更が成功したら、確認メールを送信
                         currentUser

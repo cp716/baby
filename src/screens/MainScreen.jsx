@@ -8,6 +8,7 @@ import MilkAddButton from '../components/AddButton/MilkAddButton';
 import ToiletAddButton from '../components/AddButton/ToiletAddButton';
 import DiseaseAddButton from '../components/AddButton/DiseaseAddButton';
 import FoodAddButton from '../components/AddButton/FoodAddButton';
+import BodyAddButton from '../components/AddButton/BodyAddButton';
 import FreeAddButton from '../components/AddButton/FreeAddButton';
 import ModalSelectBaby from '../components/ModalSelectBaby';
 
@@ -142,11 +143,11 @@ export default function MainScreen(props) {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                        'SELECT ' + commonRecordTable + '.*, ' + foodRecordTable + '.food, ' + foodRecordTable + '.drink, ' + foodRecordTable + '.foodAmount, ' + foodRecordTable + '.drinkAmount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        'SELECT ' + commonRecordTable + '.*, ' + foodRecordTable + '.amount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
                         [dateTimeState.day, currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
-                            setFoodData(data.filter(item => item.category === 'FOOD'));
+                            setFoodData(data.filter(item => item.category === 'FOOD' || item.category === 'DRINK'));
                         },
                         (_, error) => {
                             console.error('データの取得中にエラーが発生しました:', error);
@@ -267,7 +268,7 @@ export default function MainScreen(props) {
                     </View>
                     <View style={styles.button}>
                         <FreeAddButton />
-                        <FreeAddButton />
+                        <BodyAddButton />
                         <FreeAddButton />
                         <ModalSelectBaby />
                     </View>
@@ -304,7 +305,7 @@ export default function MainScreen(props) {
                 </View>
                 <View style={styles.button}>
                     <FreeAddButton />
-                    <FreeAddButton />
+                    <BodyAddButton />
                     <FreeAddButton />
                     <ModalSelectBaby />
                 </View>

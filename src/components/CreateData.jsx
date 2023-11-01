@@ -118,7 +118,7 @@ export default function CreateData(props) {
                                                 <MaterialCommunityIcons name='hospital-box-outline' size={15} color="black" />
                                                 //'体調'
                                             );
-                                        }  else if(item.category == 'FOOD') {
+                                        }  else if(item.category == 'FOOD' || item.category === 'DRINK' ) {
                                             return (
                                                 <MaterialCommunityIcons name='food-fork-drink' size={15} color="black" />
                                                 //'自由項目'
@@ -186,21 +186,20 @@ export default function CreateData(props) {
                                                 disease
                                             )
                                         }else if (item.category == 'FOOD') {
-                                            var food = "";
-                                            if(item.food) {
-                                                food += "「食事」"
-                                            }
-                                            if(item.foodAmount) {
-                                                food += item.foodAmount + 'g'
-                                            }
-                                            if(item.drink) {
-                                                food += "「飲物」"
-                                            }
-                                            if(item.drinkAmount) {
-                                                food += item.drinkAmount + 'ml'
+                                            var food = "「食事」"
+                                            if(item.amount) {
+                                                food += item.amount + 'g'
                                             }
                                             return (
                                                 food
+                                            )
+                                        }else if (item.category == 'DRINK') {
+                                            var drink = "「飲物」"
+                                            if(item.amount) {
+                                                drink += item.amount + 'ml'
+                                            }
+                                            return (
+                                                drink
                                             )
                                         }else if (item.category == 'FREE') {
                                             return (

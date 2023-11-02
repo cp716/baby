@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
         //borderRadius : 10,
     },
     modalButtonText : {
-        color : '#36C1A7',
+        color : '#737373',
         fontWeight : 'bold',
         textAlign : 'center',
         padding: 10,

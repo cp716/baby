@@ -13,13 +13,13 @@ export default function Datetime() {
     return (
         <View style={styles.date}>
             <TouchableOpacity onPress={() => dateTimeDispatch({ type: "decrement", year: dateTimeState.year, month: dateTimeState.month, day: dateTimeState.day, youbiCount: dateTimeState.youbiCount })} style={styles.dateText}>
-                <MaterialCommunityIcons name={'chevron-left'} size={35} color="#36C1A7" />
+                <MaterialCommunityIcons name={'chevron-left'} size={35} color="#737373" />
             </TouchableOpacity>
             <View style={styles.dateText}>
                 <ModalCalendar />
             </View>
             <TouchableOpacity onPress={() => dateTimeDispatch({ type: "increment", year: dateTimeState.year, month: dateTimeState.month, day: dateTimeState.day, youbiCount: dateTimeState.youbiCount})} style={styles.dateText}>
-                <MaterialCommunityIcons name={'chevron-right'} size={35} color="#36C1A7" />
+                <MaterialCommunityIcons name={'chevron-right'} size={35} color="#737373" />
             </TouchableOpacity>
         </View>
     )
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
         alignItems:'center',
         justifyContent: 'center',
         backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
+        borderColor : '#737373',
         borderWidth : 1,
         borderRadius : 10,
     },

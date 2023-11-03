@@ -159,8 +159,8 @@ const modalStyles = StyleSheet.create({
     container : {
         backgroundColor : '#F0F4F8',
         padding : '5%',
-        borderColor : '#36C1A7',
+        borderColor : '#F0F4F8',
         borderWidth : 5,
-        borderRadius : 20,
+        borderRadius : 10,
     },
 });

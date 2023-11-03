@@ -136,11 +136,11 @@ export default function RecordScreen(props) {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                        'SELECT ' + commonRecordTable + '.*, ' + foodRecordTable + '.food, ' + foodRecordTable + '.drink, ' + foodRecordTable + '.foodAmount, ' + foodRecordTable + '.drinkAmount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
+                        'SELECT ' + commonRecordTable + '.*, ' + foodRecordTable + '.amount FROM ' + commonRecordTable + ' LEFT JOIN ' + foodRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + foodRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
                         [currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
-                            setFoodData(data.filter(item => item.category === 'FOOD'));
+                            setFoodData(data.filter(item => item.category === 'FOOD' || item.category === 'DRINK'));
                         },
                         (_, error) => {
                             console.error('データの取得中にエラーが発生しました:', error);
@@ -188,8 +188,8 @@ export default function RecordScreen(props) {
         });
     };
 
-    const tableHead = ['授乳', '哺乳瓶', 'ご飯', 'トイレ', '病気', '体温']
-    const sybTableHead = ['左', '右', 'ミルク', '母乳', '食事', '食事量', '飲物', '飲物量', 'おしっこ', 'うんち', '鼻水', '咳', '嘔吐', '発疹', '怪我', '薬', '最高', '最低']
+    const tableHead = ['授乳', '哺乳瓶', '飲食', 'トイレ', '病気', '体温']
+    const sybTableHead = ['左', '右', 'ミルク', '母乳', '食物', '食物量', '飲物', '飲物量', 'おしっこ', 'うんち', '鼻水', '咳', '嘔吐', '発疹', '怪我', '薬', '最高', '最低']
     const widthArr = [100, 100, 200, 100, 300, 100]
 
     const lastDay = new Date( selectYear, selectMonth, 0 ) ;
@@ -199,7 +199,11 @@ export default function RecordScreen(props) {
         return time ? time + '分' : '-';
     }
 
-    function formatAmount(total) {
+    function formatGram(total) {
+        return (total !== null && total !== undefined && total !== 0) ? total + 'g' : '-';
+    }
+
+    function formatMl(total) {
         return (total !== null && total !== undefined && total !== 0) ? total + 'ml' : '-';
     }
 
@@ -266,10 +270,10 @@ export default function RecordScreen(props) {
         }
 
         for (let key in food) {
-            if(food[key].food) {
+            if(food[key].category == 'FOOD') {
                 foodCount += 1
             }
-            if(food[key].drink) {
+            if(food[key].category == 'DRINK') {
                 drinkCount += 1
             }
             //if(!isNaN(food[key].food.drink)) {
@@ -278,10 +282,11 @@ export default function RecordScreen(props) {
         }
 
         for (let key in food) {
-            foodAmount += food[key].foodAmount
-        }
-        for (let key in food) {
-            drinkAmount += food[key].drinkAmount
+            if(food[key].category == 'FOOD') {
+                foodAmount += food[key].amount
+            } else if(food[key].category == 'DRINK') {
+                drinkAmount += food[key].amount
+            }
         }
 
         for (let key in disease) {
@@ -325,12 +330,12 @@ export default function RecordScreen(props) {
         const rowData = [];
         rowData.push(`${formatTime(junyLeftTotal)}`);
         rowData.push(`${formatTime(junyRightTotal)}`);
-        rowData.push(`${formatAmount(milkTotal)}`);
-        rowData.push(`${formatAmount(bonyuTotal)}`);
+        rowData.push(`${formatMl(milkTotal)}`);
+        rowData.push(`${formatMl(bonyuTotal)}`);
         rowData.push(`${formatCount(foodCount)}`);
-        rowData.push(`${formatAmount(foodAmount)}`);
+        rowData.push(`${formatGram(foodAmount)}`);
         rowData.push(`${formatCount(drinkCount)}`);
-        rowData.push(`${formatAmount(drinkAmount)}`);
+        rowData.push(`${formatMl(drinkAmount)}`);
         rowData.push(`${formatCount(oshikkoCount)}`);
         rowData.push(`${formatCount(unchiCount)}`);
         rowData.push(`${formatCount(hanamizuCount)}`);

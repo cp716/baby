@@ -13,8 +13,12 @@ export default function DailyTable(props) {
         return time ? time + '分' : '-';
     }
 
-    function formatAmount(total) {
+    function formatMl(total) {
         return total ? total + 'ml' : '-';
+    }
+
+    function formatGram(total) {
+        return total ? total + 'g' : '-';
     }
 
     function formatCount(count) {
@@ -39,6 +43,8 @@ export default function DailyTable(props) {
     let bodyTemperature = 0;
     let bodyTemperatureTime = '';
     let foodCount = 0;
+    let foodTotal = 0;
+    let drinkCount = 0;
     let drinkTotal = 0;
 
     for (let key in milkData) {
@@ -84,20 +90,20 @@ export default function DailyTable(props) {
         bodyTemperatureTime = (new Date(bodyTemperatureTime).getHours()) + ':' + (new Date(bodyTemperatureTime).getMinutes());
     }
     for (let key in foodData) {
-        if(foodData[key].food && foodData[key].drink) {
-            foodCount += 1
-            drinkTotal += 1
+        if(foodData[key].amount && foodData[key].category == 'FOOD') {
+            foodTotal += foodData[key].amount
+        } else if(foodData[key].amount && foodData[key].category == 'DRINK') {
+            drinkTotal += foodData[key].amount
         }
-        if(foodData[key].food && !foodData[key].drink) {
+        if(foodData[key].category == 'FOOD') {
             foodCount += 1
-        }
-        if(!foodData[key].food && foodData[key].drink) {
-            drinkTotal += 1
+        } else if(foodData[key].category == 'DRINK') {
+            drinkCount += 1
         }
     }
 
     const tableHead_1 = ['授乳', '哺乳瓶', '飲食']
-    const tableData_1 = ['左\n' + formatTime(junyLeftTotal), '右\n' + formatTime(junyRightTotal), 'ミルク\n' + formatAmount(milkTotal), '母乳\n' + formatAmount(bonyuTotal), 'ご飯\n' + formatCount(foodCount), '飲物\n' + formatCount(drinkTotal)]
+    const tableData_1 = ['左\n' + formatTime(junyLeftTotal), '右\n' + formatTime(junyRightTotal), 'ミルク\n' + formatMl(milkTotal), '母乳\n' + formatMl(bonyuTotal), '食物\n' + formatGram(foodTotal), '飲物\n' + formatMl(drinkTotal)]
     const tableHead_2 = ['トイレ', '睡眠', '体温', '身長', '体重']
     const tableData_2 = ['尿\n' + formatCount(oshikkoCount), 'うんち\n' + formatCount(unchiCount), 'XX分', '最新\n' + formatTemperature(bodyTemperature), 'XXcm', 'XXkg']
     const widthArr_1 = [110, 110, 110]

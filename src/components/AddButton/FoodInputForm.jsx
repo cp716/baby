@@ -16,7 +16,7 @@ export default function FoodInputForm(props) {
 
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [amount, setAmount] = useState('');
-    const [bodyText, setBodyText] = useState('');
+    const [memo, setMemo] = useState('');
 
     useEffect(() => {
         const db = SQLite.openDatabase('BABY.db');
@@ -66,7 +66,7 @@ export default function FoodInputForm(props) {
                             currentBabyState.baby_id,
                             day,
                             selectedCategory === 'food' ? 'FOOD' : 'DRINK',
-                            bodyText,
+                            memo,
                             new Date(selectTime).toISOString(),
                         ],
                         (_, result) => {
@@ -105,7 +105,7 @@ export default function FoodInputForm(props) {
             <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                    title='食事'
+                    title='食物'
                     checked={selectedCategory === 'food'}
                     onPress={() => {
                         if (selectedCategory !== 'food') {
@@ -157,10 +157,10 @@ export default function FoodInputForm(props) {
                 <Text style={styles.inputTitle}>メモ</Text>
                 <TextInput
                     keyboardType="web-search"
-                    value={bodyText}
+                    value={memo}
                     multiline
                     style={styles.memoInput}
-                    onChangeText={(text) => setBodyText(text)}
+                    onChangeText={(text) => setMemo(text)}
                     //placeholder="入力してください"
                 />
             </View>
@@ -272,10 +272,10 @@ const modalStyles = StyleSheet.create({
         marginLeft: 'auto',
         marginRight: 'auto',
         //marginTop: '5%',
-        //backgroundColor: '#FFF',
+        backgroundColor: '#FFF',
         //backgroundColor : '#F97773',
-        borderColor: '#737373',
-        borderWidth: 0.5,
+        //borderColor: '#737373',
+        //borderWidth: 0.5,
         borderRadius: 10,
         width: '40%',
     },

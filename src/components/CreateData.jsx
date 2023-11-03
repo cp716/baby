@@ -100,32 +100,32 @@ export default function CreateData(props) {
                                 {(() => {
                                         if (item.category == 'JUNYU') {
                                             return (
-                                                <MaterialCommunityIcons name='baby-bottle-outline' size={15} color="black" />
+                                                <MaterialCommunityIcons name='baby-bottle-outline' size={18} color="black" />
                                                 //'授乳'
                                             );
                                         } else if(item.category == 'MILK' || item.category == 'BONYU') {
                                             return (
-                                                <MaterialCommunityIcons name='baby-bottle-outline' size={15} color="black" />
+                                                <MaterialCommunityIcons name='baby-bottle-outline' size={20} color="black" />
                                                 //'哺乳瓶'
                                             );
                                         }  else if(item.category == 'TOILET') {
                                             return (
-                                                <MaterialCommunityIcons name='toilet' size={15} color="black" />
+                                                <MaterialCommunityIcons name='toilet' size={20} color="black" />
                                                 //'トイレ'
                                             );
                                         }  else if(item.category == 'DISEASE') {
                                             return (
-                                                <MaterialCommunityIcons name='hospital-box-outline' size={15} color="black" />
+                                                <MaterialCommunityIcons name='hospital-box-outline' size={20} color="black" />
                                                 //'体調'
                                             );
                                         }  else if(item.category == 'FOOD' || item.category === 'DRINK' ) {
                                             return (
-                                                <MaterialCommunityIcons name='food-fork-drink' size={15} color="black" />
+                                                <MaterialCommunityIcons name='food-fork-drink' size={20} color="black" />
                                                 //'自由項目'
                                             );
                                         }  else if(item.category == 'FREE') {
                                             return (
-                                                <MaterialCommunityIcons name='pen' size={15} color="black" />
+                                                <MaterialCommunityIcons name='pen' size={20} color="black" />
                                                 //'自由項目'
                                             );
                                         }
@@ -186,17 +186,17 @@ export default function CreateData(props) {
                                                 disease
                                             )
                                         }else if (item.category == 'FOOD') {
-                                            var food = "「食事」"
+                                            var food = "食事"
                                             if(item.amount) {
-                                                food += item.amount + 'g'
+                                                food += "\n" + item.amount + 'g'
                                             }
                                             return (
                                                 food
                                             )
                                         }else if (item.category == 'DRINK') {
-                                            var drink = "「飲物」"
+                                            var drink = "飲物"
                                             if(item.amount) {
-                                                drink += item.amount + 'ml'
+                                                drink += "\n" + item.amount + 'ml'
                                             }
                                             return (
                                                 drink
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
         
     },
     tableTitle: {
-        fontSize: 13,
+        fontSize: 15,
         //lineHeight: 16,
         //paddingHorizontal: 19,
         //width: '21%',

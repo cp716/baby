@@ -15,87 +15,71 @@ export default function FoodEditForm(props) {
 
     const [foodCheck, setFoodCheck] = useState(babyData.food);
     const [drinkCheck, setDrinkCheck] = useState(babyData.drink);
-    const [foodAmount, setFoodAmount] = useState(babyData.foodAmount === 0 ? '' : babyData.foodAmount);
-    const [drinkAmount, setDrinkAmount] = useState(babyData.drinkAmount === 0 ? '' : babyData.drinkAmount);
-    const [detailBody, setBodyText] = useState(babyData.memo);
 
-    if(isNaN(foodAmount)) {
-        setFoodAmount('')
-    }
-    if(isNaN(drinkAmount)) {
-        setDrinkAmount('')
-    }
+    const [selectedCategory, setSelectedCategory] = useState(babyData.category);
+    const [amount, setAmount] = useState(babyData.amount === null ? '' : babyData.amount);
+    const [memo, setMemo] = useState(babyData.memo);
 
     function handlePress() {
-        if (foodCheck || drinkCheck) {
-            Alert.alert(
-                '更新します', 'よろしいですか？',
-                [
-                    {
-                        text: 'キャンセル',
-                        style: 'cancel',
-                        onPress: () => {},
-                    },
-                    {
-                        text: '更新',
-                        style: 'default',
-                        onPress: () => {
-                            const db = SQLite.openDatabase('BABY.db');
-                            let food = 0;
-                            let drink = 0;
-                            if (foodAmount !== "") {
-                                food = foodAmount
+        Alert.alert(
+            '更新します', 'よろしいですか？',
+            [
+                {
+                    text: 'キャンセル',
+                    style: 'cancel',
+                    onPress: () => {},
+                },
+                {
+                    text: '更新',
+                    style: 'default',
+                    onPress: () => {
+                        const db = SQLite.openDatabase('BABY.db');
+                        let setAmount = 0;
+                        if (amount !== "") {
+                            setAmount = amount
+                        }
+                        db.transaction(
+                            (tx) => {
+                                tx.executeSql(
+                                    'UPDATE CommonRecord_' + year + '_' + month + ' SET category = ?, memo = ?, record_time = ? WHERE record_id = ?',
+                                    [
+                                        selectedCategory,
+                                        memo,
+                                        new Date(selectTime).toISOString(),
+                                        babyData.record_id
+                                    ],
+                                    (_, result) => {
+                                        tx.executeSql(
+                                            'UPDATE FoodRecord_' + year + '_' + month + ' SET amount = ? WHERE record_id = ?',
+                                            [
+                                                amount,
+                                                babyData.record_id
+                                            ],
+                                            (_, result) => {
+                                                // 画面リフレッシュのためcurrentBabyStateを更新
+                                                currentBabyDispatch({
+                                                    type: 'addBaby',
+                                                    name: currentBabyState.name,
+                                                    birthday: currentBabyState.birthday,
+                                                    baby_id: currentBabyState.baby_id,
+                                                });
+                                                toggleModal();
+                                            },
+                                            (_, error) => {
+                                                console.error('データの挿入中にエラーが発生しました:', error);
+                                            }
+                                        );
+                                    },
+                                    (_, error) => {
+                                        console.error('データの挿入中にエラーが発生しました:', error);
+                                    }
+                                );
                             }
-                            if(drinkAmount !== "") {
-                                drink = drinkAmount
-                            }
-                            db.transaction(
-                                (tx) => {
-                                    tx.executeSql(
-                                        'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
-                                        [
-                                            detailBody,
-                                            new Date(selectTime).toISOString(),
-                                            babyData.record_id
-                                        ],
-                                        (_, result) => {
-                                            tx.executeSql(
-                                                'UPDATE FoodRecord_' + year + '_' + month + ' SET food = ?, drink = ?, foodAmount = ?, drinkAmount = ? WHERE record_id = ?',
-                                                [
-                                                    foodCheck,
-                                                    drinkCheck,
-                                                    food,
-                                                    drink,
-                                                    babyData.record_id
-                                                ],
-                                                (_, result) => {
-                                                    // 画面リフレッシュのためcurrentBabyStateを更新
-                                                    currentBabyDispatch({
-                                                        type: 'addBaby',
-                                                        name: currentBabyState.name,
-                                                        birthday: currentBabyState.birthday,
-                                                        baby_id: currentBabyState.baby_id,
-                                                    });
-                                                    toggleModal();
-                                                },
-                                                (_, error) => {
-                                                    console.error('データの挿入中にエラーが発生しました:', error);
-                                                }
-                                            );
-                                        },
-                                        (_, error) => {
-                                            console.error('データの挿入中にエラーが発生しました:', error);
-                                        }
-                                    );
-                                }
-                            );
-                        },
+                        );
                     },
-                ],
-            );
-        } else {
-            Alert.alert('チェックが入っていません');
-        }
+                },
+            ],
+        );
     }
 
     function deleteItem() {
@@ -148,87 +132,85 @@ export default function FoodEditForm(props) {
 
     return (
         <ScrollView scrollEnabled={false}>
-            <View style={styles.inputTypeContainer}>
+            <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title='食事'
-                        checked={foodCheck}
-                        onPress={() => {
-                            if (foodAmount) {
-                                // foodAmount に値が入っている場合、クリアする
-                                setFoodAmount('');
-                            }
-                            setFoodCheck(!foodCheck);
-                        }}
+                    title='食物'
+                    checked={selectedCategory === 'FOOD'}
+                    onPress={() => {
+                        if (selectedCategory !== 'FOOD') {
+                        setSelectedCategory('FOOD');
+                        setAmount('');
+                        }
+                    }}
+                    textStyle={{ fontSize: 18, textAlign: 'center' }}
                     />
+                </View>
+                <View style={styles.radioButton}>
                     <CheckBox
-                        title='飲物'
-                        checked={drinkCheck}
-                        onPress={() => {
-                            if (setDrinkAmount) {
-                                // foodAmount に値が入っている場合、クリアする
-                                setDrinkAmount('');
-                            }
-                            setDrinkCheck(!drinkCheck);
-                        }}
+                    title='飲物'
+                    checked={selectedCategory === 'DRINK'}
+                    onPress={() => {
+                        if (selectedCategory !== 'DRINK') {
+                        setSelectedCategory('DRINK');
+                        setAmount('');
+                        }
+                    }}
+                    textStyle={{ fontSize: 18, textAlign: 'center' }}
                     />
                 </View>
             </View>
-            <View style={styles.inputContainer}>
-                <Text>食物</Text>
+            <View style={styles.inputAmountContainer}>
+                <Text style={styles.inputTitle}>
+                    {selectedCategory === 'FOOD' || selectedCategory === 'DRINK' ? 
+                        (selectedCategory === 'FOOD' ? '食物(単位/g)' : '飲物(単位/ml)') : '量'}
+                </Text>
                 <TextInput
-                        keyboardType="decimal-pad"
-                        value={String(foodAmount)}
-                        style={[styles.input, !foodCheck && styles.disabledInput]}
-                        onChangeText={(text) => { setFoodAmount(Number(text)); }}
-                        //autoFocus
-                        placeholder = "量を入力"
-                        textAlign={"center"}//入力表示位置
-                        maxLength={4}
-                        editable={foodCheck} // foodCheck チェック時にのみ編集可能にする
-                />
-                <Text>飲物</Text>
-                <TextInput
-                        keyboardType="decimal-pad"
-                        value={String(drinkAmount)}
-                        style={styles.input}
-                        onChangeText={(text) => { setDrinkAmount(Number(text)); }}
-                        //autoFocus
-                        placeholder = "量を入力"
-                        textAlign={"center"}//入力表示位置
-                        maxLength={4}
-                        editable={drinkCheck} // drinkCheck チェック時にのみ編集可能にする
+                    keyboardType="decimal-pad"
+                    value={String(amount)}
+                    
+                    style={[
+                        styles.amountInput,
+                        //!selectedCategory ? styles.disabledInput : null // 非活性のスタイルを追加
+                    ]}
+                    onChangeText={(text) => {
+                        setAmount(Number(text));
+                        if (selectedCategory) {
+                            setAmount(Number(text));
+                        }
+                    }}
+                    //placeholder="入力してください"
+                    textAlign={"center"}
+                    maxLength={4}
+                    //editable={selectedCategory !== null} // チェックが入っている場合のみ編集可能
                 />
             </View>
             <View style={styles.inputMemoContainer}>
-                <Text>メモ</Text>
+                <Text style={styles.inputTitle}>メモ</Text>
                 <TextInput
                     keyboardType="web-search"
-                    value={detailBody}
+                    value={memo}
                     multiline
-                    style={styles.input}
-                    onChangeText={(text) => { setBodyText(text); }}
-                    placeholder = "メモを入力"
+                    style={styles.memoInput}
+                    onChangeText={(text) => setMemo(text)}
+                    //placeholder="入力してください"
                 />
             </View>
-            <View style={styles.container}>
-                <TouchableOpacity style={styles.confirmButton} onPress={deleteItem} >
-                    <Text style={styles.confirmButtonText}>削除</Text>
+            <View style={modalStyles.container}>
+                <TouchableOpacity style={modalStyles.confirmDeleteButton} onPress={deleteItem}>
+                    <Text style={modalStyles.confirmDeleteButtonText}>削除</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.confirmButton} onPress={handlePress} >
-                    <Text style={styles.confirmButtonText}>更新</Text>
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress}>
+                    <Text style={modalStyles.confirmButtonText}>更新</Text>
                 </TouchableOpacity>
             </View>
-            <View style={styles.container}>
-                <TouchableOpacity style={styles.confirmButton} onPress={toggleModal} >
-                    <Text style={styles.confirmButtonText}>close</Text>
+            <View style={modalStyles.container}>
+                <TouchableOpacity style={modalStyles.confirmCloseButton} onPress={toggleModal}>
+                    <Text style={modalStyles.confirmCloseButtonText}>閉じる</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.advertisement}>
-                <Image style={{width: '100%'}}
-                    resizeMode='contain'
-                    source={require('../../img/IMG_3641.jpg')}
-                />
+                <Image style={{ width: '100%' }} resizeMode='contain' source={require('../../img/IMG_3641.jpg')} />
             </View>
         </ScrollView>
     );
@@ -236,60 +218,127 @@ export default function FoodEditForm(props) {
 
 const styles = StyleSheet.create({
     inputTypeContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
+        paddingHorizontal: 10,
+        paddingTop: '5%',
     },
-    inputContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 75,
-        backgroundColor: '#859602'
-        //flex: 1,
+    inputAmountContainer: {
+        paddingHorizontal: 20,
+        paddingTop: '5%',
+        height: 90,
+        //backgroundColor: '#859602',
     },
     inputMemoContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 125,
-        backgroundColor: '#859602'
+        paddingHorizontal: 20,
+        //paddingVertical: '5%',
+        paddingTop: '5%',
+        height: 130,
+        //backgroundColor: '#859602',
     },
-    input: {
+    inputTitle: {
+        fontSize: 15,
+        marginBottom: 5,
+        color: '#737373',
+    },
+    amountInput: {
+        flex: 1,
+        textAlignVertical: 'top',
+        fontSize: 16,
+        //lineHeight: 20,
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+    },
+    memoInput: {
         flex: 1,
         textAlignVertical: 'top',
         fontSize: 16,
         lineHeight: 25,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        padding: 10
     },
-    radioButton: {
+    disabledInput: {
+        backgroundColor: '#e0e0e0',
+    },
+    radioButtonContainer: {
+        flexDirection: 'row',
         justifyContent: 'space-around',//横並び均等配置
     },
+    radioButton: {
+        //flexDirection: 'row',
+        //paddingLeft: 'auto',
+        //paddingRight: 'auto',
+        //marginLeft: 'auto',
+        //marginRight: 'auto',
+        justifyContent: 'space-around',//横並び均等配置
+    },
+    advertisement: {
+        paddingTop: '5%',
+        //paddingBottom: '5%',
+        alignItems: 'center',
+    },
+});
+
+const modalStyles = StyleSheet.create({
     container: {
         flexDirection: 'row',
+        paddingTop: '5%',
     },
-    confirmButton : {
+    confirmButton: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        marginTop : '5%',
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
-        borderWidth : 1,
-        borderRadius : 10,
-        width: "40%",
+        //marginTop: '5%',
+        //backgroundColor: '#FFF',
+        backgroundColor : '#FFDB59',
+        borderColor: '#FFDB59',
+        borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
     },
-    confirmButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
+    confirmButtonText: {
+        color: '#737373',
+        fontWeight: 'bold',
+        textAlign: 'center',
         padding: 10,
         fontSize: 16,
     },
-    advertisement: {
-        //marginTop: 'auto',
-        //marginBottom: 'auto',
-        paddingTop: 10,
-        paddingBottom: 10,
-        //height: '15%',
-        //width: '50%',
-        alignItems:'center',
-        //backgroundColor: '#464876',
+    confirmDeleteButton: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        //marginTop: '5%',
+        backgroundColor: '#FFF',
+        //backgroundColor : '#F97773',
+        //borderColor: '#737373',
+        //borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
+    },
+    confirmDeleteButtonText: {
+        color: '#737373',
+        //fontWeight: 'bold',
+        textAlign: 'center',
+        padding: 10,
+        fontSize: 16,
+    },
+    confirmCloseButton: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        //marginTop: '5%',
+        backgroundColor: '#FFF',
+        //backgroundColor : '#F97773',
+        //borderColor: '#737373',
+        //borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
+    },
+    confirmCloseButtonText: {
+        color: '#737373',
+        //fontWeight: 'bold',
+        textAlign: 'center',
+        padding: 10,
+        fontSize: 16,
     },
 });

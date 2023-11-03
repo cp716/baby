@@ -55,7 +55,6 @@ export default function DetailScreen(props) {
 
     return (
         <View style={modalStyles.container}>
-            <Text style={modalStyles.title}>詳細画面</Text>
             <View>
                 <Button title={String(detailTime)} onPress={showDatePicker} />
                 <DateTimePickerModal
@@ -80,7 +79,7 @@ export default function DetailScreen(props) {
                         return (
                             <MilkEditForm selectTime={selectTime} babyData={babyData} toggleModal={toggleModal} />
                         );
-                    } else if (babyData.category == 'FOOD') {
+                    } else if (babyData.category == 'FOOD' || babyData.category == 'DRINK') {
                         return (
                             <FoodEditForm selectTime={selectTime} babyData={babyData} toggleModal={toggleModal} />
                         );
@@ -144,24 +143,19 @@ const modalStyles = StyleSheet.create({
         borderWidth : 1,
         borderRadius : 10,
     },
+    container : {
+        backgroundColor : '#F0F4F8',
+        padding : '5%',
+        borderColor : '#F0F4F8',
+        borderWidth : 5,
+        borderRadius : 10,
+    },
     modalButtonText : {
         color : '#36C1A7',
         fontWeight : 'bold',
         textAlign : 'center',
         padding: 10,
         fontSize: 20,
-    },
-    container : {
-        backgroundColor : '#FFF',
-        padding : '5%',
-        borderColor : '#36C1A7',
-        borderWidth : 3,
-        borderRadius : 20,
-    },
-    title : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign: 'center'
     },
     //arrow : {
         //color : '#36C1A7',

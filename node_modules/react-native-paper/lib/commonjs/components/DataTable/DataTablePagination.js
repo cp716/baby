@@ -22,9 +22,11 @@ const PaginationControls = _ref => {
     page,
     numberOfPages,
     onPageChange,
-    showFastPaginationControls
+    showFastPaginationControls,
+    theme: themeOverrides,
+    paginationControlRippleColor
   } = _ref;
-  const theme = (0, _theming.useInternalTheme)();
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const textColor = theme.isV3 ? theme.colors.onSurface : theme.colors.text;
   return /*#__PURE__*/React.createElement(React.Fragment, null, showFastPaginationControls ? /*#__PURE__*/React.createElement(_IconButton.default, {
     icon: _ref2 => {
@@ -40,9 +42,11 @@ const PaginationControls = _ref => {
       });
     },
     iconColor: textColor,
+    rippleColor: paginationControlRippleColor,
     disabled: page === 0,
     onPress: () => onPageChange(0),
-    accessibilityLabel: "page-first"
+    accessibilityLabel: "page-first",
+    theme: theme
   }) : null, /*#__PURE__*/React.createElement(_IconButton.default, {
     icon: _ref3 => {
       let {
@@ -57,9 +61,11 @@ const PaginationControls = _ref => {
       });
     },
     iconColor: textColor,
+    rippleColor: paginationControlRippleColor,
     disabled: page === 0,
     onPress: () => onPageChange(page - 1),
-    accessibilityLabel: "chevron-left"
+    accessibilityLabel: "chevron-left",
+    theme: theme
   }), /*#__PURE__*/React.createElement(_IconButton.default, {
     icon: _ref4 => {
       let {
@@ -74,9 +80,11 @@ const PaginationControls = _ref => {
       });
     },
     iconColor: textColor,
+    rippleColor: paginationControlRippleColor,
     disabled: numberOfPages === 0 || page === numberOfPages - 1,
     onPress: () => onPageChange(page + 1),
-    accessibilityLabel: "chevron-right"
+    accessibilityLabel: "chevron-right",
+    theme: theme
   }), showFastPaginationControls ? /*#__PURE__*/React.createElement(_IconButton.default, {
     icon: _ref5 => {
       let {
@@ -91,30 +99,39 @@ const PaginationControls = _ref => {
       });
     },
     iconColor: textColor,
+    rippleColor: paginationControlRippleColor,
     disabled: numberOfPages === 0 || page === numberOfPages - 1,
     onPress: () => onPageChange(numberOfPages - 1),
-    accessibilityLabel: "page-last"
+    accessibilityLabel: "page-last",
+    theme: theme
   }) : null);
 };
 const PaginationDropdown = _ref6 => {
   let {
     numberOfItemsPerPageList,
     numberOfItemsPerPage,
-    onItemsPerPageChange
+    onItemsPerPageChange,
+    theme: themeOverrides,
+    selectPageDropdownRippleColor,
+    dropdownItemRippleColor
   } = _ref6;
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const {
     colors
-  } = (0, _theming.useInternalTheme)();
+  } = theme;
   const [showSelect, toggleSelect] = React.useState(false);
   return /*#__PURE__*/React.createElement(_Menu.default, {
     visible: showSelect,
     onDismiss: () => toggleSelect(!showSelect),
+    theme: theme,
     anchor: /*#__PURE__*/React.createElement(_Button.default, {
       mode: "outlined",
       onPress: () => toggleSelect(true),
       style: styles.button,
       icon: "menu-down",
-      contentStyle: styles.contentStyle
+      contentStyle: styles.contentStyle,
+      theme: theme,
+      rippleColor: selectPageDropdownRippleColor
     }, `${numberOfItemsPerPage}`)
   }, numberOfItemsPerPageList === null || numberOfItemsPerPageList === void 0 ? void 0 : numberOfItemsPerPageList.map(option => /*#__PURE__*/React.createElement(_Menu.default.Item, {
     key: option,
@@ -125,19 +142,14 @@ const PaginationDropdown = _ref6 => {
       onItemsPerPageChange === null || onItemsPerPageChange === void 0 ? void 0 : onItemsPerPageChange(option);
       toggleSelect(false);
     },
-    title: option
+    rippleColor: dropdownItemRippleColor,
+    title: option,
+    theme: theme
   })));
 };
 
 /**
  * A component to show pagination for data table.
- *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/data-table-pagination.png" />
- *   </figure>
- * </div>
- *
  *
  * ## Usage
  * ```js
@@ -199,15 +211,18 @@ const DataTablePagination = _ref7 => {
     numberOfPages,
     onPageChange,
     style,
-    theme,
     showFastPaginationControls = false,
     numberOfItemsPerPageList,
     numberOfItemsPerPage,
     onItemsPerPageChange,
     selectPageDropdownLabel,
     selectPageDropdownAccessibilityLabel,
+    selectPageDropdownRippleColor,
+    dropdownItemRippleColor,
+    theme: themeOverrides,
     ...rest
   } = _ref7;
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const labelColor = (0, _color.default)(theme.isV3 ? theme.colors.onSurface : theme === null || theme === void 0 ? void 0 : theme.colors.text).alpha(0.6).rgb().string();
   return /*#__PURE__*/React.createElement(_reactNative.View, _extends({}, rest, {
     style: [styles.container, style],
@@ -224,7 +239,10 @@ const DataTablePagination = _ref7 => {
   }, selectPageDropdownLabel), /*#__PURE__*/React.createElement(PaginationDropdown, {
     numberOfItemsPerPageList: numberOfItemsPerPageList,
     numberOfItemsPerPage: numberOfItemsPerPage,
-    onItemsPerPageChange: onItemsPerPageChange
+    onItemsPerPageChange: onItemsPerPageChange,
+    selectPageDropdownRippleColor: selectPageDropdownRippleColor,
+    dropdownItemRippleColor: dropdownItemRippleColor,
+    theme: theme
   })), /*#__PURE__*/React.createElement(_Text.default, {
     style: [styles.label, {
       color: labelColor
@@ -237,7 +255,8 @@ const DataTablePagination = _ref7 => {
     showFastPaginationControls: showFastPaginationControls,
     onPageChange: onPageChange,
     page: page,
-    numberOfPages: numberOfPages
+    numberOfPages: numberOfPages,
+    theme: theme
   })));
 };
 exports.DataTablePagination = DataTablePagination;
@@ -270,6 +289,6 @@ const styles = _reactNative.StyleSheet.create({
     flexDirection: 'row-reverse'
   }
 });
-var _default = (0, _theming.withInternalTheme)(DataTablePagination); // @component-docs ignore-next-line
+var _default = DataTablePagination; // @component-docs ignore-next-line
 exports.default = _default;
 //# sourceMappingURL=DataTablePagination.js.map

@@ -2,18 +2,11 @@ function _extends() { _extends = Object.assign ? Object.assign.bind() : function
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 import color from 'color';
-import { withInternalTheme } from '../../core/theming';
+import { useInternalTheme } from '../../core/theming';
 import { black, white } from '../../styles/themes/v2/colors';
 import TouchableRipple from '../TouchableRipple/TouchableRipple';
 /**
  * A component to show a single row inside of a table.
- *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/data-table-row-cell.png" />
- *   </figure>
- * </div>
- *
  *
  * ## Usage
  * ```js
@@ -31,17 +24,19 @@ import TouchableRipple from '../TouchableRipple/TouchableRipple';
  *
  * export default MyComponent;
  * ```
+ *
+ * @extends TouchableRipple props https://callstack.github.io/react-native-paper/docs/components/TouchableRipple
  */
-
 const DataTableRow = _ref => {
   let {
     onPress,
     style,
-    theme,
     children,
     pointerEvents,
+    theme: themeOverrides,
     ...rest
   } = _ref;
+  const theme = useInternalTheme(themeOverrides);
   const borderBottomColor = theme.isV3 ? theme.colors.surfaceVariant : color(theme.dark ? white : black).alpha(0.12).rgb().string();
   return /*#__PURE__*/React.createElement(TouchableRipple, _extends({}, rest, {
     onPress: onPress,
@@ -66,7 +61,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   }
 });
-export default withInternalTheme(DataTableRow);
+export default DataTableRow;
 
 // @component-docs ignore-next-line
 export { DataTableRow };

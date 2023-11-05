@@ -7,8 +7,8 @@ import {
   ImageStyle,
 } from 'react-native';
 
-import { withInternalTheme } from '../../core/theming';
-import type { InternalTheme } from '../../types';
+import { useInternalTheme } from '../../core/theming';
+import type { ThemeProp } from '../../types';
 
 export type Props = {
   source: ImageSourcePropType;
@@ -17,17 +17,11 @@ export type Props = {
   /**
    * @optional
    */
-  theme: InternalTheme;
+  theme?: ThemeProp;
 };
 
 /**
  * A component to show image in a list item.
- *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/list-image.png" />
- *   </figure>
- * </div>
  *
  * ## Usage
  * ```js
@@ -44,7 +38,13 @@ export type Props = {
  * export default MyComponent;
  * ```
  */
-const ListImage = ({ style, source, variant = 'image', theme }: Props) => {
+const ListImage = ({
+  style,
+  source,
+  variant = 'image',
+  theme: themeOverrides,
+}: Props) => {
+  const theme = useInternalTheme(themeOverrides);
   const getStyles = () => {
     if (variant === 'video') {
       if (!theme.isV3) {
@@ -86,4 +86,4 @@ const styles = StyleSheet.create({
 
 ListImage.displayName = 'List.Image';
 
-export default withInternalTheme(ListImage);
+export default ListImage;

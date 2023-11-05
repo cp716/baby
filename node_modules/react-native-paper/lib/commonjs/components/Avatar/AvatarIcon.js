@@ -18,12 +18,6 @@ const defaultSize = 64;
 /**
  * Avatars can be used to represent people in a graphical way.
  *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/avatar-icon.png" />
- *   </figure>
- * </div>
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -35,19 +29,20 @@ const defaultSize = 64;
  * ```
  */
 const Avatar = _ref => {
-  var _theme$colors, _rest$color;
+  var _theme$colors;
   let {
     icon,
     size = defaultSize,
     style,
-    theme,
+    theme: themeOverrides,
     ...rest
   } = _ref;
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const {
     backgroundColor = (_theme$colors = theme.colors) === null || _theme$colors === void 0 ? void 0 : _theme$colors.primary,
     ...restStyle
   } = _reactNative.StyleSheet.flatten(style) || {};
-  const textColor = (_rest$color = rest.color) !== null && _rest$color !== void 0 ? _rest$color : (0, _getContrastingColor.default)(backgroundColor, _colors.white, 'rgba(0, 0, 0, .54)');
+  const textColor = rest.color ?? (0, _getContrastingColor.default)(backgroundColor, _colors.white, 'rgba(0, 0, 0, .54)');
   return /*#__PURE__*/React.createElement(_reactNative.View, _extends({
     style: [{
       width: size,
@@ -68,6 +63,6 @@ const styles = _reactNative.StyleSheet.create({
     alignItems: 'center'
   }
 });
-var _default = (0, _theming.withInternalTheme)(Avatar);
+var _default = Avatar;
 exports.default = _default;
 //# sourceMappingURL=AvatarIcon.js.map

@@ -14,12 +14,6 @@ const defaultSize = 64;
 /**
  * Avatars can be used to represent people in a graphical way.
  *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/avatar-image.png" />
- *   </figure>
- * </div>
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -42,12 +36,13 @@ const AvatarImage = _ref => {
     onLoadEnd,
     onLoadStart,
     onProgress,
-    theme,
+    theme: themeOverrides,
+    testID,
     ...rest
   } = _ref;
   const {
     colors
-  } = theme;
+  } = (0, _theming.useInternalTheme)(themeOverrides);
   const {
     backgroundColor = colors === null || colors === void 0 ? void 0 : colors.primary
   } = _reactNative.StyleSheet.flatten(style) || {};
@@ -61,6 +56,7 @@ const AvatarImage = _ref => {
   }, rest), typeof source === 'function' && source({
     size
   }), typeof source !== 'function' && /*#__PURE__*/React.createElement(_reactNative.Image, {
+    testID: testID,
     source: source,
     style: {
       width: size,
@@ -77,6 +73,6 @@ const AvatarImage = _ref => {
   }));
 };
 AvatarImage.displayName = 'Avatar.Image';
-var _default = (0, _theming.withInternalTheme)(AvatarImage);
+var _default = AvatarImage;
 exports.default = _default;
 //# sourceMappingURL=AvatarImage.js.map

@@ -185,7 +185,8 @@ export const getFABColors = _ref4 => {
     variant,
     disabled,
     customColor,
-    customBackgroundColor
+    customBackgroundColor,
+    customRippleColor
   } = _ref4;
   const isVariant = variantToCompare => {
     return variant === variantToCompare;
@@ -207,7 +208,7 @@ export const getFABColors = _ref4 => {
   return {
     backgroundColor,
     foregroundColor,
-    rippleColor: color(foregroundColor).alpha(0.12).rgb().string()
+    rippleColor: customRippleColor || color(foregroundColor).alpha(0.12).rgb().string()
   };
 };
 const getLabelColor = _ref5 => {

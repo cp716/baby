@@ -1,3 +1,4 @@
+import type { ColorValue } from 'react-native';
 import type { InternalTheme } from '../../types';
 import type { IconSource } from '../Icon';
 export declare const MIN_WIDTH = 112;
@@ -11,11 +12,13 @@ declare type ContentProps = {
 declare type ColorProps = {
     theme: InternalTheme;
     disabled?: boolean;
+    customRippleColor?: ColorValue;
 };
-export declare const getMenuItemColor: ({ theme, disabled }: ColorProps) => {
+export declare const getMenuItemColor: ({ theme, disabled, customRippleColor, }: ColorProps) => {
     titleColor: string;
     iconColor: string;
-    underlayColor: string | undefined;
+    rippleColor: ColorValue | undefined;
 };
 export declare const getContentMaxWidth: ({ isV3, iconWidth, leadingIcon, trailingIcon, }: ContentProps) => number;
 export {};
+//# sourceMappingURL=utils.d.ts.map

@@ -172,14 +172,18 @@ const getIconColor = _ref6 => {
   }
   return (0, _color.default)(theme.colors.text).alpha(0.54).rgb().string();
 };
-const getUnderlayColor = _ref7 => {
+const getRippleColor = _ref7 => {
   let {
     theme,
     isOutlined,
     disabled,
     selectedColor,
-    selectedBackgroundColor
+    selectedBackgroundColor,
+    customRippleColor
   } = _ref7;
+  if (customRippleColor) {
+    return customRippleColor;
+  }
   const isSelectedColor = selectedColor !== undefined;
   const textColor = getTextColor({
     theme,
@@ -205,7 +209,8 @@ const getChipColors = _ref8 => {
     selectedColor,
     showSelectedOverlay,
     customBackgroundColor,
-    disabled
+    disabled,
+    customRippleColor
   } = _ref8;
   const baseChipColorProps = {
     theme,
@@ -235,10 +240,11 @@ const getChipColors = _ref8 => {
       ...baseChipColorProps,
       selectedColor
     }),
-    underlayColor: getUnderlayColor({
+    rippleColor: getRippleColor({
       ...baseChipColorProps,
       selectedColor,
-      selectedBackgroundColor
+      selectedBackgroundColor,
+      customRippleColor
     }),
     backgroundColor,
     selectedBackgroundColor

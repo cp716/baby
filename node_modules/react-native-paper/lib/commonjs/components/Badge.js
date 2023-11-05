@@ -18,17 +18,6 @@ const defaultSize = 20;
  * Badges are small status descriptors for UI elements.
  * A badge consists of a small circle, typically containing a number or other short set of characters, that appears in proximity to another object.
  *
- * <div class="screenshots">
- *   <figure>
- *     <img class="small" src="screenshots/badge-1.png" />
- *     <figcaption>Badge with content</figcaption>
- *   </figure>
- *   <figure>
- *     <img class="small" src="screenshots/badge-2.png" />
- *     <figcaption>Badge without content</figcaption>
- *   </figure>
- * </div>
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -47,10 +36,11 @@ const Badge = _ref => {
     children,
     size = defaultSize,
     style,
-    theme,
+    theme: themeOverrides,
     visible = true,
     ...rest
   } = _ref;
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const {
     current: opacity
   } = React.useRef(new _reactNative.Animated.Value(visible ? 1 : 0));
@@ -98,7 +88,7 @@ const Badge = _ref => {
     }, styles.container, restStyle]
   }, rest), children);
 };
-var _default = (0, _theming.withInternalTheme)(Badge);
+var _default = Badge;
 exports.default = _default;
 const styles = _reactNative.StyleSheet.create({
   container: {

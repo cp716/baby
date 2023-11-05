@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
+import type { ThemeProp } from 'src/types';
+
 import { useInternalTheme } from '../../core/theming';
 
 export type Props = React.ComponentPropsWithRef<typeof View> & {
@@ -9,16 +11,11 @@ export type Props = React.ComponentPropsWithRef<typeof View> & {
    */
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  theme?: ThemeProp;
 };
 
 /**
  * A component to show a list of actions inside a Card.
- *
- * <div class="screenshots">
- *   <figure>
- *     <img class="small" src="screenshots/card-actions.png" />
- *   </figure>
- * </div>
  *
  * ## Usage
  * ```js
@@ -38,7 +35,7 @@ export type Props = React.ComponentPropsWithRef<typeof View> & {
  * ```
  */
 const CardActions = (props: Props) => {
-  const { isV3 } = useInternalTheme();
+  const { isV3 } = useInternalTheme(props.theme);
   const justifyContent = isV3 ? 'flex-end' : 'flex-start';
 
   return (
@@ -53,7 +50,7 @@ const CardActions = (props: Props) => {
               mode:
                 child.props.mode ||
                 (isV3 && (i === 0 ? 'outlined' : 'contained')),
-              style: isV3 && styles.button,
+              style: [isV3 && styles.button, child.props.style],
             })
           : child;
       })}

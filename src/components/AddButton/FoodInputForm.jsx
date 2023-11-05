@@ -105,52 +105,72 @@ export default function FoodInputForm(props) {
             <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                    title='食物'
-                    checked={selectedCategory === 'food'}
-                    onPress={() => {
-                        if (selectedCategory !== 'food') {
-                        setSelectedCategory('food');
-                        setAmount('');
-                        }
-                    }}
-                    textStyle={{ fontSize: 18, textAlign: 'center' }}
+                        title="食か物"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'food'}
+                        onPress={() => setSelectedCategory('food')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
                 <View style={styles.radioButton}>
                     <CheckBox
-                    title='飲物'
-                    checked={selectedCategory === 'drink'}
-                    onPress={() => {
-                        if (selectedCategory !== 'drink') {
-                        setSelectedCategory('drink');
-                        setAmount('');
-                        }
-                    }}
-                    textStyle={{ fontSize: 18, textAlign: 'center' }}
+                        title="飲物"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'drink'}
+                        onPress={() => setSelectedCategory('drink')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
+                    />
+                </View>
+            </View>
+            <View style={styles.radioButtonContainer}>
+                <View style={styles.radioButton}>
+                    <CheckBox
+                        title="追加1"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'category1'}
+                        onPress={() => setSelectedCategory('category1')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
+                    />
+                </View>
+                <View style={styles.radioButton}>
+                    <CheckBox
+                        title="追加2"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'category2'}
+                        onPress={() => setSelectedCategory('category2')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
             </View>
             <View style={styles.inputAmountContainer}>
                 <Text style={styles.inputTitle}>
-                    {selectedCategory === 'food' || selectedCategory === 'drink' ? 
-                        (selectedCategory === 'food' ? '食物(単位/g)' : '飲物(単位/ml)') : '量'}
+                    {selectedCategory === 'food' || selectedCategory === 'drink' || selectedCategory === 'category1' || selectedCategory === 'category2' ? 
+                        (selectedCategory === 'food' ? '食物(単位/g)' : selectedCategory === 'drink' ? '飲物(単位/ml)' : '量')
+                        : '量'}
                 </Text>
                 <TextInput
                     keyboardType="decimal-pad"
                     value={amount}
                     style={[
                         styles.amountInput,
-                        !selectedCategory ? styles.disabledInput : null // 非活性のスタイルを追加
+                        !selectedCategory ? styles.disabledInput : null
                     ]}
                     onChangeText={(text) => {
                         if (selectedCategory) {
                             setAmount(Number(text));
                         }
                     }}
-                    //placeholder="入力してください"
                     textAlign={"center"}
                     maxLength={4}
-                    editable={selectedCategory !== null} // チェックが入っている場合のみ編集可能
+                    editable={selectedCategory !== null}
                 />
             </View>
             <View style={styles.inputMemoContainer}>
@@ -161,7 +181,6 @@ export default function FoodInputForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
-                    //placeholder="入力してください"
                 />
             </View>
             <View style={modalStyles.container}>
@@ -228,19 +247,19 @@ const styles = StyleSheet.create({
     },
     radioButtonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-around',//横並び均等配置
+        justifyContent: 'space-around', // チェックボックスの左右配置を中央に
     },
     radioButton: {
-        //flexDirection: 'row',
-        //paddingLeft: 'auto',
-        //paddingRight: 'auto',
-        //marginLeft: 'auto',
-        //marginRight: 'auto',
-        justifyContent: 'space-around',//横並び均等配置
+        width: '40%', // チェックボックスの幅を均等に設定
+    },
+    checkboxContainer: {
+        //width: '80%',
+    },
+    checkboxTitle: {
+        fontSize: 15,
     },
     advertisement: {
         paddingTop: '5%',
-        //paddingBottom: '5%',
         alignItems: 'center',
     },
 });
@@ -253,9 +272,7 @@ const modalStyles = StyleSheet.create({
     confirmButton: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        //marginTop: '5%',
-        //backgroundColor: '#FFF',
-        backgroundColor : '#FFDB59',
+        backgroundColor: '#FFDB59',
         borderColor: '#FFDB59',
         borderWidth: 0.5,
         borderRadius: 10,
@@ -271,17 +288,12 @@ const modalStyles = StyleSheet.create({
     confirmCloseButton: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        //marginTop: '5%',
         backgroundColor: '#FFF',
-        //backgroundColor : '#F97773',
-        //borderColor: '#737373',
-        //borderWidth: 0.5,
         borderRadius: 10,
         width: '40%',
     },
     confirmCloseButtonText: {
         color: '#737373',
-        //fontWeight: 'bold',
         textAlign: 'center',
         padding: 10,
         fontSize: 16,

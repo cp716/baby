@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
+import type { ThemeProp } from 'src/types';
+
 import { useInternalTheme } from '../../core/theming';
 
 export type Props = React.ComponentPropsWithRef<typeof View> & {
@@ -9,16 +11,14 @@ export type Props = React.ComponentPropsWithRef<typeof View> & {
    */
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  /**
+   * @optional
+   */
+  theme?: ThemeProp;
 };
 
 /**
  * A component to show a list of actions in a Dialog.
- *
- * <div class="screenshots">
- *   <figure>
- *     <img class="small" src="screenshots/dialog-actions.png" />
- *   </figure>
- * </div>
  *
  * ## Usage
  * ```js
@@ -46,7 +46,7 @@ export type Props = React.ComponentPropsWithRef<typeof View> & {
  * ```
  */
 const DialogActions = (props: Props) => {
-  const { isV3 } = useInternalTheme();
+  const { isV3 } = useInternalTheme(props.theme);
   const actionsLength = React.Children.toArray(props.children).length;
 
   return (
@@ -59,9 +59,12 @@ const DialogActions = (props: Props) => {
           ? React.cloneElement(child as React.ReactElement<any>, {
               compact: true,
               uppercase: !isV3,
-              style: isV3 && {
-                paddingRight: i + 1 === actionsLength ? 0 : 8,
-              },
+              style: [
+                isV3 && {
+                  marginRight: i + 1 === actionsLength ? 0 : 8,
+                },
+                child.props.style,
+              ],
             })
           : child
       )}

@@ -9,8 +9,8 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { withInternalTheme } from '../core/theming';
-import type { InternalTheme } from '../types';
+import { useInternalTheme } from '../core/theming';
+import type { ThemeProp } from '../types';
 
 export type Props = React.ComponentPropsWithRef<typeof View> & {
   /**
@@ -33,7 +33,7 @@ export type Props = React.ComponentPropsWithRef<typeof View> & {
   /**
    * @optional
    */
-  theme: InternalTheme;
+  theme?: ThemeProp;
 };
 
 const DURATION = 2400;
@@ -41,10 +41,6 @@ const DURATION = 2400;
 /**
  * Activity indicator is used to present progress of some activity in the app.
  * It can be used as a drop-in for the ActivityIndicator shipped with React Native.
- *
- * <div class="screenshots">
- *   <img src="screenshots/activity-indicator.gif" style="width: 100px;" />
- * </div>
  *
  * ## Usage
  * ```js
@@ -64,9 +60,10 @@ const ActivityIndicator = ({
   hidesWhenStopped = true,
   size: indicatorSize = 'small',
   style,
-  theme,
+  theme: themeOverrides,
   ...rest
 }: Props) => {
+  const theme = useInternalTheme(themeOverrides);
   const { current: timer } = React.useRef<Animated.Value>(
     new Animated.Value(0)
   );
@@ -254,4 +251,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withInternalTheme(ActivityIndicator);
+export default ActivityIndicator;

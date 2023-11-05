@@ -12,12 +12,6 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 /**
  * A component to show image in a list item.
  *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/list-image.png" />
- *   </figure>
- * </div>
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -38,8 +32,9 @@ const ListImage = _ref => {
     style,
     source,
     variant = 'image',
-    theme
+    theme: themeOverrides
   } = _ref;
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const getStyles = () => {
     if (variant === 'video') {
       if (!theme.isV3) {
@@ -73,6 +68,6 @@ const styles = _reactNative.StyleSheet.create({
   }
 });
 ListImage.displayName = 'List.Image';
-var _default = (0, _theming.withInternalTheme)(ListImage);
+var _default = ListImage;
 exports.default = _default;
 //# sourceMappingURL=ListImage.js.map

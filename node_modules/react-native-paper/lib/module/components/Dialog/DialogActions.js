@@ -5,12 +5,6 @@ import { useInternalTheme } from '../../core/theming';
 /**
  * A component to show a list of actions in a Dialog.
  *
- * <div class="screenshots">
- *   <figure>
- *     <img class="small" src="screenshots/dialog-actions.png" />
- *   </figure>
- * </div>
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -39,16 +33,16 @@ import { useInternalTheme } from '../../core/theming';
 const DialogActions = props => {
   const {
     isV3
-  } = useInternalTheme();
+  } = useInternalTheme(props.theme);
   const actionsLength = React.Children.toArray(props.children).length;
   return /*#__PURE__*/React.createElement(View, _extends({}, props, {
     style: [isV3 ? styles.v3Container : styles.container, props.style]
   }), React.Children.map(props.children, (child, i) => /*#__PURE__*/React.isValidElement(child) ? /*#__PURE__*/React.cloneElement(child, {
     compact: true,
     uppercase: !isV3,
-    style: isV3 && {
-      paddingRight: i + 1 === actionsLength ? 0 : 8
-    }
+    style: [isV3 && {
+      marginRight: i + 1 === actionsLength ? 0 : 8
+    }, child.props.style]
   }) : child));
 };
 DialogActions.displayName = 'Dialog.Actions';

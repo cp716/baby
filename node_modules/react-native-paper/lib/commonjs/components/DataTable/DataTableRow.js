@@ -17,13 +17,6 @@ function _extends() { _extends = Object.assign ? Object.assign.bind() : function
 /**
  * A component to show a single row inside of a table.
  *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/data-table-row-cell.png" />
- *   </figure>
- * </div>
- *
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -40,17 +33,19 @@ function _extends() { _extends = Object.assign ? Object.assign.bind() : function
  *
  * export default MyComponent;
  * ```
+ *
+ * @extends TouchableRipple props https://callstack.github.io/react-native-paper/docs/components/TouchableRipple
  */
-
 const DataTableRow = _ref => {
   let {
     onPress,
     style,
-    theme,
     children,
     pointerEvents,
+    theme: themeOverrides,
     ...rest
   } = _ref;
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const borderBottomColor = theme.isV3 ? theme.colors.surfaceVariant : (0, _color.default)(theme.dark ? _colors.white : _colors.black).alpha(0.12).rgb().string();
   return /*#__PURE__*/React.createElement(_TouchableRipple.default, _extends({}, rest, {
     onPress: onPress,
@@ -76,6 +71,6 @@ const styles = _reactNative.StyleSheet.create({
     flexDirection: 'row'
   }
 });
-var _default = (0, _theming.withInternalTheme)(DataTableRow); // @component-docs ignore-next-line
+var _default = DataTableRow; // @component-docs ignore-next-line
 exports.default = _default;
 //# sourceMappingURL=DataTableRow.js.map

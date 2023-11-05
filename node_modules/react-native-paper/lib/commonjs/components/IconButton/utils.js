@@ -105,8 +105,12 @@ const getIconColor = _ref3 => {
 const getRippleColor = _ref4 => {
   let {
     theme,
-    iconColor
+    iconColor,
+    customRippleColor
   } = _ref4;
+  if (customRippleColor) {
+    return customRippleColor;
+  }
   if (theme.isV3) {
     return (0, _color.default)(iconColor).alpha(0.12).rgb().string();
   }
@@ -119,7 +123,8 @@ const getIconButtonColor = _ref5 => {
     mode,
     selected,
     customIconColor,
-    customContainerColor
+    customContainerColor,
+    customRippleColor
   } = _ref5;
   const isMode = modeToCompare => {
     return mode === modeToCompare;
@@ -142,7 +147,8 @@ const getIconButtonColor = _ref5 => {
     }),
     rippleColor: getRippleColor({
       theme,
-      iconColor
+      iconColor,
+      customRippleColor
     }),
     borderColor: getBorderColor({
       theme,

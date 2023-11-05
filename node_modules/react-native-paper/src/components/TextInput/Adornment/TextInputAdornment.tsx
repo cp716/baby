@@ -6,7 +6,8 @@ import type {
   Animated,
 } from 'react-native';
 
-import { getConstants } from '../helpers';
+import type { ThemeProp } from 'src/types';
+
 import { AdornmentSide, AdornmentType, InputMode } from './enums';
 import TextInputAffix, { AffixAdornment } from './TextInputAffix';
 import TextInputIcon, { IconAdornment } from './TextInputIcon';
@@ -14,6 +15,7 @@ import type {
   AdornmentConfig,
   AdornmentStyleAdjustmentForNativeInput,
 } from './types';
+import { getConstants } from '../helpers';
 
 export function getAdornmentConfig({
   left,
@@ -130,6 +132,8 @@ export interface TextInputAdornmentProps {
   isTextInputFocused: boolean;
   paddingHorizontal?: number | string;
   maxFontSizeMultiplier?: number | undefined | null;
+  theme?: ThemeProp;
+  disabled?: boolean;
 }
 
 const TextInputAdornment: React.FunctionComponent<TextInputAdornmentProps> = ({
@@ -144,6 +148,8 @@ const TextInputAdornment: React.FunctionComponent<TextInputAdornmentProps> = ({
   forceFocus,
   paddingHorizontal,
   maxFontSizeMultiplier,
+  theme,
+  disabled,
 }) => {
   if (adornmentConfig.length) {
     return (
@@ -161,11 +167,13 @@ const TextInputAdornment: React.FunctionComponent<TextInputAdornmentProps> = ({
             testID: `${side}-${type}-adornment`,
             isTextInputFocused,
             paddingHorizontal,
+            disabled,
           };
           if (type === AdornmentType.Icon) {
             return (
               <IconAdornment
                 {...commonProps}
+                theme={theme}
                 key={side}
                 icon={inputAdornmentComponent}
                 topPosition={topPosition[AdornmentType.Icon]}

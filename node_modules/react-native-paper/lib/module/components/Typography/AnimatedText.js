@@ -1,8 +1,7 @@
 function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 import * as React from 'react';
 import { Animated, I18nManager, StyleSheet } from 'react-native';
-import { withInternalTheme } from '../../core/theming';
-import { MD3TypescaleKey } from '../../types';
+import { useInternalTheme } from '../../core/theming';
 /**
  * Animated text component which follows styles from the theme.
  *
@@ -11,36 +10,21 @@ import { MD3TypescaleKey } from '../../types';
 function AnimatedText(_ref) {
   let {
     style,
-    theme,
+    theme: themeOverrides,
     variant,
     ...rest
   } = _ref;
+  const theme = useInternalTheme(themeOverrides);
   const writingDirection = I18nManager.getConstants().isRTL ? 'rtl' : 'ltr';
   if (theme.isV3 && variant) {
-    const stylesByVariant = Object.keys(MD3TypescaleKey).reduce((acc, key) => {
-      const {
-        fontSize,
-        fontWeight,
-        lineHeight,
-        letterSpacing,
-        fontFamily
-      } = theme.fonts[key];
-      return {
-        ...acc,
-        [key]: {
-          fontFamily,
-          fontSize,
-          fontWeight,
-          lineHeight: lineHeight,
-          letterSpacing,
-          color: theme.colors.onSurface
-        }
-      };
-    }, {});
-    const styleForVariant = stylesByVariant[variant];
+    const font = theme.fonts[variant];
+    if (typeof font !== 'object') {
+      throw new Error(`Variant ${variant} was not provided properly. Valid variants are ${Object.keys(theme.fonts).join(', ')}.`);
+    }
     return /*#__PURE__*/React.createElement(Animated.Text, _extends({}, rest, {
-      style: [styleForVariant, styles.text, {
-        writingDirection
+      style: [font, styles.text, {
+        writingDirection,
+        color: theme.colors.onSurface
       }, style]
     }));
   } else {
@@ -61,5 +45,6 @@ const styles = StyleSheet.create({
     textAlign: 'left'
   }
 });
-export default withInternalTheme(AnimatedText);
+export const customAnimatedText = () => AnimatedText;
+export default AnimatedText;
 //# sourceMappingURL=AnimatedText.js.map

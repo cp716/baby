@@ -1,14 +1,8 @@
 import * as React from 'react';
 import { StyleSheet, Image } from 'react-native';
-import { withInternalTheme } from '../../core/theming';
+import { useInternalTheme } from '../../core/theming';
 /**
  * A component to show image in a list item.
- *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/list-image.png" />
- *   </figure>
- * </div>
  *
  * ## Usage
  * ```js
@@ -30,8 +24,9 @@ const ListImage = _ref => {
     style,
     source,
     variant = 'image',
-    theme
+    theme: themeOverrides
   } = _ref;
+  const theme = useInternalTheme(themeOverrides);
   const getStyles = () => {
     if (variant === 'video') {
       if (!theme.isV3) {
@@ -65,5 +60,5 @@ const styles = StyleSheet.create({
   }
 });
 ListImage.displayName = 'List.Image';
-export default withInternalTheme(ListImage);
+export default ListImage;
 //# sourceMappingURL=ListImage.js.map

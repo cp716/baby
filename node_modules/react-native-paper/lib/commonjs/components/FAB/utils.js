@@ -193,7 +193,8 @@ const getFABColors = _ref4 => {
     variant,
     disabled,
     customColor,
-    customBackgroundColor
+    customBackgroundColor,
+    customRippleColor
   } = _ref4;
   const isVariant = variantToCompare => {
     return variant === variantToCompare;
@@ -215,7 +216,7 @@ const getFABColors = _ref4 => {
   return {
     backgroundColor,
     foregroundColor,
-    rippleColor: (0, _color.default)(foregroundColor).alpha(0.12).rgb().string()
+    rippleColor: customRippleColor || (0, _color.default)(foregroundColor).alpha(0.12).rgb().string()
   };
 };
 exports.getFABColors = getFABColors;

@@ -42,7 +42,9 @@ const getTooltipXPosition = (_ref, _ref2) => {
   let {
     width: tooltipWidth
   } = _ref2;
-  const center = childrenX + (childrenWidth - tooltipWidth) / 2;
+  // when the children use position absolute the childrenWidth is measured as 0,
+  // so it's best to anchor the tooltip at the start of the children
+  const center = childrenWidth > 0 ? childrenX + (childrenWidth - tooltipWidth) / 2 : childrenX;
   if (overflowLeft(center)) return childrenX;
   if (overflowRight(center, tooltipWidth)) return childrenX + childrenWidth - tooltipWidth;
   return center;
@@ -58,16 +60,59 @@ const getTooltipYPosition = (_ref3, _ref4) => {
   if (overflowBottom(childrenY, childrenHeight, tooltipHeight)) return childrenY - tooltipHeight;
   return childrenY + childrenHeight;
 };
-const getTooltipPosition = _ref5 => {
+const getChildrenMeasures = (style, measures) => {
+  const {
+    position,
+    top,
+    bottom,
+    left,
+    right
+  } = Array.isArray(style) ? style.reduce((acc, current) => ({
+    ...acc,
+    ...current
+  })) : style;
+  if (position === 'absolute') {
+    let pageX = 0;
+    let pageY = measures.pageY;
+    let height = 0;
+    let width = 0;
+    if (typeof left === 'number') {
+      pageX = left;
+      width = 0;
+    }
+    if (typeof right === 'number') {
+      pageX = measures.width - right;
+      width = 0;
+    }
+    if (typeof top === 'number') {
+      pageY = pageY + top;
+    }
+    if (typeof bottom === 'number') {
+      pageY = pageY - bottom;
+    }
+    return {
+      pageX,
+      pageY,
+      width,
+      height
+    };
+  }
+  return measures;
+};
+const getTooltipPosition = (_ref5, component) => {
   let {
     children,
     tooltip,
     measured
   } = _ref5;
   if (!measured) return {};
+  let measures = children;
+  if (component.props.style) {
+    measures = getChildrenMeasures(component.props.style, children);
+  }
   return {
-    left: getTooltipXPosition(children, tooltip),
-    top: getTooltipYPosition(children, tooltip)
+    left: getTooltipXPosition(measures, tooltip),
+    top: getTooltipYPosition(measures, tooltip)
   };
 };
 exports.getTooltipPosition = getTooltipPosition;

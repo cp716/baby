@@ -12,8 +12,8 @@ import {
 
 import setColor from 'color';
 
-import { withInternalTheme } from '../core/theming';
-import type { InternalTheme } from '../types';
+import { useInternalTheme } from '../core/theming';
+import type { ThemeProp } from '../types';
 
 export type Props = React.ComponentPropsWithRef<typeof View> & {
   /**
@@ -42,7 +42,7 @@ export type Props = React.ComponentPropsWithRef<typeof View> & {
   /**
    * @optional
    */
-  theme: InternalTheme;
+  theme?: ThemeProp;
 };
 
 const INDETERMINATE_DURATION = 2000;
@@ -51,10 +51,6 @@ const { isRTL } = I18nManager;
 
 /**
  * Progress bar is an indicator used to present progress of some activity in the app.
- *
- * <div class="screenshots">
- *   <img src="screenshots/progress-bar.png" />
- * </div>
  *
  * ## Usage
  * ```js
@@ -74,14 +70,18 @@ const ProgressBar = ({
   style,
   progress = 0,
   visible = true,
-  theme,
+  theme: themeOverrides,
   animatedValue,
   ...rest
 }: Props) => {
+  const isWeb = Platform.OS === 'web';
+  const theme = useInternalTheme(themeOverrides);
   const { current: timer } = React.useRef<Animated.Value>(
     new Animated.Value(0)
   );
   const { current: fade } = React.useRef<Animated.Value>(new Animated.Value(0));
+  const passedAnimatedValue =
+    React.useRef<Props['animatedValue']>(animatedValue);
   const [width, setWidth] = React.useState<number>(0);
   const [prevWidth, setPrevWidth] = React.useState<number>(0);
 
@@ -89,6 +89,10 @@ const ProgressBar = ({
     React.useRef<Animated.CompositeAnimation | null>(null);
 
   const { scale } = theme.animation;
+
+  React.useEffect(() => {
+    passedAnimatedValue.current = animatedValue;
+  });
 
   const startAnimation = React.useCallback(() => {
     // Show progress bar
@@ -99,7 +103,17 @@ const ProgressBar = ({
       isInteraction: false,
     }).start();
 
-    if (animatedValue && animatedValue >= 0) {
+    /**
+     * We shouldn't add @param animatedValue to the
+     * deps array, to avoid the unnecessary loop.
+     * We can only check if the prop is passed initially,
+     * and we do early return.
+     */
+    const externalAnimation =
+      typeof passedAnimatedValue.current !== 'undefined' &&
+      passedAnimatedValue.current >= 0;
+
+    if (externalAnimation) {
       return;
     }
 
@@ -110,7 +124,7 @@ const ProgressBar = ({
           duration: INDETERMINATE_DURATION,
           toValue: 1,
           // Animated.loop does not work if useNativeDriver is true on web
-          useNativeDriver: Platform.OS !== 'web',
+          useNativeDriver: !isWeb,
           isInteraction: false,
         });
       }
@@ -127,13 +141,7 @@ const ProgressBar = ({
         isInteraction: false,
       }).start();
     }
-    /**
-     * We shouldn't add @param animatedValue to the
-     * deps array, to avoid the unnecessary loop.
-     * We can only check if the prop is passed initially,
-     * and we do early return.
-     */
-  }, [fade, scale, indeterminate, timer, progress]);
+  }, [fade, scale, indeterminate, timer, progress, isWeb]);
 
   const stopAnimation = React.useCallback(() => {
     // Stop indeterminate animation
@@ -187,6 +195,7 @@ const ProgressBar = ({
       accessibilityValue={
         indeterminate ? {} : { min: 0, max: 100, now: progress * 100 }
       }
+      style={isWeb && styles.webContainer}
     >
       <Animated.View
         style={[
@@ -256,10 +265,13 @@ const styles = StyleSheet.create({
     height: 4,
     overflow: 'hidden',
   },
-
+  webContainer: {
+    width: '100%',
+    height: '100%',
+  },
   progressBar: {
     flex: 1,
   },
 });
 
-export default withInternalTheme(ProgressBar);
+export default ProgressBar;

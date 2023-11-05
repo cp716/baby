@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
+import type { ThemeProp } from 'src/types';
+
 import { useInternalTheme } from '../../core/theming';
 
 export type Props = React.ComponentPropsWithRef<typeof View> & {
@@ -9,17 +11,15 @@ export type Props = React.ComponentPropsWithRef<typeof View> & {
    */
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  /**
+   * @optional
+   */
+  theme?: ThemeProp;
 };
 
 /**
  * A component to show a scrollable content in a Dialog. The component only provides appropriate styling.
  * For the scrollable content you can use `ScrollView`, `FlatList` etc. depending on your requirement.
- *
- * <div class="screenshots">
- *   <figure>
- *     <img class="small" src="screenshots/dialog-scroll-area.gif" />
- *   </figure>
- * </div>
  *
  * ## Usage
  * ```js
@@ -49,7 +49,7 @@ export type Props = React.ComponentPropsWithRef<typeof View> & {
  * ```
  */
 const DialogScrollArea = (props: Props) => {
-  const theme = useInternalTheme();
+  const theme = useInternalTheme(props.theme);
   const borderStyles = {
     borderColor: theme.isV3
       ? theme.colors.surfaceVariant

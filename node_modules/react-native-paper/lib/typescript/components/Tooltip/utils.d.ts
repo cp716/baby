@@ -1,4 +1,4 @@
-import { LayoutRectangle } from 'react-native';
+import { LayoutRectangle, ViewStyle } from 'react-native';
 declare type ChildrenMeasurement = {
     width: number;
     height: number;
@@ -11,8 +11,11 @@ export declare type Measurement = {
     tooltip: TooltipLayout;
     measured: boolean;
 };
-export declare const getTooltipPosition: ({ children, tooltip, measured, }: Measurement) => {} | {
+export declare const getTooltipPosition: ({ children, tooltip, measured }: Measurement, component: React.ReactElement<{
+    style: ViewStyle | Array<ViewStyle> | undefined | null;
+}>) => {} | {
     left: number;
     top: number;
 };
 export {};
+//# sourceMappingURL=utils.d.ts.map

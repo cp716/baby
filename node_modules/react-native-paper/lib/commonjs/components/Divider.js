@@ -16,12 +16,6 @@ function _extends() { _extends = Object.assign ? Object.assign.bind() : function
 /**
  * A divider is a thin, lightweight separator that groups content in lists and page layouts.
  *
- * <div class="screenshots">
- *  <figure>
- *    <img class="medium" src="screenshots/divider.png" />
- *  </figure>
- * </div>
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -45,10 +39,11 @@ const Divider = _ref => {
     leftInset,
     horizontalInset = false,
     style,
-    theme,
+    theme: themeOverrides,
     bold = false,
     ...rest
   } = _ref;
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const {
     dark: isDarkTheme,
     isV3
@@ -76,6 +71,6 @@ const styles = _reactNative.StyleSheet.create({
     height: 1
   }
 });
-var _default = (0, _theming.withInternalTheme)(Divider);
+var _default = Divider;
 exports.default = _default;
 //# sourceMappingURL=Divider.js.map

@@ -3,6 +3,7 @@ import type { $DeepPartial } from '@callstack/react-theme-provider';
 export declare type Font = {
     fontFamily: string;
     fontWeight?: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+    fontStyle?: 'normal' | 'italic' | undefined;
 };
 export declare type Fonts = {
     regular: Font;
@@ -99,6 +100,7 @@ export declare type ThemeBase = {
     roundness: number;
     animation: {
         scale: number;
+        defaultAnimationDuration?: number;
     };
 };
 export declare type MD3Theme = ThemeBase & {
@@ -137,6 +139,7 @@ export declare type MD3Type = {
     fontWeight: Font['fontWeight'];
     lineHeight: number;
     fontSize: number;
+    fontStyle?: Font['fontStyle'];
 };
 export declare type MD3Typescale = {
     [key in MD3TypescaleKey]: MD3Type;
@@ -170,3 +173,4 @@ export declare type NavigationTheme = {
     };
 };
 export {};
+//# sourceMappingURL=types.d.ts.map

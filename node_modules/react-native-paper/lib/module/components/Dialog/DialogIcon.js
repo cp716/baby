@@ -6,10 +6,6 @@ import Icon from '../Icon';
  * @supported Available in v5.x with theme version 3
  * A component to show an icon in a Dialog.
  *
- *  <div class="screenshots">
- *   <img class="small" src="screenshots/dialog-icon.png" />
- * </div>
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -47,9 +43,10 @@ const DialogIcon = _ref => {
   let {
     size = 24,
     color,
-    icon
+    icon,
+    theme: themeOverrides
   } = _ref;
-  const theme = useInternalTheme();
+  const theme = useInternalTheme(themeOverrides);
   if (!theme.isV3) {
     return null;
   }

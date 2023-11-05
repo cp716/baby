@@ -16,6 +16,7 @@ export type Font = {
     | '700'
     | '800'
     | '900';
+  fontStyle?: 'normal' | 'italic' | undefined;
 };
 
 export type Fonts = {
@@ -120,6 +121,7 @@ export type ThemeBase = {
   roundness: number;
   animation: {
     scale: number;
+    defaultAnimationDuration?: number;
   };
 };
 
@@ -168,6 +170,7 @@ export type MD3Type = {
   fontWeight: Font['fontWeight'];
   lineHeight: number;
   fontSize: number;
+  fontStyle?: Font['fontStyle'];
 };
 
 export type MD3Typescale =

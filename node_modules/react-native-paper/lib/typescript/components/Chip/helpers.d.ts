@@ -5,17 +5,19 @@ declare type BaseProps = {
     isOutlined: boolean;
     disabled?: boolean;
 };
-export declare const getChipColors: ({ isOutlined, theme, selectedColor, showSelectedOverlay, customBackgroundColor, disabled, }: BaseProps & {
+export declare const getChipColors: ({ isOutlined, theme, selectedColor, showSelectedOverlay, customBackgroundColor, disabled, customRippleColor, }: BaseProps & {
     customBackgroundColor?: ColorValue | undefined;
     disabled?: boolean | undefined;
     showSelectedOverlay?: boolean | undefined;
     selectedColor?: string | undefined;
+    customRippleColor?: ColorValue | undefined;
 }) => {
     borderColor: string;
     textColor: string;
     iconColor: string;
-    underlayColor: string;
+    rippleColor: ColorValue;
     backgroundColor: string;
     selectedBackgroundColor: string;
 };
 export {};
+//# sourceMappingURL=helpers.d.ts.map

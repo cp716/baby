@@ -12,16 +12,17 @@ declare type CombinedStyles = {
     absoluteFill: Animated.WithAnimatedValue<ViewStyle>;
 };
 export declare const getCombinedStyles: ({ isAnimatedFromRight, isIconStatic, distance, animFAB, }: GetCombinedStylesProps) => CombinedStyles;
-export declare const getFABColors: ({ theme, variant, disabled, customColor, customBackgroundColor, }: {
+export declare const getFABColors: ({ theme, variant, disabled, customColor, customBackgroundColor, customRippleColor, }: {
     theme: InternalTheme;
     variant: string;
     disabled?: boolean | undefined;
     customColor?: string | undefined;
     customBackgroundColor?: ColorValue | undefined;
+    customRippleColor?: ColorValue | undefined;
 }) => {
     backgroundColor: any;
     foregroundColor: string;
-    rippleColor: string;
+    rippleColor: ColorValue;
 };
 export declare const getFABGroupColors: ({ theme, customBackdropColor, }: {
     theme: InternalTheme;
@@ -48,3 +49,4 @@ export declare const getExtendedFabStyle: ({ customSize, theme, }: {
     paddingHorizontal: number;
 };
 export {};
+//# sourceMappingURL=utils.d.ts.map

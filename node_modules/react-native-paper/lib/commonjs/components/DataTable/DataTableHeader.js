@@ -16,13 +16,6 @@ function _extends() { _extends = Object.assign ? Object.assign.bind() : function
 /**
  * A component to display title in table header.
  *
- * <div class="screenshots">
- *   <figure>
- *     <img class="medium" src="screenshots/data-table-header.png" />
- *   </figure>
- * </div>
- *
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -50,9 +43,10 @@ const DataTableHeader = _ref => {
   let {
     children,
     style,
-    theme,
+    theme: themeOverrides,
     ...rest
   } = _ref;
+  const theme = (0, _theming.useInternalTheme)(themeOverrides);
   const borderBottomColor = theme.isV3 ? theme.colors.surfaceVariant : (0, _color.default)(theme.dark ? _colors.white : _colors.black).alpha(0.12).rgb().string();
   return /*#__PURE__*/React.createElement(_reactNative.View, _extends({}, rest, {
     style: [styles.header, {
@@ -65,11 +59,10 @@ DataTableHeader.displayName = 'DataTable.Header';
 const styles = _reactNative.StyleSheet.create({
   header: {
     flexDirection: 'row',
-    height: 48,
     paddingHorizontal: 16,
     borderBottomWidth: _reactNative.StyleSheet.hairlineWidth * 2
   }
 });
-var _default = (0, _theming.withInternalTheme)(DataTableHeader); // @component-docs ignore-next-line
+var _default = DataTableHeader; // @component-docs ignore-next-line
 exports.default = _default;
 //# sourceMappingURL=DataTableHeader.js.map

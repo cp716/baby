@@ -13,12 +13,6 @@ function _extends() { _extends = Object.assign ? Object.assign.bind() : function
 /**
  * A component to show a list of actions in a Dialog.
  *
- * <div class="screenshots">
- *   <figure>
- *     <img class="small" src="screenshots/dialog-actions.png" />
- *   </figure>
- * </div>
- *
  * ## Usage
  * ```js
  * import * as React from 'react';
@@ -47,16 +41,16 @@ function _extends() { _extends = Object.assign ? Object.assign.bind() : function
 const DialogActions = props => {
   const {
     isV3
-  } = (0, _theming.useInternalTheme)();
+  } = (0, _theming.useInternalTheme)(props.theme);
   const actionsLength = React.Children.toArray(props.children).length;
   return /*#__PURE__*/React.createElement(_reactNative.View, _extends({}, props, {
     style: [isV3 ? styles.v3Container : styles.container, props.style]
   }), React.Children.map(props.children, (child, i) => /*#__PURE__*/React.isValidElement(child) ? /*#__PURE__*/React.cloneElement(child, {
     compact: true,
     uppercase: !isV3,
-    style: isV3 && {
-      paddingRight: i + 1 === actionsLength ? 0 : 8
-    }
+    style: [isV3 && {
+      marginRight: i + 1 === actionsLength ? 0 : 8
+    }, child.props.style]
   }) : child));
 };
 DialogActions.displayName = 'Dialog.Actions';

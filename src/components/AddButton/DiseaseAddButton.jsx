@@ -21,7 +21,7 @@ export default function DiseaseAddButton(props) {
     const getNewDate = (date) => {
         const hours = date.getHours();
         const minutes = date.getMinutes();
-        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日' + hours + '時' + minutes + '分')
+        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日' + '  ' + hours + '時' + minutes + '分')
         setselectTime(new Date(dateTimeState.year, dateTimeState.month-1, dateTimeState.day, hours, minutes, "00" ))
     }
     
@@ -39,7 +39,7 @@ export default function DiseaseAddButton(props) {
     const formatDatetime = (date) => {
         const hours = date.getHours();
         const minutes = date.getMinutes();
-        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日' + hours + '時' + minutes + '分');
+        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日' + '  ' + hours + '時' + minutes + '分');
     };
 
     //決定ボタン押下時の処理
@@ -55,8 +55,8 @@ export default function DiseaseAddButton(props) {
                 name="hospital-box-outline"
                 onPress={() => {
                     toggleModal();
-                    //getNewDate(new Date(Math.floor(new Date().getTime()/1000/60/5)*1000*60*5));
-                    getNewDate(new Date());
+                    getNewDate(new Date(Math.floor(new Date().getTime()/1000/60/5)*1000*60*5));
+                    //getNewDate(new Date());
                 }}
                 //style={{ top: 80, bottom: 'auto'}}
             />
@@ -72,9 +72,13 @@ export default function DiseaseAddButton(props) {
                 onSwipeComplete={toggleModal}
                 >
                 <View style={modalStyles.container}>
-                    <Text style={modalStyles.title}>病気登録</Text>
                     <View>
-                        <Button title={String(detailTime)} onPress={showDatePicker} />
+                        <TouchableOpacity
+                            onPress={showDatePicker}
+                            style={styles.buttonContainer} // ボタンコンテナのスタイルを設定
+                        >
+                            <Text style={styles.buttonText}>{String(detailTime)}</Text>
+                        </TouchableOpacity>
                         <DateTimePickerModal
                             isVisible={isDatePickerVisible}
                             value={selectTime}
@@ -85,7 +89,7 @@ export default function DiseaseAddButton(props) {
                             display="spinner"//UIタイプ
                             confirmTextIOS="決定"//決定ボタンテキスト
                             cancelTextIOS="キャンセル"//キャンセルボタンテキスト
-                            minuteInterval={1}//分数間隔
+                            minuteInterval={5}//分数間隔
                             headerTextIOS=""//入力欄ヘッダーテキスト
                             textColor="blue"//ピッカーカラー
                             date={selectTime}//ピッカー日付デフォルト
@@ -128,6 +132,23 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         backgroundColor: '#ffffff'
     },
+    buttonContainer: {
+        backgroundColor: '#fff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        padding: '5%',
+        margin: '5%',
+        width: '85%',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+    },
+    buttonText: {
+        color: '#0080FF',
+        //fontWeight: 'bold',
+        textAlign: 'center',
+        fontSize: 20,
+    },
 });
 
 const modalStyles = StyleSheet.create({
@@ -137,26 +158,11 @@ const modalStyles = StyleSheet.create({
         borderWidth : 1,
         borderRadius : 10,
     },
-    modalButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
-        padding: 10,
-        fontSize: 20,
-    },
     container : {
-        backgroundColor : '#FFF',
+        backgroundColor : '#F0F4F8',
         padding : '5%',
-        borderColor : '#36C1A7',
-        borderWidth : 3,
-        borderRadius : 20,
+        borderColor : '#F0F4F8',
+        borderWidth : 5,
+        borderRadius : 10,
     },
-    title : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign: 'center'
-    },
-    //arrow : {
-        //color : '#36C1A7',
-    //},
 });

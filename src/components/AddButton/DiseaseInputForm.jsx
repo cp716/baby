@@ -13,14 +13,8 @@ export default function DiseaseInputForm(props) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = date.getDate();
-    
-    const [bodyText, setBodyText] = useState('');
-    const [hanamizu, setHanamizu] = useState(0);
-    const [seki, setSeki] = useState(0);
-    const [oto, setOto] = useState(0);
-    const [hosshin, setHosshin] = useState(0);
-    const [kega, setKega] = useState(0);
-    const [kusuri, setKusuri] = useState(0);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [memo, setMemo] = useState('');
     const [bodyTemperature, setBodyTemperature] = useState('');
 
     useEffect(() => {
@@ -40,7 +34,7 @@ export default function DiseaseInputForm(props) {
                     );
                 // テーブルが存在しない場合は作成
                 tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS DiseaseRecord_' + year + '_' + month + ' (record_id INTEGER, hanamizu INTEGER, seki INTEGER, oto INTEGER, hosshin INTEGER, kega INTEGER, kusuri INTEGER, body_temperature REAL)',
+                'CREATE TABLE IF NOT EXISTS DiseaseRecord_' + year + '_' + month + ' (record_id INTEGER, body_temperature REAL)',
                 [],
                 () => {
                     //console.log('DiseaseRecord_' + year + '_' + month + 'テーブルが作成されました');
@@ -60,57 +54,48 @@ export default function DiseaseInputForm(props) {
         const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
-                if (hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
-                    if(bodyTemperature >= 32 && bodyTemperature <= 43 || bodyTemperature == '') {
-                        let temperature = 0;
-                        if (bodyTemperature !== "") {
-                            temperature = bodyTemperature
-                        }
-                        tx.executeSql(
-                            'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
-                            [
-                                currentBabyState.baby_id,
-                                day,
-                                'DISEASE',
-                                bodyText,
-                                new Date(selectTime).toISOString()
-                            ],
-                            (_, result) => {
-                                const lastInsertId = result.insertId;
-                                tx.executeSql(
-                                    'INSERT INTO DiseaseRecord_' + year + '_' + month + ' (record_id, hanamizu, seki, oto, hosshin, kega, kusuri, body_temperature) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                                    [
-                                        lastInsertId,
-                                        hanamizu,
-                                        seki,
-                                        oto,
-                                        hosshin,
-                                        kega,
-                                        kusuri,
-                                        parseFloat(temperature)
-                                    ],
-                                    (_, result) => {
-                                        // 画面リフレッシュのためcurrentBabyStateを更新
-                                        currentBabyDispatch({
-                                            type: 'addBaby',
-                                            name: currentBabyState.name,
-                                            birthday: currentBabyState.birthday,
-                                            baby_id: currentBabyState.baby_id,
-                                        });
-                                        toggleModal();
-                                    },
-                                    (_, error) => {
-                                        console.error('データの挿入中にエラーが発生しました:', error);
-                                    }
-                                );
-                            },
-                            (_, error) => {
-                                console.error('データの挿入中にエラーが発生しました:', error);
-                            }
-                        );
-                    } else {
-                        Alert.alert("32から43までで入力してください");
+                if (selectedCategory !== null) {
+                    let temperature = 0;
+                    if (bodyTemperature !== "") {
+                        temperature = bodyTemperature
                     }
+                    if(selectedCategory == 'TAION' && temperature <= 32 || selectedCategory == 'TAION' && temperature >= 43 || selectedCategory == 'TAION' &&  temperature === 0) {
+                        Alert.alert("32から43までで入力してください");
+                        return;
+                    }
+                    tx.executeSql(
+                        'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                        [
+                            currentBabyState.baby_id,
+                            day,
+                            selectedCategory,
+                            memo,
+                            new Date(selectTime).toISOString(),
+                        ],
+                        (_, result) => {
+                            const lastInsertId = result.insertId;
+                            tx.executeSql(
+                                'INSERT INTO DiseaseRecord_' + year + '_' + month + ' (record_id, body_temperature) VALUES (?, ?)',
+                                [lastInsertId, parseFloat(temperature)],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        baby_id: currentBabyState.baby_id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                }
+                            );
+                        },
+                        (_, error) => {
+                            console.error('データの挿入中にエラーが発生しました:', error);
+                        }
+                    )
                 } else {
                     Alert.alert('チェックが入っていません');
                 }
@@ -123,77 +108,155 @@ export default function DiseaseInputForm(props) {
             <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title='鼻水'
-                        checked={hanamizu}
-                        onPress={() => {setHanamizu(hanamizu === 1 ? 0 : 1);}}
-                    />
-                    <CheckBox
-                        title='咳'
-                        checked={seki}
-                        onPress={() => {setSeki(seki === 1 ? 0 : 1);}}
-                    />
-                    <CheckBox
-                        title='嘔吐'
-                        checked={oto}
-                        onPress={() => {setOto(oto === 1 ? 0 : 1);}}
+                        title="鼻水"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'HANAMIZU'}
+                        onPress={() => {
+                            if (selectedCategory !== 'HANAMIZU') {
+                            setSelectedCategory('HANAMIZU');
+                            setBodyTemperature('');
+                            }
+                        }}                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title='発疹'
-                        checked={hosshin}
-                        onPress={() => {setHosshin(hosshin === 1 ? 0 : 1);}}
-                    />
-                    <CheckBox
-                        title='怪我'
-                        checked={kega}
-                        onPress={() => {setKega(kega === 1 ? 0 : 1);}}
-                    />
-                    <CheckBox
-                        title='薬'
-                        checked={kusuri}
-                        onPress={() => {setKusuri(kusuri === 1 ? 0 : 1);}}
+                        title="咳"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'SEKI'}
+                        onPress={() => {
+                            if (selectedCategory !== 'SEKI') {
+                            setSelectedCategory('SEKI');
+                            setBodyTemperature('');
+                            }
+                        }}                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
             </View>
-            <View style={styles.inputContainer}>
-                <Text>体温</Text>
-                <TextInput
-                        keyboardType="decimal-pad"
-                        value={bodyTemperature}
-                        style={styles.input}
-                        onChangeText={(text) => { setBodyTemperature(Number(text)); }}
-                        //autoFocus
-                        placeholder = "体温を入力"
-                        textAlign={"center"}//入力表示位置
-                        maxLength={4}
-                />
+            <View style={styles.radioButtonContainer}>
+                <View style={styles.radioButton}>
+                    <CheckBox
+                        title="嘔吐"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'OTO'}
+                        onPress={() => {
+                            if (selectedCategory !== 'OTO') {
+                            setSelectedCategory('OTO');
+                            setBodyTemperature('');
+                            }
+                        }}                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
+                    />
+                </View>
+                <View style={styles.radioButton}>
+                    <CheckBox
+                        title="発疹"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'HOSSHIN'}
+                        onPress={() => {
+                            if (selectedCategory !== 'HOSSHIN') {
+                            setSelectedCategory('HOSSHIN');
+                            setBodyTemperature('');
+                            }
+                        }}                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
+                    />
+                </View>
+            </View>
+            <View style={styles.radioButtonContainer}>
+                <View style={styles.radioButton}>
+                    <CheckBox
+                        title="怪我"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'KEGA'}
+                        onPress={() => {
+                            if (selectedCategory !== 'KEGA') {
+                            setSelectedCategory('KEGA');
+                            setBodyTemperature('');
+                            }
+                        }}                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
+                    />
+                </View>
+                <View style={styles.radioButton}>
+                    <CheckBox
+                        title="薬"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'KUSURI'}
+                        onPress={() => {
+                            if (selectedCategory !== 'KUSURI') {
+                            setSelectedCategory('KUSURI');
+                            setBodyTemperature('');
+                            }
+                        }}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
+                    />
+                </View>
+            </View>
+            <View style={styles.radioButtonContainer}>
+                <View style={styles.bodyTemperatureRadioButton}>
+                    <CheckBox
+                        title={
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text>体温</Text>
+                                <TextInput
+                                    keyboardType="decimal-pad"
+                                    value={bodyTemperature}
+                                    style={[
+                                        styles.bodyTemperatureInput,
+                                        selectedCategory === 'TAION' ? styles.editableInput : styles.disabledInput,
+                                    ]}
+                                    onChangeText={(text) => {
+                                        if (selectedCategory === 'TAION') {
+                                            setBodyTemperature(Number(text));
+                                        }
+                                    }}
+                                    textAlign={"center"}
+                                    maxLength={4}
+                                    editable={selectedCategory === 'TAION'}
+                                    //placeholder = "(32~42)"
+                                    placeholderTextColor="#737373"
+                                />
+                            </View>
+                        }
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'TAION'}
+                        onPress={() => setSelectedCategory('TAION')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
+                    />
+                </View>
             </View>
             <View style={styles.inputMemoContainer}>
-                <Text>メモ</Text>
+                <Text style={styles.inputTitle}>メモ</Text>
                 <TextInput
-                        keyboardType="web-search"
-                        value={bodyText}
-                        multiline
-                        style={styles.input}
-                        onChangeText={(text) => { setBodyText(text); }}
-                        //autoFocus
-                        placeholder = "メモを入力"
+                    keyboardType="web-search"
+                    value={memo}
+                    multiline
+                    style={styles.memoInput}
+                    onChangeText={(text) => setMemo(text)}
                 />
             </View>
             <View style={modalStyles.container}>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
-                    <Text style={modalStyles.confirmButtonText}>close</Text>
+                <TouchableOpacity style={modalStyles.confirmCloseButton} onPress={toggleModal}>
+                    <Text style={modalStyles.confirmCloseButtonText}>閉じる</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveDiseaseDataToSQLite} >
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveDiseaseDataToSQLite}>
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.advertisement}>
-                <Image style={{width: '100%'}}
-                    resizeMode='contain'
-                    source={require('../../img/IMG_3641.jpg')}
-                />
+                <Image style={{ width: '100%' }} resizeMode='contain' source={require('../../img/IMG_3641.jpg')} />
             </View>
         </ScrollView>
     );
@@ -201,78 +264,109 @@ export default function DiseaseInputForm(props) {
 
 const styles = StyleSheet.create({
     inputTypeContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        //height: 50,
-        //backgroundColor: '#987652',
-        //flex: 1,
-        //flexDirection: 'row',
-        //width: 350 ,
-        
+        paddingHorizontal: 10,
+        paddingTop: '5%',
     },
-    inputContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 75,
-        backgroundColor: '#859602'
-        //flex: 1,
+    inputBodyTemperatureContainer: {
+        paddingHorizontal: 20,
+        paddingTop: '5%',
+        height: 90,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        //backgroundColor: '#859602',
     },
     inputMemoContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 125,
-        backgroundColor: '#859602'
-        //flex: 1,
+        paddingHorizontal: 20,
+        //paddingVertical: '5%',
+        paddingTop: '5%',
+        height: 130,
+        //backgroundColor: '#859602',
     },
-    input: {
+    inputTitle: {
+        fontSize: 15,
+        marginBottom: 5,
+        color: '#737373',
+    },
+    bodyTemperatureInput: {
+        width: '50%', // 横幅の設定
+        height: 30, // または必要な縦幅に設定
+        fontSize: 16,
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        marginLeft: 10
+    },    
+    memoInput: {
         flex: 1,
         textAlignVertical: 'top',
         fontSize: 16,
         lineHeight: 25,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        padding: 10
+    },
+    disabledInput: {
+        backgroundColor: '#e0e0e0',
     },
     radioButtonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-around',//横並び均等配置
+        justifyContent: 'space-around', // チェックボックスの左右配置を中央に
     },
     radioButton: {
-        //flexDirection: 'row',
-        //paddingLeft: 'auto',
-        //paddingRight: 'auto',
-        //marginLeft: 'auto',
-        //marginRight: 'auto',
-        justifyContent: 'space-around',//横並び均等配置
+        width: '45%', // チェックボックスの幅を均等に設定
+    },
+    bodyTemperatureRadioButton: {
+        width: '60%', // チェックボックスの幅を均等に設定
+    },
+    checkboxContainer: {
+        //width: '80%',
+    },
+    checkboxTitle: {
+        fontSize: 15,
     },
     advertisement: {
-        //marginTop: 'auto',
-        //marginBottom: 'auto',
-        paddingTop: 10,
-        paddingBottom: 10,
-        //height: '15%',
-        //width: '50%',
-        alignItems:'center',
-        //backgroundColor: '#464876',
+        paddingTop: '5%',
+        alignItems: 'center',
+    },
+    editableInput: {
+        backgroundColor: '#FFFFFF', // 編集可能な場合の背景色
     },
 });
 
 const modalStyles = StyleSheet.create({
     container: {
         flexDirection: 'row',
+        paddingTop: '5%',
     },
-    confirmButton : {
+    confirmButton: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        marginTop : '5%',
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
-        borderWidth : 1,
-        borderRadius : 10,
-        width: "40%",
+        backgroundColor: '#FFDB59',
+        borderColor: '#FFDB59',
+        borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
     },
-    confirmButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
+    confirmButtonText: {
+        color: '#737373',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        padding: 10,
+        fontSize: 16,
+    },
+    confirmCloseButton: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        backgroundColor: '#FFF',
+        borderRadius: 10,
+        width: '40%',
+    },
+    confirmCloseButtonText: {
+        color: '#737373',
+        textAlign: 'center',
         padding: 10,
         fontSize: 16,
     },

@@ -113,9 +113,9 @@ export default function CreateData(props) {
                                                 <MaterialCommunityIcons name='toilet' size={20} color="black" />
                                                 //'トイレ'
                                             );
-                                        }  else if(item.category == 'DISEASE') {
+                                        }  else if(item.category == 'HANAMIZU' || item.category === 'SEKI' || item.category === 'OTO' || item.category === 'HOSSHIN' || item.category === 'KEGA' || item.category === 'KUSURI' || item.category === 'TAION') {
                                             return (
-                                                <MaterialCommunityIcons name='hospital-box-outline' size={20} color="black" />
+                                                <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />
                                                 //'体調'
                                             );
                                         }  else if(item.category == 'FOOD' || item.category === 'DRINK' ) {
@@ -159,29 +159,39 @@ export default function CreateData(props) {
                                             return (
                                                 toilet
                                             )
-                                        }else if (item.category == 'DISEASE') {
-                                            var disease = "";
-                                            if(item.hanamizu) {
-                                                disease += "「鼻水」"
-                                            }
-                                            if(item.seki) {
-                                                disease += "「咳」"
-                                            }
-                                            if(item.oto) {
-                                                disease += "「嘔吐」"
-                                            }
-                                            if(item.hosshin) {
-                                                disease += "「発疹」"
-                                            }
-                                            if(item.kega) {
-                                                disease += "「怪我」"
-                                            }
-                                            if(item.kusuri) {
-                                                disease += "「薬」"
-                                            }
-                                            if(item.body_temperature) {
-                                                disease += item.body_temperature
-                                            }
+                                        }else if (item.category == 'HANAMIZU') {
+                                            var disease = "鼻水"
+                                            return (
+                                                disease
+                                            )
+                                        }else if (item.category == 'SEKI') {
+                                            var disease = "咳"
+                                            return (
+                                                disease
+                                            )
+                                        }else if (item.category == 'OTO') {
+                                            var disease = "嘔吐"
+                                            return (
+                                                disease
+                                            )
+                                        }else if (item.category == 'HOSSHIN') {
+                                            var disease = "発疹"
+                                            return (
+                                                disease
+                                            )
+                                        }else if (item.category == 'KEGA') {
+                                            var disease = "怪我"
+                                            return (
+                                                disease
+                                            )
+                                        }else if (item.category == 'KUSURI') {
+                                            var disease = "薬"
+                                            return (
+                                                disease
+                                            )
+                                        }else if (item.category == 'TAION') {
+                                            var disease = "体温"
+                                            disease += "\n" + item.body_temperature + '℃'
                                             return (
                                                 disease
                                             )

@@ -171,11 +171,11 @@ export default function MainScreen(props) {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                        'SELECT ' + commonRecordTable + '.*, ' + diseaseRecordTable + '.hanamizu, ' + diseaseRecordTable + '.seki, ' + diseaseRecordTable + '.oto, ' + diseaseRecordTable + '.hosshin, ' + diseaseRecordTable + '.kega, ' + diseaseRecordTable + '.kusuri, ' + diseaseRecordTable + '.body_temperature FROM ' + commonRecordTable + ' LEFT JOIN ' + diseaseRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + diseaseRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
+                        'SELECT ' + commonRecordTable + '.*, ' + diseaseRecordTable + '.body_temperature FROM ' + commonRecordTable + ' LEFT JOIN ' + diseaseRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + diseaseRecordTable + '.record_id WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
                         [dateTimeState.day, currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
-                            setDiseaseData(data.filter(item => item.category === 'DISEASE'));
+                            setDiseaseData(data.filter(item => item.category === 'HANAMIZU' || item.category === 'SEKI' || item.category === 'OTO' || item.category === 'HOSSHIN' || item.category === 'KEGA' || item.category === 'KUSURI' || item.category === 'TAION'));
                         },
                         (_, error) => {
                             console.error('データの取得中にエラーが発生しました:', error);

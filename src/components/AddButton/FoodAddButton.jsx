@@ -21,7 +21,7 @@ export default function FoodAddButton() {
     const getNewDate = (date) => {
         const hours = date.getHours();
         const minutes = date.getMinutes();
-        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日' + hours + '時' + minutes + '分')
+        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日' + '  ' + hours + '時' + minutes + '分')
         setselectTime(new Date(dateTimeState.year, dateTimeState.month-1, dateTimeState.day, hours, minutes, "00" ))
     }
     
@@ -39,7 +39,7 @@ export default function FoodAddButton() {
     const formatDatetime = (date) => {
         const hours = date.getHours();
         const minutes = date.getMinutes();
-        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日' + hours + '時' + minutes + '分');
+        setDetailTime(dateTimeState.month + '月' + dateTimeState.day + '日' + '  ' + hours + '時' + minutes + '分');
     };
 
     //決定ボタン押下時の処理

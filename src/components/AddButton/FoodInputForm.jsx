@@ -65,7 +65,7 @@ export default function FoodInputForm(props) {
                         [
                             currentBabyState.baby_id,
                             day,
-                            selectedCategory === 'food' ? 'FOOD' : 'DRINK',
+                            selectedCategory,
                             memo,
                             new Date(selectTime).toISOString(),
                         ],
@@ -105,46 +105,22 @@ export default function FoodInputForm(props) {
             <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title="食か物"
+                        title="食べ物"
                         checkedIcon="dot-circle-o"
                         uncheckedIcon="circle-o"
-                        checked={selectedCategory === 'food'}
-                        onPress={() => setSelectedCategory('food')}
+                        checked={selectedCategory === 'FOOD'}
+                        onPress={() => setSelectedCategory('FOOD')}
                         containerStyle={styles.checkboxContainer}
                         titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title="飲物"
+                        title="飲み物"
                         checkedIcon="dot-circle-o"
                         uncheckedIcon="circle-o"
-                        checked={selectedCategory === 'drink'}
-                        onPress={() => setSelectedCategory('drink')}
-                        containerStyle={styles.checkboxContainer}
-                        titleProps={{ style: styles.checkboxTitle }}
-                    />
-                </View>
-            </View>
-            <View style={styles.radioButtonContainer}>
-                <View style={styles.radioButton}>
-                    <CheckBox
-                        title="追加1"
-                        checkedIcon="dot-circle-o"
-                        uncheckedIcon="circle-o"
-                        checked={selectedCategory === 'category1'}
-                        onPress={() => setSelectedCategory('category1')}
-                        containerStyle={styles.checkboxContainer}
-                        titleProps={{ style: styles.checkboxTitle }}
-                    />
-                </View>
-                <View style={styles.radioButton}>
-                    <CheckBox
-                        title="追加2"
-                        checkedIcon="dot-circle-o"
-                        uncheckedIcon="circle-o"
-                        checked={selectedCategory === 'category2'}
-                        onPress={() => setSelectedCategory('category2')}
+                        checked={selectedCategory === 'DRINK'}
+                        onPress={() => setSelectedCategory('DRINK')}
                         containerStyle={styles.checkboxContainer}
                         titleProps={{ style: styles.checkboxTitle }}
                     />
@@ -153,24 +129,18 @@ export default function FoodInputForm(props) {
             <View style={styles.inputAmountContainer}>
                 <Text style={styles.inputTitle}>
                     {selectedCategory === 'food' || selectedCategory === 'drink' || selectedCategory === 'category1' || selectedCategory === 'category2' ? 
-                        (selectedCategory === 'food' ? '食物(単位/g)' : selectedCategory === 'drink' ? '飲物(単位/ml)' : '量')
+                        (selectedCategory === 'food' ? '食べ物(単位/g)' : selectedCategory === 'drink' ? '飲み物(単位/ml)' : '量')
                         : '量'}
                 </Text>
                 <TextInput
                     keyboardType="decimal-pad"
                     value={amount}
-                    style={[
-                        styles.amountInput,
-                        !selectedCategory ? styles.disabledInput : null
-                    ]}
+                    style={styles.amountInput}
                     onChangeText={(text) => {
-                        if (selectedCategory) {
-                            setAmount(Number(text));
-                        }
+                        setAmount(Number(text));
                     }}
                     textAlign={"center"}
                     maxLength={4}
-                    editable={selectedCategory !== null}
                 />
             </View>
             <View style={styles.inputMemoContainer}>

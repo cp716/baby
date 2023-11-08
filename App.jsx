@@ -204,7 +204,6 @@ export default function App() {
 
   const hideTabs = currentBaby === null || currentBaby === undefined;
 
-  console.log(hideTabs)
   //const hideTabs = ""
   return (
     <NavigationContainer>

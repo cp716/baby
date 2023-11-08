@@ -164,11 +164,11 @@ export default function RecordScreen(props) {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                        'SELECT ' + commonRecordTable + '.*, ' + diseaseRecordTable + '.hanamizu, ' + diseaseRecordTable + '.seki, ' + diseaseRecordTable + '.oto, ' + diseaseRecordTable + '.hosshin, ' + diseaseRecordTable + '.kega, ' + diseaseRecordTable + '.kusuri, ' + diseaseRecordTable + '.body_temperature FROM ' + commonRecordTable + ' LEFT JOIN ' + diseaseRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + diseaseRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
+                        'SELECT ' + commonRecordTable + '.*, ' + diseaseRecordTable + '.body_temperature FROM ' + commonRecordTable + ' LEFT JOIN ' + diseaseRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + diseaseRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
                         [currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
-                            setDiseaseData(data.filter(item => item.category === 'DISEASE'));
+                            setDiseaseData(data.filter(item => item.category === 'HANAMIZU' || item.category === 'SEKI' || item.category === 'OTO' || item.category === 'HOSSHIN' || item.category === 'KEGA' || item.category === 'KUSURI' || item.category === 'TAION'));
                         },
                         (_, error) => {
                             console.error('データの取得中にエラーが発生しました:', error);
@@ -290,26 +290,27 @@ export default function RecordScreen(props) {
         }
 
         for (let key in disease) {
-            if(disease[key].hanamizu) {
+            if(disease[key].category == 'HANAMIZU') {
                 hanamizuCount += 1
             }
-            if(disease[key].seki) {
+            if(disease[key].category == 'SEKI') {
                 sekiCount += 1
             }
-            if(disease[key].oto) {
+            if(disease[key].category == 'OTO') {
                 otoCount += 1
             }
-            if(disease[key].hosshin) {
+            if(disease[key].category == 'HOSSHIN') {
                 hosshinCount += 1
             }
-            if(disease[key].kega) {
+            if(disease[key].category == 'KEGA') {
                 kegaCount += 1
             }
-            if(disease[key].kusuri) {
+            if(disease[key].category == 'KUSURI') {
                 kusuriCount += 1
             }
+
             for (let key in disease) {
-                if (!isNaN(disease[key].body_temperature)) {
+                if (disease[key].category == 'TAION') {
                     const temperature = parseFloat(disease[key].body_temperature); // body_temperature を数値に変換
                     if (temperature > maxBodyTemperature) {
                         maxBodyTemperature = temperature; // より大きい値が見つかれば更新
@@ -317,8 +318,7 @@ export default function RecordScreen(props) {
                 }
             }
             for (let key in disease) {
-                if (!isNaN(disease[key].body_temperature)) {
-
+                if (disease[key].category == 'TAION') {
                     const temperature = parseFloat(disease[key].body_temperature); // body_temperature を数値に変換
                     if (temperature < minBodyTemperature && temperature !== 0) {
                         minBodyTemperature = temperature; // より小さい値が見つかれば更新

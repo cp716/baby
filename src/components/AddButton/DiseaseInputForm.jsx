@@ -59,8 +59,8 @@ export default function DiseaseInputForm(props) {
                     if (bodyTemperature !== "") {
                         temperature = bodyTemperature
                     }
-                    if(selectedCategory == 'TAION' && temperature <= 32 || selectedCategory == 'TAION' && temperature >= 43 || selectedCategory == 'TAION' &&  temperature === 0) {
-                        Alert.alert("32から43までで入力してください");
+                    if(selectedCategory == 'TAION' && temperature < 32 || selectedCategory == 'TAION' && temperature > 43 || selectedCategory == 'TAION' &&  temperature === 0) {
+                        Alert.alert("32℃から43℃までの値を入力してください");
                         return;
                     }
                     tx.executeSql(
@@ -226,6 +226,7 @@ export default function DiseaseInputForm(props) {
                                     //placeholder = "(32~42)"
                                     placeholderTextColor="#737373"
                                 />
+                                <Text>℃</Text>
                             </View>
                         }
                         checkedIcon="dot-circle-o"
@@ -295,7 +296,8 @@ const styles = StyleSheet.create({
         borderColor: '#737373',
         borderWidth: 0.5,
         borderRadius: 5,
-        marginLeft: 10
+        marginLeft: 10,
+        marginRight: 10
     },    
     memoInput: {
         flex: 1,
@@ -319,7 +321,7 @@ const styles = StyleSheet.create({
         width: '45%', // チェックボックスの幅を均等に設定
     },
     bodyTemperatureRadioButton: {
-        width: '60%', // チェックボックスの幅を均等に設定
+        width: '95%', // チェックボックスの幅を均等に設定
     },
     checkboxContainer: {
         //width: '80%',

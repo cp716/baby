@@ -128,8 +128,8 @@ export default function FoodInputForm(props) {
             </View>
             <View style={styles.inputAmountContainer}>
                 <Text style={styles.inputTitle}>
-                    {selectedCategory === 'food' || selectedCategory === 'drink' || selectedCategory === 'category1' || selectedCategory === 'category2' ? 
-                        (selectedCategory === 'food' ? '食べ物(単位/g)' : selectedCategory === 'drink' ? '飲み物(単位/ml)' : '量')
+                    {selectedCategory === 'FOOD' || selectedCategory === 'DRINK' || selectedCategory === 'category1' || selectedCategory === 'category2' ? 
+                        (selectedCategory === 'FOOD' ? '食べ物(単位/g)' : selectedCategory === 'DRINK' ? '飲み物(単位/ml)' : '量')
                         : '量'}
                 </Text>
                 <TextInput

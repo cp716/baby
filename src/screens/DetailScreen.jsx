@@ -13,7 +13,6 @@ export default function DetailScreen(props) {
     const { dateTimeState, dateTimeDispatch } = useDateTimeContext();
     const { babyData }  = props;
     const { toggleModal } = props;
-
     const dateTime = new Date(babyData.record_time);
 
     const month = dateTime.getMonth();

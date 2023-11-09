@@ -77,7 +77,91 @@ export default function CreateData(props) {
         return new Date(a.record_time) - new Date(b.record_time);
     });
 
-    function renderItem({ item }) {   
+    const renderItem = ({ item }) => {
+        const { category, record_time, junyu_left, junyu_right, milk, bonyu, oshikko, unchi, amount, body_temperature, free_text, memo } = item;
+    
+        let categoryIcon;
+        let categoryText;
+    
+        switch (category) {
+            case 'MILK':
+                categoryIcon = <MaterialCommunityIcons name='baby-bottle-outline' size={20} color="black" />;
+                categoryText = 'ミルク\n' + milk + 'ml';
+                break;
+            case 'TOILET':
+                categoryIcon = <MaterialCommunityIcons name='toilet' size={20} color="black" />;
+                const toilet = [];
+                if (oshikko) toilet.push('おしっこ');
+                if (unchi) toilet.push('うんち');
+                categoryText = toilet.join('、');
+                break;
+            case 'FOOD':
+                categoryIcon = <MaterialCommunityIcons name='food-fork-drink' size={20} color="black" />;
+                categoryText = '食べ物';
+                if (amount) categoryText = '食べ物\n' + amount + 'g';
+                break;
+            case 'DRINK':
+                categoryIcon = <MaterialCommunityIcons name='food-fork-drink' size={20} color="black" />;
+                categoryText = '飲み物';
+                if (amount) categoryText = '飲み物\n' + amount + 'ml';
+                break;
+            case 'HANAMIZU':
+                categoryIcon = <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />;
+                categoryText = '鼻水';
+                break;
+            case 'SEKI':
+                categoryIcon = <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />;
+                categoryText = '咳';
+                break;
+            case 'OTO':
+                categoryIcon = <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />;
+                categoryText = '嘔吐';
+                break;
+            case 'HOSSHIN':
+                categoryIcon = <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />;
+                categoryText = '発疹';
+                break;
+            case 'KEGA':
+                categoryIcon = <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />;
+                categoryText = '怪我';
+                break;
+            case 'KUSURI':
+                categoryIcon = <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />;
+                categoryText = '薬';
+                break;
+            case 'TAION':
+                categoryIcon = <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />;
+                categoryText = '体温\n' + body_temperature + '℃';
+                break;
+            case 'FREE':
+                categoryIcon = <MaterialCommunityIcons name='pen' size={20} color="black" />;
+                categoryText = free_text;
+                break;
+            default:
+                categoryIcon = null;
+                categoryText = '';
+            }
+        
+            return (
+            <TouchableOpacity
+                style={styles.tabledesign}
+                onPress={() => {
+                    setModalVisible(!isModalVisible);
+                    setModalEntry(item);
+                }}
+            >
+                <CreateDataDesign date={
+                    <Text style={styles.tableTitle}>
+                        {String(new Date(item.record_time).getHours()).padStart(2, '0')}:
+                        {String(new Date(item.record_time).getMinutes()).padStart(2, '0')}
+                    </Text>}
+                />
+                <CreateDataDesign date={<Text style={styles.tableTitle}>{categoryIcon}</Text>} />
+                <CreateDataDesign date={<Text style={styles.tableTitle}>{categoryText}</Text>} />
+                <CreateMemoDataDesign date={<Text style={styles.tableTitle}>{memo}</Text>} />
+            </TouchableOpacity>
+        );
+
         return(
             <View>
                 {(() => {
@@ -234,9 +318,7 @@ export default function CreateData(props) {
                                 useNativeDriver//チラつき防止
                                 hideModalContentWhileAnimating={true}
                             >
-                                <DetailScreen babyData={modalEntry}
-                                toggleModal={toggleModal}
-                                />
+                                <DetailScreen babyData={modalEntry} toggleModal={toggleModal} />
                             </Modal>
                         </TouchableOpacity>
                     )
@@ -244,6 +326,27 @@ export default function CreateData(props) {
             </View>
         )       
     } 
+
+    return (
+    <View style={styles.container}>
+        <FlatList
+            data={combinedArray}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.record_id.toString()}
+        />
+        <Modal
+            isVisible={isModalVisible}
+            onBackdropPress={toggleModal}
+            animationIn="fadeInRightBig"
+            animationOut="fadeOutRightBig"
+            avoidKeyboard={true}
+            useNativeDriver
+            hideModalContentWhileAnimating={true}
+        >
+            <DetailScreen babyData={modalEntry} toggleModal={toggleModal} />
+        </Modal>
+        </View>
+    );
     
     return (
         <View style={styles.container}>

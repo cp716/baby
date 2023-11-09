@@ -140,7 +140,7 @@ export default function FoodEditForm(props) {
                     onPress={() => {
                         if (selectedCategory !== 'FOOD') {
                         setSelectedCategory('FOOD');
-                        setAmount('');
+                        //setAmount('');
                         }
                     }}
                     textStyle={{ fontSize: 18, textAlign: 'center' }}
@@ -153,7 +153,7 @@ export default function FoodEditForm(props) {
                     onPress={() => {
                         if (selectedCategory !== 'DRINK') {
                         setSelectedCategory('DRINK');
-                        setAmount('');
+                        //setAmount('');
                         }
                     }}
                     textStyle={{ fontSize: 18, textAlign: 'center' }}
@@ -163,7 +163,7 @@ export default function FoodEditForm(props) {
             <View style={styles.inputAmountContainer}>
                 <Text style={styles.inputTitle}>
                     {selectedCategory === 'FOOD' || selectedCategory === 'DRINK' ? 
-                        (selectedCategory === 'FOOD' ? '食物(単位/g)' : '飲物(単位/ml)') : '量'}
+                        (selectedCategory === 'FOOD' ? '食べ物(単位/g)' : '飲み物(単位/ml)') : '量'}
                 </Text>
                 <TextInput
                     keyboardType="decimal-pad"

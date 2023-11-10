@@ -94,7 +94,7 @@ export default function FoodInputForm(props) {
                         }
                     );
                 } else {
-                    Alert.alert('カテゴリが選択されていません');
+                    Alert.alert('記録する項目を選んでください');
                 }
             }
         );
@@ -133,14 +133,14 @@ export default function FoodInputForm(props) {
                         : '量'}
                 </Text>
                 <TextInput
-                    keyboardType="decimal-pad"
+                    keyboardType="number-pad"
                     value={amount}
                     style={styles.amountInput}
                     onChangeText={(text) => {
                         setAmount(Number(text));
                     }}
                     textAlign={"center"}
-                    maxLength={4}
+                    maxLength={3}
                 />
             </View>
             <View style={styles.inputMemoContainer}>

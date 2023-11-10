@@ -13,6 +13,7 @@ export default function DiseaseInputForm(props) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = date.getDate();
+    
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [memo, setMemo] = useState('');
     const [bodyTemperature, setBodyTemperature] = useState('');
@@ -97,7 +98,7 @@ export default function DiseaseInputForm(props) {
                         }
                     )
                 } else {
-                    Alert.alert('チェックが入っていません');
+                    Alert.alert('記録する項目を選んでください');
                 }
             }
         );

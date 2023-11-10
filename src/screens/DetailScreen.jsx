@@ -86,7 +86,7 @@ export default function DetailScreen(props) {
                         return (
                             <ToiletEditForm selectTime={selectTime} babyData={babyData} toggleModal={toggleModal} />
                         );
-                    } else if (babyData.category == 'DISEASE') {
+                    } else if (babyData.category == 'HANAMIZU' || babyData.category == 'SEKI' || babyData.category == 'OTO' || babyData.category == 'HOSSHIN' || babyData.category == 'KEGA' || babyData.category == 'KUSURI' || babyData.category == 'TAION') {
                         return (
                             <DiseaseEditForm selectTime={selectTime} babyData={babyData} toggleModal={toggleModal} />
                         );

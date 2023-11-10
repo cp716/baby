@@ -13,11 +13,8 @@ export default function FoodEditForm(props) {
     const year = selectTime.getFullYear();
     const month = String(selectTime.getMonth() + 1).padStart(2, '0');
 
-    const [foodCheck, setFoodCheck] = useState(babyData.food);
-    const [drinkCheck, setDrinkCheck] = useState(babyData.drink);
-
     const [selectedCategory, setSelectedCategory] = useState(babyData.category);
-    const [amount, setAmount] = useState(babyData.amount === null ? '' : babyData.amount);
+    const [amount, setAmount] = useState(String(babyData.amount) == 0 ? '' : String(babyData.amount));
     const [memo, setMemo] = useState(babyData.memo);
 
     function handlePress() {
@@ -34,9 +31,9 @@ export default function FoodEditForm(props) {
                     style: 'default',
                     onPress: () => {
                         const db = SQLite.openDatabase('BABY.db');
-                        let setAmount = 0;
-                        if (amount !== "") {
-                            setAmount = amount
+                        let amountToSave = 0;
+                        if (amount !== '') {
+                            amountToSave = Number(amount);
                         }
                         db.transaction(
                             (tx) => {
@@ -52,7 +49,7 @@ export default function FoodEditForm(props) {
                                         tx.executeSql(
                                             'UPDATE FoodRecord_' + year + '_' + month + ' SET amount = ? WHERE record_id = ?',
                                             [
-                                                amount,
+                                                amountToSave,
                                                 babyData.record_id
                                             ],
                                             (_, result) => {
@@ -129,34 +126,30 @@ export default function FoodEditForm(props) {
             },
         ]);
     }
-
+    
     return (
         <ScrollView scrollEnabled={false}>
             <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                    title='食物'
-                    checked={selectedCategory === 'FOOD'}
-                    onPress={() => {
-                        if (selectedCategory !== 'FOOD') {
-                        setSelectedCategory('FOOD');
-                        //setAmount('');
-                        }
-                    }}
-                    textStyle={{ fontSize: 18, textAlign: 'center' }}
+                        title="食べ物"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'FOOD'}
+                        onPress={() => setSelectedCategory('FOOD')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
                 <View style={styles.radioButton}>
                     <CheckBox
-                    title='飲物'
-                    checked={selectedCategory === 'DRINK'}
-                    onPress={() => {
-                        if (selectedCategory !== 'DRINK') {
-                        setSelectedCategory('DRINK');
-                        //setAmount('');
-                        }
-                    }}
-                    textStyle={{ fontSize: 18, textAlign: 'center' }}
+                        title="飲み物"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'DRINK'}
+                        onPress={() => setSelectedCategory('DRINK')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
             </View>
@@ -166,23 +159,14 @@ export default function FoodEditForm(props) {
                         (selectedCategory === 'FOOD' ? '食べ物(単位/g)' : '飲み物(単位/ml)') : '量'}
                 </Text>
                 <TextInput
-                    keyboardType="decimal-pad"
-                    value={String(amount)}
-                    
-                    style={[
-                        styles.amountInput,
-                        //!selectedCategory ? styles.disabledInput : null // 非活性のスタイルを追加
-                    ]}
+                    keyboardType="number-pad"
+                    value={amount}
+                    style={styles.amountInput}
                     onChangeText={(text) => {
-                        setAmount(Number(text));
-                        if (selectedCategory) {
-                            setAmount(Number(text));
-                        }
+                        setAmount(text);
                     }}
-                    //placeholder="入力してください"
                     textAlign={"center"}
-                    maxLength={4}
-                    //editable={selectedCategory !== null} // チェックが入っている場合のみ編集可能
+                    maxLength={3}
                 />
             </View>
             <View style={styles.inputMemoContainer}>
@@ -265,15 +249,16 @@ const styles = StyleSheet.create({
     },
     radioButtonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-around',//横並び均等配置
+        justifyContent: 'space-around', // チェックボックスの左右配置を中央に
     },
     radioButton: {
-        //flexDirection: 'row',
-        //paddingLeft: 'auto',
-        //paddingRight: 'auto',
-        //marginLeft: 'auto',
-        //marginRight: 'auto',
-        justifyContent: 'space-around',//横並び均等配置
+        width: '40%', // チェックボックスの幅を均等に設定
+    },
+    checkboxContainer: {
+        //width: '80%',
+    },
+    checkboxTitle: {
+        fontSize: 15,
     },
     advertisement: {
         paddingTop: '5%',

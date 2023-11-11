@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around', // チェックボックスの左右配置を中央に
     },
     radioButton: {
-        width: '40%', // チェックボックスの幅を均等に設定
+        width: '45%', // チェックボックスの幅を均等に設定
     },
     checkboxContainer: {
         //width: '80%',

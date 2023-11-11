@@ -112,7 +112,7 @@ export default function RecordScreen(props) {
                         [currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
-                            setToiletData(data.filter(item => item.category === 'TOILET'))
+                            setToiletData(data.filter(item => item.category === 'OSHIKKO' || item.category === 'UNCHI'))
                         },
                         (_, error) => {
                             console.error('データの取得中にエラーが発生しました:', error);
@@ -261,10 +261,10 @@ export default function RecordScreen(props) {
         }
 
         for (let key in toilet) {
-            if(toilet[key].oshikko) {
+            if(toilet[key].category == 'OSHIKKO') {
                 oshikkoCount += 1
             }
-            if(toilet[key].unchi) {
+            if(toilet[key].category == 'UNCHI') {
                 unchiCount += 1
             }
         }
@@ -276,9 +276,6 @@ export default function RecordScreen(props) {
             if(food[key].category == 'DRINK') {
                 drinkCount += 1
             }
-            //if(!isNaN(food[key].food.drink)) {
-            //    drinkTotal += food[key].food.drink
-            //}
         }
 
         for (let key in food) {

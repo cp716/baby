@@ -13,70 +13,53 @@ export default function ToiletEditForm(props) {
     const year = selectTime.getFullYear();
     const month = String(selectTime.getMonth() + 1).padStart(2, '0');
 
-    const [oshikko, setOshikko] = useState(babyData.oshikko);
-    const [unchi, setUnchi] = useState(babyData.unchi);
-    const [detailBody, setBodyText] = useState(babyData.memo);
+    const [selectedCategory, setSelectedCategory] = useState(babyData.category);
+    const [memo, setMemo] = useState(babyData.memo);
 
     function handlePress() {
-        if (oshikko || unchi) {
-            Alert.alert(
-                '更新します', 'よろしいですか？',
-                [
-                    {
-                        text: 'キャンセル',
-                        style: 'cancel',
-                        onPress: () => {},
+        Alert.alert(
+            '更新します', 'よろしいですか？',
+            [
+                {
+                    text: 'キャンセル',
+                    style: 'cancel',
+                    onPress: () => {},
+                },
+                {
+                    text: '更新',
+                    style: 'default',
+                    onPress: () => {
+                        const db = SQLite.openDatabase('BABY.db');
+                        db.transaction(
+                            (tx) => {
+                                tx.executeSql(
+                                    'UPDATE CommonRecord_' + year + '_' + month + ' SET category = ?, memo = ?, record_time = ? WHERE record_id = ?',
+                                    [
+                                        selectedCategory,
+                                        memo,
+                                        new Date(selectTime).toISOString(),
+                                        babyData.record_id
+                                    ],
+                                    (_, result) => {
+                                        // 画面リフレッシュのためcurrentBabyStateを更新
+                                        currentBabyDispatch({
+                                            type: 'addBaby',
+                                            name: currentBabyState.name,
+                                            birthday: currentBabyState.birthday,
+                                            baby_id: currentBabyState.baby_id,
+                                        });
+                                        toggleModal();
+                                    },
+                                    (_, error) => {
+                                        console.error('データの挿入中にエラーが発生しました:', error);
+                                    }
+                                );
+                            }
+                        );
                     },
-                    {
-                        text: '更新',
-                        style: 'default',
-                        onPress: () => {
-                            const db = SQLite.openDatabase('BABY.db');
-                            db.transaction(
-                                (tx) => {
-                                    tx.executeSql(
-                                        'UPDATE CommonRecord_' + year + '_' + month + ' SET memo = ?, record_time = ? WHERE record_id = ?',
-                                        [
-                                            detailBody,
-                                            new Date(selectTime).toISOString(),
-                                            babyData.record_id
-                                        ],
-                                        (_, result) => {
-                                            tx.executeSql(
-                                                'UPDATE ToiletRecord_' + year + '_' + month + ' SET oshikko = ?, unchi = ? WHERE record_id = ?',
-                                                [
-                                                    oshikko,
-                                                    unchi,
-                                                    babyData.record_id
-                                                ],
-                                                (_, result) => {
-                                                    // 画面リフレッシュのためcurrentBabyStateを更新
-                                                    currentBabyDispatch({
-                                                        type: 'addBaby',
-                                                        name: currentBabyState.name,
-                                                        birthday: currentBabyState.birthday,
-                                                        baby_id: currentBabyState.baby_id,
-                                                    });
-                                                    toggleModal();
-                                                },
-                                                (_, error) => {
-                                                    console.error('データの挿入中にエラーが発生しました:', error);
-                                                }
-                                            );
-                                        },
-                                        (_, error) => {
-                                            console.error('データの挿入中にエラーが発生しました:', error);
-                                        }
-                                    );
-                                }
-                            );
-                        },
-                    },
-                ],
-            );
-        } else {
-            Alert.alert('チェックが入っていません');
-        }
+                },
+            ],
+        );
     }
 
     function deleteItem() {
@@ -97,23 +80,14 @@ export default function ToiletEditForm(props) {
                         'DELETE FROM CommonRecord_' + year + '_' + month + ' WHERE record_id = ?',
                         [babyData.record_id],
                         (_, result) => {
-                            tx.executeSql(
-                                'DELETE FROM ToiletRecord_' + year + '_' + month + ' WHERE record_id = ?',
-                                [babyData.record_id],
-                                (_, result) => {
-                                    // 画面リフレッシュのためcurrentBabyStateを更新
-                                    currentBabyDispatch({
-                                        type: 'addBaby',
-                                        name: currentBabyState.name,
-                                        birthday: currentBabyState.birthday,
-                                        baby_id: currentBabyState.baby_id,
-                                    });
-                                    toggleModal();
-                                },
-                                (_, error) => {
-                                    console.error('削除中にエラーが発生しました:', error);
-                                }
-                            );
+                            // 画面リフレッシュのためcurrentBabyStateを更新
+                            currentBabyDispatch({
+                                type: 'addBaby',
+                                name: currentBabyState.name,
+                                birthday: currentBabyState.birthday,
+                                baby_id: currentBabyState.baby_id,
+                            });
+                            toggleModal();
                         },
                         (_, error) => {
                             Alert.alert('削除中にエラーが発生しました');
@@ -129,49 +103,56 @@ export default function ToiletEditForm(props) {
 
     return (
         <ScrollView scrollEnabled={false}>
-            <View style={styles.inputTypeContainer}>
+            <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title='おしっこ'
-                        checked={oshikko}
-                        onPress={() => setOshikko(!oshikko)}
+                        title="おしっこ"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'OSHIKKO'}
+                        onPress={() => setSelectedCategory('OSHIKKO')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
+                </View>
+                <View style={styles.radioButton}>
                     <CheckBox
-                        title='うんち'
-                        checked={unchi}
-                        onPress={() => setUnchi(!unchi)}
+                        title="うんち"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'UNCHI'}
+                        onPress={() => setSelectedCategory('UNCHI')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
             </View>
-            <View style={styles.inputContainer}>
-                <Text>メモ</Text>
+            <View style={styles.inputMemoContainer}>
+                <Text style={styles.inputTitle}>メモ</Text>
                 <TextInput
                     keyboardType="web-search"
-                    value={detailBody}
+                    value={memo}
                     multiline
-                    style={styles.input}
-                    onChangeText={(text) => { setBodyText(text); }}
-                    placeholder = "メモを入力"
+                    style={styles.memoInput}
+                    onChangeText={(text) => setMemo(text)}
+                    //placeholder="入力してください"
                 />
             </View>
-            <View style={styles.container}>
-                <TouchableOpacity style={styles.confirmButton} onPress={deleteItem} >
-                    <Text style={styles.confirmButtonText}>削除</Text>
+            <View style={modalStyles.container}>
+                <TouchableOpacity style={modalStyles.confirmDeleteButton} onPress={deleteItem}>
+                    <Text style={modalStyles.confirmDeleteButtonText}>削除</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.confirmButton} onPress={handlePress} >
-                    <Text style={styles.confirmButtonText}>更新</Text>
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress}>
+                    <Text style={modalStyles.confirmButtonText}>更新</Text>
                 </TouchableOpacity>
             </View>
-            <View style={styles.container}>
-                <TouchableOpacity style={styles.confirmButton} onPress={toggleModal} >
-                    <Text style={styles.confirmButtonText}>close</Text>
+            <View style={modalStyles.container}>
+                <TouchableOpacity style={modalStyles.confirmCloseButton} onPress={toggleModal}>
+                    <Text style={modalStyles.confirmCloseButtonText}>閉じる</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.advertisement}>
-                <Image style={{width: '100%'}}
-                    resizeMode='contain'
-                    source={require('../../img/IMG_3641.jpg')}
-                />
+                <Image style={{ width: '100%' }} resizeMode='contain' source={require('../../img/IMG_3641.jpg')} />
             </View>
         </ScrollView>
     );
@@ -179,53 +160,128 @@ export default function ToiletEditForm(props) {
 
 const styles = StyleSheet.create({
     inputTypeContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
+        paddingHorizontal: 10,
+        paddingTop: '5%',
     },
-    inputContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 125,
-        backgroundColor: '#859602'
+    inputAmountContainer: {
+        paddingHorizontal: 20,
+        paddingTop: '5%',
+        height: 90,
+        //backgroundColor: '#859602',
     },
-    input: {
+    inputMemoContainer: {
+        paddingHorizontal: 20,
+        //paddingVertical: '5%',
+        paddingTop: '5%',
+        height: 130,
+        //backgroundColor: '#859602',
+    },
+    inputTitle: {
+        fontSize: 15,
+        marginBottom: 5,
+        color: '#737373',
+    },
+    amountInput: {
+        flex: 1,
+        textAlignVertical: 'top',
+        fontSize: 16,
+        //lineHeight: 20,
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+    },
+    memoInput: {
         flex: 1,
         textAlignVertical: 'top',
         fontSize: 16,
         lineHeight: 25,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        padding: 10
+    },
+    disabledInput: {
+        backgroundColor: '#e0e0e0',
+    },
+    radioButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around', // チェックボックスの左右配置を中央に
     },
     radioButton: {
-        justifyContent: 'space-around',//横並び均等配置
+        width: '45%', // チェックボックスの幅を均等に設定
     },
+    checkboxContainer: {
+        //width: '80%',
+    },
+    checkboxTitle: {
+        fontSize: 15,
+    },
+    advertisement: {
+        paddingTop: '5%',
+        //paddingBottom: '5%',
+        alignItems: 'center',
+    },
+});
+
+const modalStyles = StyleSheet.create({
     container: {
         flexDirection: 'row',
+        paddingTop: '5%',
     },
-    confirmButton : {
+    confirmButton: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        marginTop : '5%',
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
-        borderWidth : 1,
-        borderRadius : 10,
-        width: "40%",
+        //marginTop: '5%',
+        //backgroundColor: '#FFF',
+        backgroundColor : '#FFDB59',
+        borderColor: '#FFDB59',
+        borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
     },
-    confirmButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
+    confirmButtonText: {
+        color: '#737373',
+        fontWeight: 'bold',
+        textAlign: 'center',
         padding: 10,
         fontSize: 16,
     },
-    advertisement: {
-        //marginTop: 'auto',
-        //marginBottom: 'auto',
-        paddingTop: 10,
-        paddingBottom: 10,
-        //height: '15%',
-        //width: '50%',
-        alignItems:'center',
-        //backgroundColor: '#464876',
+    confirmDeleteButton: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        //marginTop: '5%',
+        backgroundColor: '#FFF',
+        //backgroundColor : '#F97773',
+        //borderColor: '#737373',
+        //borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
+    },
+    confirmDeleteButtonText: {
+        color: '#737373',
+        //fontWeight: 'bold',
+        textAlign: 'center',
+        padding: 10,
+        fontSize: 16,
+    },
+    confirmCloseButton: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        //marginTop: '5%',
+        backgroundColor: '#FFF',
+        //backgroundColor : '#F97773',
+        //borderColor: '#737373',
+        //borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
+    },
+    confirmCloseButtonText: {
+        color: '#737373',
+        //fontWeight: 'bold',
+        textAlign: 'center',
+        padding: 10,
+        fontSize: 16,
     },
 });

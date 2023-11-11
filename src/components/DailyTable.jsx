@@ -58,15 +58,11 @@ export default function DailyTable(props) {
         bonyuTotal += milkData[key].bonyu
         bonyuCount += 1
     }
+
     for (let key in toiletData) {
-        if(toiletData[key].oshikko && toiletData[key].unchi) {
+        if(toiletData[key].category == 'OSHIKKO') {
             oshikkoCount += 1
-            unchiCount += 1
-        }
-        if(toiletData[key].oshikko && !toiletData[key].unchi) {
-            oshikkoCount += 1
-        }
-        if(!toiletData[key].oshikko && toiletData[key].unchi) {
+        } else if(toiletData[key].category == 'UNCHI') {
             unchiCount += 1
         }
     }

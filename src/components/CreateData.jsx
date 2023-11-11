@@ -88,13 +88,14 @@ export default function CreateData(props) {
                 categoryIcon = <MaterialCommunityIcons name='baby-bottle-outline' size={20} color="black" />;
                 categoryText = 'ミルク\n' + milk + 'ml';
                 break;
-            case 'TOILET':
-                categoryIcon = <MaterialCommunityIcons name='toilet' size={20} color="black" />;
-                const toilet = [];
-                if (oshikko) toilet.push('おしっこ');
-                if (unchi) toilet.push('うんち');
-                categoryText = toilet.join('、');
+            case 'OSHIKKO':
+                categoryIcon = <MaterialCommunityIcons name='toilet' size={18} color="black" />;
+                categoryText = 'おしっこ';
                 break;
+            case 'UNCHI':
+                categoryIcon = <MaterialCommunityIcons name='toilet' size={18} color="black" />;
+                categoryText = 'うんち';
+            break;
             case 'FOOD':
                 categoryIcon = <MaterialCommunityIcons name='food-fork-drink' size={20} color="black" />;
                 categoryText = '食べ物';

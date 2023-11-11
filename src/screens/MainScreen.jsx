@@ -119,7 +119,7 @@ export default function MainScreen(props) {
                         [dateTimeState.day, currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換
-                            setToiletData(data.filter(item => item.category === 'TOILET'))
+                            setToiletData(data.filter(item => item.category === 'OSHIKKO' || item.category === 'UNCHI'))
                         },
                         (_, error) => {
                             console.error('データの取得中にエラーが発生しました:', error);

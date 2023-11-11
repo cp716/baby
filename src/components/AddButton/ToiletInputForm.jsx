@@ -14,9 +14,8 @@ export default function ToiletInputForm(props) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = date.getDate();
     
-    const [oshikko, setOshikko] = useState(0);
-    const [unchi, setUnchi] = useState(0);
-    const [bodyText, setBodyText] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [memo, setMemo] = useState('');
 
     useEffect(() => {
         const db = SQLite.openDatabase('BABY.db');
@@ -33,17 +32,6 @@ export default function ToiletInputForm(props) {
                         console.error('テーブルの作成中にエラーが発生しました:', error);
                     }
                     );
-                // テーブルが存在しない場合は作成
-                tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS ToiletRecord_' + year + '_' + month + ' (record_id INTEGER, oshikko INTEGER, unchi INTEGER)',
-                [],
-                () => {
-                    //console.log('ToiletRecord_' + year + '_' + month + 'テーブルが作成されました');
-                },
-                (error) => {
-                    console.error('テーブルの作成中にエラーが発生しました:', error);
-                }
-                );
             },
             (error) => {
                 console.error('データベースのオープン中にエラーが発生しました:', error);
@@ -55,46 +43,32 @@ export default function ToiletInputForm(props) {
         const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
-                if (oshikko || unchi) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
+                if (selectedCategory !== null) {
                     tx.executeSql(
                         'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
                         [
                             currentBabyState.baby_id,
                             day,
-                            'TOILET',
-                            bodyText,
+                            selectedCategory,
+                            memo,
                             new Date(selectTime).toISOString()
                         ],
                         (_, result) => {
-                            const lastInsertId = result.insertId;
-                            tx.executeSql(
-                                'INSERT INTO ToiletRecord_' + year + '_' + month + ' (record_id, oshikko, unchi) VALUES (?, ?, ?)',
-                                [
-                                    lastInsertId,
-                                    oshikko,
-                                    unchi
-                                ],
-                                (_, result) => {
-                                    // 画面リフレッシュのためcurrentBabyStateを更新
-                                    currentBabyDispatch({
-                                        type: 'addBaby',
-                                        name: currentBabyState.name,
-                                        birthday: currentBabyState.birthday,
-                                        baby_id: currentBabyState.baby_id,
-                                    });
-                                    toggleModal();
-                                },
-                                (_, error) => {
-                                    console.error('データの挿入中にエラーが発生しました:', error);
-                                }
-                            );
+                            // 画面リフレッシュのためcurrentBabyStateを更新
+                            currentBabyDispatch({
+                                type: 'addBaby',
+                                name: currentBabyState.name,
+                                birthday: currentBabyState.birthday,
+                                baby_id: currentBabyState.baby_id,
+                            });
+                            toggleModal();
                         },
                         (_, error) => {
                             console.error('データの挿入中にエラーが発生しました:', error);
                         }
                     );
                 } else {
-                    Alert.alert('チェックが入っていません');
+                    Alert.alert('記録する項目を選んでください');
                 }
             }
         );
@@ -102,49 +76,50 @@ export default function ToiletInputForm(props) {
 
     return (
         <ScrollView scrollEnabled={false}>
-            <View style={styles.inputTypeContainer}>
+            <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title='おしっこ'
-                        //checked={oshikko}
-                        //onPress={() => setOshikko(!oshikko)}
-                        checked={oshikko === 1} // valueが1の場合に選択済み、それ以外の場合は未選択
-                        onPress={() => {setOshikko(oshikko === 1 ? 0 : 1);}}
+                        title="おしっこ"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'OSHIKKO'}
+                        onPress={() => setSelectedCategory('OSHIKKO')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
+                </View>
+                <View style={styles.radioButton}>
                     <CheckBox
-                        title='うんち'
-                        //checked={unchi}
-                        //onPress={() => setUnchi(!unchi)}
-                        checked={unchi === 1} // valueが1の場合に選択済み、それ以外の場合は未選択
-                        onPress={() => {setUnchi(unchi === 1 ? 0 : 1);}}
+                        title="うんち"
+                        checkedIcon="dot-circle-o"
+                        uncheckedIcon="circle-o"
+                        checked={selectedCategory === 'UNCHI'}
+                        onPress={() => setSelectedCategory('UNCHI')}
+                        containerStyle={styles.checkboxContainer}
+                        titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
             </View>
-            <View style={styles.inputContainer}>
-                <Text>メモ</Text>
+            <View style={styles.inputMemoContainer}>
+                <Text style={styles.inputTitle}>メモ</Text>
                 <TextInput
-                        keyboardType="web-search"
-                        value={bodyText}
-                        multiline
-                        style={styles.input}
-                        onChangeText={(text) => { setBodyText(text); }}
-                        //autoFocus
-                        placeholder = "メモを入力"
+                    keyboardType="web-search"
+                    value={memo}
+                    multiline
+                    style={styles.memoInput}
+                    onChangeText={(text) => setMemo(text)}
                 />
             </View>
             <View style={modalStyles.container}>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
-                    <Text style={modalStyles.confirmButtonText}>close</Text>
+                <TouchableOpacity style={modalStyles.confirmCloseButton} onPress={toggleModal}>
+                    <Text style={modalStyles.confirmCloseButtonText}>閉じる</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveToiletDataToSQLite} >
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveToiletDataToSQLite}>
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.advertisement}>
-                <Image style={{width: '100%'}}
-                    resizeMode='contain'
-                    source={require('../../img/IMG_3641.jpg')}
-                />
+                <Image style={{ width: '100%' }} resizeMode='contain' source={require('../../img/IMG_3641.jpg')} />
             </View>
         </ScrollView>
     );
@@ -152,66 +127,85 @@ export default function ToiletInputForm(props) {
 
 const styles = StyleSheet.create({
     inputTypeContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        //height: 50,
-        //backgroundColor: '#987652',
-        //flex: 1,
-        //flexDirection: 'row',
-        //width: 350 ,
+        paddingHorizontal: 10,
+        paddingTop: '5%',
     },
-    inputContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 125,
-        backgroundColor: '#859602'
-        //flex: 1,
+    inputMemoContainer: {
+        paddingHorizontal: 20,
+        //paddingVertical: '5%',
+        paddingTop: '5%',
+        height: 130,
+        //backgroundColor: '#859602',
     },
-    input: {
+    inputTitle: {
+        fontSize: 15,
+        marginBottom: 5,
+        color: '#737373',
+    },
+    memoInput: {
         flex: 1,
         textAlignVertical: 'top',
         fontSize: 16,
         lineHeight: 25,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        padding: 10
+    },
+    disabledInput: {
+        backgroundColor: '#e0e0e0',
+    },
+    radioButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around', // チェックボックスの左右配置を中央に
     },
     radioButton: {
-        //flexDirection: 'row',
-        //paddingLeft: 'auto',
-        //paddingRight: 'auto',
-        //marginLeft: 'auto',
-        //marginRight: 'auto',
-        justifyContent: 'space-around',//横並び均等配置
+        width: '45%', // チェックボックスの幅を均等に設定
+    },
+    checkboxContainer: {
+        //width: '80%',
+    },
+    checkboxTitle: {
+        fontSize: 15,
     },
     advertisement: {
-        //marginTop: 'auto',
-        //marginBottom: 'auto',
-        paddingTop: 10,
-        paddingBottom: 10,
-        //height: '15%',
-        //width: '50%',
-        alignItems:'center',
-        //backgroundColor: '#464876',
+        paddingTop: '5%',
+        alignItems: 'center',
     },
 });
 
 const modalStyles = StyleSheet.create({
     container: {
         flexDirection: 'row',
+        paddingTop: '5%',
     },
-    confirmButton : {
+    confirmButton: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        marginTop : '5%',
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
-        borderWidth : 1,
-        borderRadius : 10,
-        width: "40%",
+        backgroundColor: '#FFDB59',
+        borderColor: '#FFDB59',
+        borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
     },
-    confirmButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
+    confirmButtonText: {
+        color: '#737373',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        padding: 10,
+        fontSize: 16,
+    },
+    confirmCloseButton: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        backgroundColor: '#FFF',
+        borderRadius: 10,
+        width: '40%',
+    },
+    confirmCloseButtonText: {
+        color: '#737373',
+        textAlign: 'center',
         padding: 10,
         fontSize: 16,
     },

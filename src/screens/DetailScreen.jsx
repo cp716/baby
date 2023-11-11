@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, View, StyleSheet, Text } from "react-native";
+import { TouchableOpacity, View, StyleSheet, Text } from "react-native";
 
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MilkEditForm from "../components/EditForm/MilkEditForm";
@@ -19,7 +19,7 @@ export default function DetailScreen(props) {
     const day = dateTime.getDate();
     const hours = dateTime.getHours();
     const minutes = dateTime.getMinutes();
-    const mdhm =  month + 1 + '月' + day + '日' + hours + '時' + minutes + '分';
+    const mdhm =  month + 1 + '月' + day + '日' + '  ' + hours + '時' + minutes + '分';
 
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [selectTime, setselectTime] = useState(dateTime);
@@ -41,7 +41,7 @@ export default function DetailScreen(props) {
         const day = date.getDate();
         const hours = date.getHours();
         const minutes = date.getMinutes();
-        setDetailTime(month + 1 + '月' + day + '日' + hours + '時' + minutes + '分');
+        setDetailTime(month + 1 + '月' + day + '日' + '  ' + hours + '時' + minutes + '分');
     };
 
     //決定ボタン押下時の処理
@@ -55,7 +55,12 @@ export default function DetailScreen(props) {
     return (
         <View style={modalStyles.container}>
             <View>
-                <Button title={String(detailTime)} onPress={showDatePicker} />
+                <TouchableOpacity
+                    onPress={showDatePicker}
+                    style={styles.buttonContainer} // ボタンコンテナのスタイルを設定
+                >
+                    <Text style={styles.buttonText}>{String(detailTime)}</Text>
+                </TouchableOpacity>
                 <DateTimePickerModal
                     isVisible={isDatePickerVisible}
                     value={selectTime}
@@ -82,7 +87,7 @@ export default function DetailScreen(props) {
                         return (
                             <FoodEditForm selectTime={selectTime} babyData={babyData} toggleModal={toggleModal} />
                         );
-                    } else if (babyData.category == 'TOILET') {
+                    } else if (babyData.category == 'OSHIKKO' || babyData.category == 'UNCHI') {
                         return (
                             <ToiletEditForm selectTime={selectTime} babyData={babyData} toggleModal={toggleModal} />
                         );
@@ -132,6 +137,23 @@ const styles = StyleSheet.create({
     iconStyle: {
         marginLeft: 'auto',
         marginRight: 'auto',
+    },
+    buttonContainer: {
+        backgroundColor: '#fff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        padding: '5%',
+        margin: '5%',
+        width: '85%',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+    },
+    buttonText: {
+        color: '#0080FF',
+        //fontWeight: 'bold',
+        textAlign: 'center',
+        fontSize: 20,
     },
 });
 

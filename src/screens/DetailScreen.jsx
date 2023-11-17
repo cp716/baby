@@ -6,6 +6,7 @@ import MilkEditForm from "../components/EditForm/MilkEditForm";
 import FoodEditForm from "../components/EditForm/FoodEditForm";
 import DiseaseEditForm from "../components/EditForm/DiseaseEditForm";
 import ToiletEditForm from "../components/EditForm/ToiletEditForm";
+import BodyEditForm from "../components/EditForm/BodyEditForm";
 import FreeEditForm from "../components/EditForm/FreeEditForm";
 import { useDateTimeContext } from '../context/DateTimeContext';
 
@@ -94,6 +95,10 @@ export default function DetailScreen(props) {
                     } else if (babyData.category == 'HANAMIZU' || babyData.category == 'SEKI' || babyData.category == 'OTO' || babyData.category == 'HOSSHIN' || babyData.category == 'KEGA' || babyData.category == 'KUSURI' || babyData.category == 'TAION') {
                         return (
                             <DiseaseEditForm selectTime={selectTime} babyData={babyData} toggleModal={toggleModal} />
+                        );
+                    } else if (babyData.category == 'HEIGHT' || babyData.category == 'WEIGHT') {
+                        return (
+                            <BodyEditForm selectTime={selectTime} babyData={babyData} toggleModal={toggleModal} />
                         );
                     } else if (babyData.category == 'FREE') {
                         return (

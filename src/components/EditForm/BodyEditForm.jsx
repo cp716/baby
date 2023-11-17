@@ -4,19 +4,32 @@ import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { CheckBox } from 'react-native-elements'
 
-export default function ToiletEditForm(props) {
+export default function BodyEditForm(props) {
     const { selectTime } = props;
     const { babyData } = props;
     const { toggleModal } = props;
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
-    
+
     const year = selectTime.getFullYear();
     const month = String(selectTime.getMonth() + 1).padStart(2, '0');
 
     const [selectedCategory, setSelectedCategory] = useState(babyData.category);
+    const [value, setValue] = useState(String(babyData.value) == 0 ? '' : String(babyData.value));
     const [memo, setMemo] = useState(babyData.memo);
 
     function handlePress() {
+        let valueToSave = 0;
+        if (value !== '') {
+            valueToSave = Number(value);
+        }
+        if(selectedCategory == 'HEIGHT' && valueToSave < 20 || selectedCategory == 'HEIGHT' && valueToSave > 150 || selectedCategory == 'HEIGHT' &&  valueToSave === 0) {
+            Alert.alert("20cmから150cmまでの値を入力してください");
+            return;
+        }
+        if(selectedCategory == 'WEIGHT' && valueToSave < 1 || selectedCategory == 'WEIGHT' && valueToSave > 50 || selectedCategory == 'WEIGHT' &&  valueToSave === 0) {
+            Alert.alert("1kgから50kgまでの値を入力してください");
+            return;
+        }
         Alert.alert(
             '更新します', 'よろしいですか？',
             [
@@ -41,14 +54,26 @@ export default function ToiletEditForm(props) {
                                         babyData.record_id
                                     ],
                                     (_, result) => {
-                                        // 画面リフレッシュのためcurrentBabyStateを更新
-                                        currentBabyDispatch({
-                                            type: 'addBaby',
-                                            name: currentBabyState.name,
-                                            birthday: currentBabyState.birthday,
-                                            baby_id: currentBabyState.baby_id,
-                                        });
-                                        toggleModal();
+                                        tx.executeSql(
+                                            'UPDATE BodyRecord_' + year + '_' + month + ' SET value = ? WHERE record_id = ?',
+                                            [
+                                                valueToSave,
+                                                babyData.record_id
+                                            ],
+                                            (_, result) => {
+                                                // 画面リフレッシュのためcurrentBabyStateを更新
+                                                currentBabyDispatch({
+                                                    type: 'addBaby',
+                                                    name: currentBabyState.name,
+                                                    birthday: currentBabyState.birthday,
+                                                    baby_id: currentBabyState.baby_id,
+                                                });
+                                                toggleModal();
+                                            },
+                                            (_, error) => {
+                                                console.error('データの挿入中にエラーが発生しました:', error);
+                                            }
+                                        );
                                     },
                                     (_, error) => {
                                         console.error('データの挿入中にエラーが発生しました:', error);
@@ -81,7 +106,7 @@ export default function ToiletEditForm(props) {
                         [babyData.record_id],
                         (_, result) => {
                             tx.executeSql(
-                                'DELETE FROM ToiletRecord_' + year + '_' + month + ' WHERE record_id = ?',
+                                'DELETE FROM BodyRecord_' + year + '_' + month + ' WHERE record_id = ?',
                                 [babyData.record_id],
                                 (_, result) => {
                                     // 画面リフレッシュのためcurrentBabyStateを更新
@@ -109,32 +134,48 @@ export default function ToiletEditForm(props) {
             },
         ]);
     }
-
+    
     return (
         <ScrollView scrollEnabled={false}>
             <View style={styles.radioButtonContainer}>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title="おしっこ"
+                        title="身長"
                         checkedIcon="dot-circle-o"
                         uncheckedIcon="circle-o"
-                        checked={selectedCategory === 'OSHIKKO'}
-                        onPress={() => setSelectedCategory('OSHIKKO')}
+                        checked={selectedCategory === 'HEIGHT'}
+                        onPress={() => setSelectedCategory('HEIGHT')}
                         containerStyle={styles.checkboxContainer}
                         titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
                 <View style={styles.radioButton}>
                     <CheckBox
-                        title="うんち"
+                        title="体重"
                         checkedIcon="dot-circle-o"
                         uncheckedIcon="circle-o"
-                        checked={selectedCategory === 'UNCHI'}
-                        onPress={() => setSelectedCategory('UNCHI')}
+                        checked={selectedCategory === 'WEIGHT'}
+                        onPress={() => setSelectedCategory('WEIGHT')}
                         containerStyle={styles.checkboxContainer}
                         titleProps={{ style: styles.checkboxTitle }}
                     />
                 </View>
+            </View>
+            <View style={styles.inputValueContainer}>
+                <Text style={styles.inputTitle}>
+                    {selectedCategory === 'HEIGHT' || selectedCategory === 'WEIGHT' ? 
+                        (selectedCategory === 'HEIGHT' ? '身長(cm)' : '体重(kg)') : '身長 or 体重'}
+                </Text>
+                <TextInput
+                    keyboardType="decimal-pad"
+                    value={value}
+                    style={styles.valueInput}
+                    onChangeText={(text) => {
+                        setValue(text);
+                    }}
+                    textAlign={"center"}
+                    maxLength={5}
+                />
             </View>
             <View style={styles.inputMemoContainer}>
                 <Text style={styles.inputTitle}>メモ</Text>
@@ -172,7 +213,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingTop: '5%',
     },
-    inputAmountContainer: {
+    inputValueContainer: {
         paddingHorizontal: 20,
         paddingTop: '5%',
         height: 90,
@@ -190,7 +231,7 @@ const styles = StyleSheet.create({
         marginBottom: 5,
         color: '#737373',
     },
-    amountInput: {
+    valueInput: {
         flex: 1,
         textAlignVertical: 'top',
         fontSize: 16,

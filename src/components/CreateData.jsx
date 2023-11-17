@@ -12,6 +12,7 @@ export default function CreateData(props) {
     const { toiletData } = props;
     const { foodData } = props;
     const { diseaseData } = props;
+    const { bodyData } = props;
     const { freeData } = props;
     const { currentBaby } = props;
 
@@ -60,6 +61,15 @@ export default function CreateData(props) {
         Object.assign(combinedData[id], item);
     });
 
+    // BODYデータを統合
+        bodyData.forEach(item => {
+        const id = item.record_id;
+        if (!combinedData[id]) {
+            combinedData[id] = {};
+        }
+        Object.assign(combinedData[id], item);
+    });
+
     // FREEデータを統合
     freeData.forEach(item => {
         const id = item.record_id;
@@ -78,15 +88,33 @@ export default function CreateData(props) {
     });
 
     const renderItem = ({ item }) => {
-        const { category, record_time, junyu_left, junyu_right, milk, bonyu, oshikko, unchi, amount, body_temperature, free_text, memo } = item;
+        const { category, record_time, junyu_left, junyu_right, milk, bonyu, oshikko, unchi, amount, body_temperature, value, free_text, memo } = item;
     
         let categoryIcon;
         let categoryText;
+
+        let stringJnyuLeft = String(junyu_left).padStart(2, '0');
+        let stringJnyuRight = String(junyu_right).padStart(2, '0');
+
+        if(stringJnyuLeft == 0){
+            stringJnyuLeft = '00'
+        }
+        if(stringJnyuRight == 0){
+            stringJnyuRight = '00'
+        }
     
         switch (category) {
             case 'MILK':
-                categoryIcon = <MaterialCommunityIcons name='baby-bottle-outline' size={20} color="black" />;
+                categoryIcon = <MaterialCommunityIcons name='baby-bottle-outline' size={18} color="black" />;
                 categoryText = 'ミルク\n' + milk + 'ml';
+                break;
+            case 'BONYU':
+                categoryIcon = <MaterialCommunityIcons name='baby-bottle-outline' size={18} color="black" />;
+                categoryText = '母乳\n' + bonyu + 'ml';
+                break;
+            case 'JUNYU':
+                categoryIcon = <MaterialCommunityIcons name='baby-bottle-outline' size={18} color="black" />;
+                categoryText = '授乳(左)' + stringJnyuLeft + '分\n' + '授乳(右)' + stringJnyuRight + '分';
                 break;
             case 'OSHIKKO':
                 categoryIcon = <MaterialCommunityIcons name='toilet' size={18} color="black" />;
@@ -95,7 +123,7 @@ export default function CreateData(props) {
             case 'UNCHI':
                 categoryIcon = <MaterialCommunityIcons name='toilet' size={18} color="black" />;
                 categoryText = 'うんち';
-            break;
+                break;
             case 'FOOD':
                 categoryIcon = <MaterialCommunityIcons name='food-fork-drink' size={20} color="black" />;
                 categoryText = '食べ物';
@@ -134,6 +162,14 @@ export default function CreateData(props) {
                 categoryIcon = <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />;
                 categoryText = '体温\n' + body_temperature + '℃';
                 break;
+            case 'HEIGHT':
+                categoryIcon = <MaterialCommunityIcons name='human-male-height' size={20} color="black" />;
+                categoryText = '身長\n' + value + 'cm';
+                break;
+            case 'WEIGHT':
+                categoryIcon = <MaterialCommunityIcons name='human-male-height' size={20} color="black" />;
+                categoryText = '体重\n' + value + 'kg';
+                break;
             case 'FREE':
                 categoryIcon = <MaterialCommunityIcons name='pen' size={20} color="black" />;
                 categoryText = free_text;
@@ -155,177 +191,13 @@ export default function CreateData(props) {
                     <Text style={styles.tableTitle}>
                         {String(new Date(item.record_time).getHours()).padStart(2, '0')}:
                         {String(new Date(item.record_time).getMinutes()).padStart(2, '0')}
-                    </Text>}
-                />
+                    </Text>
+                }/>
                 <CreateDataDesign date={<Text style={styles.tableTitle}>{categoryIcon}</Text>} />
                 <CreateDataDesign date={<Text style={styles.tableTitle}>{categoryText}</Text>} />
                 <CreateMemoDataDesign date={<Text style={styles.tableTitle}>{memo}</Text>} />
             </TouchableOpacity>
         );
-
-        return(
-            <View>
-                {(() => {
-                    return(
-                        <TouchableOpacity
-                            style={styles.tabledesign}
-                            onPress={() => {
-                                setModalVisible(!isModalVisible);
-                                setModalEntry(item);
-                            }}
-                        >
-                            <CreateDataDesign date = {
-                                <Text style={styles.tableTitle}>
-                                    {String(new Date(item.record_time).getHours()).padStart(2, '0')}:
-                                    {String(new Date(item.record_time).getMinutes()).padStart(2, '0')}
-                                </Text>
-                            } />
-                            <CreateDataDesign date = {
-                                <Text style={styles.tableTitle}>
-                                {(() => {
-                                        if (item.category == 'JUNYU') {
-                                            return (
-                                                <MaterialCommunityIcons name='baby-bottle-outline' size={18} color="black" />
-                                                //'授乳'
-                                            );
-                                        } else if(item.category == 'MILK' || item.category == 'BONYU') {
-                                            return (
-                                                <MaterialCommunityIcons name='baby-bottle-outline' size={20} color="black" />
-                                                //'哺乳瓶'
-                                            );
-                                        }  else if(item.category == 'TOILET') {
-                                            return (
-                                                <MaterialCommunityIcons name='toilet' size={20} color="black" />
-                                                //'トイレ'
-                                            );
-                                        }  else if(item.category == 'HANAMIZU' || item.category === 'SEKI' || item.category === 'OTO' || item.category === 'HOSSHIN' || item.category === 'KEGA' || item.category === 'KUSURI' || item.category === 'TAION') {
-                                            return (
-                                                <MaterialCommunityIcons name='hospital-box-outline' size={18} color="black" />
-                                                //'体調'
-                                            );
-                                        }  else if(item.category == 'FOOD' || item.category === 'DRINK' ) {
-                                            return (
-                                                <MaterialCommunityIcons name='food-fork-drink' size={20} color="black" />
-                                                //'自由項目'
-                                            );
-                                        }  else if(item.category == 'FREE') {
-                                            return (
-                                                <MaterialCommunityIcons name='pen' size={20} color="black" />
-                                                //'自由項目'
-                                            );
-                                        }
-                                    })()}
-                                </Text>
-                            } />
-                            <CreateDataDesign date = {
-                                <Text style={styles.tableTitle}>
-                                {(() => {
-                                        if (item.category == 'JUNYU') {
-                                            return (
-                                                '左' + item.junyu_left +'分\n' +
-                                                '右' + item.junyu_right +'分'
-                                            );
-                                        } else if (item.category == 'MILK') {
-                                            return (
-                                                'ミルク\n' + item.milk +'ml'
-                                            );
-                                        } else if (item.category == 'BONYU') {
-                                            return (
-                                                '母乳\n' + item.bonyu +'ml'
-                                            )
-                                        } else if (item.category == 'TOILET') {
-                                            var toilet = "";
-                                            if(item.oshikko == 1) {
-                                                toilet += "「おしっこ」"
-                                            }
-                                            if(item.unchi == 1) {
-                                                toilet += "「うんち」"
-                                            }
-                                            return (
-                                                toilet
-                                            )
-                                        }else if (item.category == 'HANAMIZU') {
-                                            var disease = "鼻水"
-                                            return (
-                                                disease
-                                            )
-                                        }else if (item.category == 'SEKI') {
-                                            var disease = "咳"
-                                            return (
-                                                disease
-                                            )
-                                        }else if (item.category == 'OTO') {
-                                            var disease = "嘔吐"
-                                            return (
-                                                disease
-                                            )
-                                        }else if (item.category == 'HOSSHIN') {
-                                            var disease = "発疹"
-                                            return (
-                                                disease
-                                            )
-                                        }else if (item.category == 'KEGA') {
-                                            var disease = "怪我"
-                                            return (
-                                                disease
-                                            )
-                                        }else if (item.category == 'KUSURI') {
-                                            var disease = "薬"
-                                            return (
-                                                disease
-                                            )
-                                        }else if (item.category == 'TAION') {
-                                            var disease = "体温"
-                                            disease += "\n" + item.body_temperature + '℃'
-                                            return (
-                                                disease
-                                            )
-                                        }else if (item.category == 'FOOD') {
-                                            var food = "食事"
-                                            if(item.amount) {
-                                                food += "\n" + item.amount + 'g'
-                                            }
-                                            return (
-                                                food
-                                            )
-                                        }else if (item.category == 'DRINK') {
-                                            var drink = "飲物"
-                                            if(item.amount) {
-                                                drink += "\n" + item.amount + 'ml'
-                                            }
-                                            return (
-                                                drink
-                                            )
-                                        }else if (item.category == 'FREE') {
-                                            return (
-                                                item.free_text
-                                            )
-                                        }
-                                    })()}
-                                </Text>
-                            } />
-                            <CreateMemoDataDesign date = {<Text style={styles.tableTitle} >{item.memo}</Text>} />
-                            <Modal
-                                isVisible={isModalVisible}
-                                onBackdropPress={toggleModal}
-                                //backdropTransitionOutTiming={0}
-                                //modalレパートリー
-                                //"bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" |
-                                animationIn="fadeInRightBig"
-                                animationOut="fadeOutRightBig"
-                                avoidKeyboard={true}
-                                //swipeDirection='right'
-                                //onSwipeComplete={toggleModal}
-                                useNativeDriver//チラつき防止
-                                hideModalContentWhileAnimating={true}
-                            >
-                                <DetailScreen babyData={modalEntry} toggleModal={toggleModal} />
-                            </Modal>
-                        </TouchableOpacity>
-                    )
-                })()}
-            </View>
-        )       
     } 
 
     return (
@@ -348,17 +220,6 @@ export default function CreateData(props) {
         </Modal>
         </View>
     );
-    
-    return (
-        <View style={styles.container}>
-            <FlatList
-                //inverted//反転
-                data={combinedArray} // ソート済みデータを渡す
-                renderItem={renderItem}
-                keyExtractor={(item) => { return item.record_id; }}
-            />
-        </View>
-    )
 }
 
 const styles = StyleSheet.create({

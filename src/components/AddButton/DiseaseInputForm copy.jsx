@@ -60,7 +60,7 @@ export default function DiseaseInputForm(props) {
         const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
-                if (hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) { // どちらか片方または両方のチェックが入っている場合のみINSERTを実行
+                if (hanamizu || seki || oto || hosshin || kega || kusuri || bodyTemperature) { // いずれかにチェックが入っている場合のみINSERTを実行
                     if(bodyTemperature >= 32 && bodyTemperature <= 43 || bodyTemperature == '') {
                         let temperature = 0;
                         if (bodyTemperature !== "") {

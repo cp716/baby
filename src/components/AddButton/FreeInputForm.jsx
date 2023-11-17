@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Image } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
-import { CheckBox } from 'react-native-elements'
 
 export default function FreeInputForm(props) {
     const { selectTime } = props;
@@ -15,7 +14,7 @@ export default function FreeInputForm(props) {
     const day = date.getDate();
     
     const [freeText, setFreeText] = useState('');
-    const [bodyText, setBodyText] = useState('');
+    const [memo, setMemo] = useState('');
 
     useEffect(() => {
         const db = SQLite.openDatabase('BABY.db');
@@ -50,7 +49,7 @@ export default function FreeInputForm(props) {
         );
     }, []);
 
-    const saveToiletDataToSQLite = () => {
+    const saveFreeDataToSQLite = () => {
         const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
@@ -61,7 +60,7 @@ export default function FreeInputForm(props) {
                             currentBabyState.baby_id,
                             day,
                             'FREE',
-                            bodyText,
+                            memo,
                             new Date(selectTime).toISOString()
                         ],
                         (_, result) => {
@@ -92,7 +91,7 @@ export default function FreeInputForm(props) {
                         }
                     );
                 } else {
-                    Alert.alert('チェックが入っていません');
+                    Alert.alert('入力をしてください');
                 }
             }
         );
@@ -100,35 +99,34 @@ export default function FreeInputForm(props) {
     
     return (
         <ScrollView scrollEnabled={false}>
-            <View style={styles.inputContainer}>
-                <Text>自由入力</Text>
+            <View style={styles.inputFreeTextContainer}>
+                <Text style={styles.inputTitle}>自由入力</Text>
                 <TextInput
-                        keyboardType="web-search"
-                        value={freeText}
-                        //multiline
-                        style={styles.input}
-                        onChangeText={(text) => { setFreeText(text); }}
-                        //autoFocus
-                        placeholder = "自由項目を入力"
+                    keyboardType="default"
+                    value={freeText}
+                    style={styles.freeTextInput}
+                    onChangeText={(text) => {
+                        setFreeText(text);
+                    }}
+                    textAlign={"center"}
+                    maxLength={10}
                 />
             </View>
-            <View style={styles.inputTextContainer}>
-                <Text>メモ</Text>
+            <View style={styles.inputMemoContainer}>
+                <Text style={styles.inputTitle}>メモ</Text>
                 <TextInput
-                        keyboardType="web-search"
-                        value={bodyText}
-                        multiline
-                        style={styles.input}
-                        onChangeText={(text) => { setBodyText(text); }}
-                        //autoFocus
-                        placeholder = "メモを入力"
+                    keyboardType="web-search"
+                    value={memo}
+                    multiline
+                    style={styles.memoInput}
+                    onChangeText={(text) => setMemo(text)}
                 />
             </View>
             <View style={modalStyles.container}>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
-                    <Text style={modalStyles.confirmButtonText}>close</Text>
+                <TouchableOpacity style={modalStyles.confirmCloseButton} onPress={toggleModal}>
+                    <Text style={modalStyles.confirmCloseButtonText}>閉じる</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveToiletDataToSQLite} >
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveFreeDataToSQLite}>
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>
@@ -144,73 +142,101 @@ export default function FreeInputForm(props) {
 
 const styles = StyleSheet.create({
     inputTypeContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        //height: 50,
-        //backgroundColor: '#987652',
-        //flex: 1,
-        //flexDirection: 'row',
-        //width: 350 ,
+        paddingHorizontal: 10,
+        paddingTop: '5%',
     },
-    inputContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 75,
-        backgroundColor: '#859602'
-        //flex: 1,
+    inputFreeTextContainer: {
+        paddingHorizontal: 20,
+        paddingTop: '5%',
+        height: 90,
+        //backgroundColor: '#859602',
     },
-    inputTextContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 125,
-        backgroundColor: '#859602'
-        //flex: 1,
+    inputMemoContainer: {
+        paddingHorizontal: 20,
+        //paddingVertical: '5%',
+        paddingTop: '5%',
+        height: 130,
+        //backgroundColor: '#859602',
     },
-    input: {
+    inputTitle: {
+        fontSize: 15,
+        marginBottom: 5,
+        color: '#737373',
+    },
+    freeTextInput: {
+        flex: 1,
+        textAlignVertical: 'top',
+        fontSize: 16,
+        //lineHeight: 20,
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+    },
+    memoInput: {
         flex: 1,
         textAlignVertical: 'top',
         fontSize: 16,
         lineHeight: 25,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        padding: 10
+    },
+    disabledInput: {
+        backgroundColor: '#e0e0e0',
+    },
+    radioButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around', // チェックボックスの左右配置を中央に
     },
     radioButton: {
-        //flexDirection: 'row',
-        //paddingLeft: 'auto',
-        //paddingRight: 'auto',
-        //marginLeft: 'auto',
-        //marginRight: 'auto',
-        justifyContent: 'space-around',//横並び均等配置
+        width: '45%', // チェックボックスの幅を均等に設定
+    },
+    checkboxContainer: {
+        //width: '80%',
+    },
+    checkboxTitle: {
+        fontSize: 15,
     },
     advertisement: {
-        //marginTop: 'auto',
-        //marginBottom: 'auto',
-        paddingTop: 10,
-        paddingBottom: 10,
-        //height: '15%',
-        //width: '50%',
-        alignItems:'center',
-        //backgroundColor: '#464876',
+        paddingTop: '5%',
+        alignItems: 'center',
     },
 });
 
 const modalStyles = StyleSheet.create({
     container: {
         flexDirection: 'row',
+        paddingTop: '5%',
     },
-    confirmButton : {
+    confirmButton: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        marginTop : '5%',
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
-        borderWidth : 1,
-        borderRadius : 10,
-        width: "40%",
+        backgroundColor: '#FFDB59',
+        borderColor: '#FFDB59',
+        borderWidth: 0.5,
+        borderRadius: 10,
+        width: '40%',
     },
-    confirmButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
+    confirmButtonText: {
+        color: '#737373',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        padding: 10,
+        fontSize: 16,
+    },
+    confirmCloseButton: {
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        backgroundColor: '#FFF',
+        borderRadius: 10,
+        width: '40%',
+    },
+    confirmCloseButtonText: {
+        color: '#737373',
+        textAlign: 'center',
         padding: 10,
         fontSize: 16,
     },

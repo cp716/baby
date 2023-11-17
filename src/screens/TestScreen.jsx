@@ -74,7 +74,8 @@ export default function TestScreen() {
       db.transaction(
         (tx) => {
           tx.executeSql(
-            'SELECT * FROM baby_data',
+            //'SELECT * FROM CommonRecord_2023_11',
+            'SELECT * FROM DiseaseRecord_2023_11',
             [],
             (_, resultSet) => {
               const data = resultSet.rows._array; // データをJSON形式に変換

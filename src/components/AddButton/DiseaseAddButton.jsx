@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import DiseaseInputForm from "./DiseaseInputForm";
 import Modal from "react-native-modal";

@@ -108,7 +108,8 @@ export default function RecordScreen(props) {
                 if (rows.length > 0) {
                     // テーブルが存在する場合のみSELECT文を実行
                     tx.executeSql(
-                        'SELECT ' + commonRecordTable + '.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
+                        //'SELECT ' + commonRecordTable + '.*, ' + toiletRecordTable + '.oshikko, ' + toiletRecordTable + '.unchi FROM ' + commonRecordTable + ' LEFT JOIN ' + toiletRecordTable + ' ON ' + commonRecordTable + '.record_id = ' + toiletRecordTable + '.record_id WHERE ' + commonRecordTable + '.baby_id = ?;',
+                        'SELECT ' + commonRecordTable + '.* FROM ' + commonRecordTable +  ' WHERE ' + commonRecordTable + '.day = ? AND ' + commonRecordTable + '.baby_id = ?;',
                         [currentBabyState.baby_id],
                         (_, { rows }) => {
                             const data = rows._array; // クエリ結果を配列に変換

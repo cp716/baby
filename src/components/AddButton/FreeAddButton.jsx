@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, View, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { TouchableOpacity, View, StyleSheet, Text } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import FreeInputForm from "./FreeInputForm";
 import Modal from "react-native-modal";
@@ -71,9 +71,13 @@ export default function FreeAddButton() {
                 onSwipeComplete={toggleModal}
                 >
                 <View style={modalStyles.container}>
-                    <Text style={modalStyles.title}>自由項目登録</Text>
                     <View>
-                        <Button title={String(detailTime)} onPress={showDatePicker} />
+                        <TouchableOpacity
+                            onPress={showDatePicker}
+                            style={styles.buttonContainer} // ボタンコンテナのスタイルを設定
+                        >
+                            <Text style={styles.buttonText}>{String(detailTime)}</Text>
+                        </TouchableOpacity>
                         <DateTimePickerModal
                             isVisible={isDatePickerVisible}
                             value={selectTime}
@@ -127,6 +131,23 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         backgroundColor: '#ffffff'
     },
+    buttonContainer: {
+        backgroundColor: '#fff',
+        borderColor: '#737373',
+        borderWidth: 0.5,
+        borderRadius: 5,
+        padding: '5%',
+        margin: '5%',
+        width: '85%',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+    },
+    buttonText: {
+        color: '#0080FF',
+        //fontWeight: 'bold',
+        textAlign: 'center',
+        fontSize: 20,
+    },
 });
 
 const modalStyles = StyleSheet.create({
@@ -136,26 +157,11 @@ const modalStyles = StyleSheet.create({
         borderWidth : 1,
         borderRadius : 10,
     },
-    modalButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
-        padding: 10,
-        fontSize: 20,
-    },
     container : {
-        backgroundColor : '#FFF',
+        backgroundColor : '#F0F4F8',
         padding : '5%',
-        borderColor : '#36C1A7',
-        borderWidth : 3,
-        borderRadius : 20,
+        borderColor : '#F0F4F8',
+        borderWidth : 5,
+        borderRadius : 10,
     },
-    title : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign: 'center'
-    },
-    //arrow : {
-        //color : '#36C1A7',
-    //},
 });

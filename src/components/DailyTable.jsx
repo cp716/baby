@@ -7,6 +7,7 @@ export default function DailyTable(props) {
     const { toiletData } = props;
     const { foodData } = props;
     const { diseaseData } = props;
+    const { bodyData } = props;
 
     // フォーマット関数を定義
     function formatTime(time) {
@@ -21,6 +22,14 @@ export default function DailyTable(props) {
         return total ? total + 'g' : '-';
     }
 
+    function formatKgram(total) {
+        return total ? total + 'kg' : '-';
+    }
+
+    function formatCm(total) {
+        return total ? total + 'cm' : '-';
+    }
+
     function formatCount(count) {
         return count ? count + '回' : '-';
     }
@@ -30,7 +39,7 @@ export default function DailyTable(props) {
     }
 
     function formatTemperature(temperature) {
-        return temperature ? temperature + '℃' : '-';
+        return temperature ? '最新\n' + temperature + '℃' : '-';
     }
 
     let junyLeftTotal = 0;
@@ -41,11 +50,13 @@ export default function DailyTable(props) {
     let oshikkoCount = 0;
     let unchiCount = 0;
     let bodyTemperature = 0;
-    let bodyTemperatureTime = '';
+    let bodyTemperatureTime = 0;
     let foodCount = 0;
     let foodTotal = 0;
     let drinkCount = 0;
     let drinkTotal = 0;
+    let heightValue = 0;
+    let weightValue = 0;
 
     for (let key in milkData) {
         junyLeftTotal += milkData[key].junyu_left
@@ -98,10 +109,23 @@ export default function DailyTable(props) {
         }
     }
 
+    for (let key in bodyData) {
+        const value = parseFloat(bodyData[key].value); // value を数値に変換
+        const dateTimeString = bodyData[key].record_time;
+        const dateTime = new Date(dateTimeString);
+            if (bodyData[key].category == 'HEIGHT') {
+                // 現在の体温が最新の場合、または bodyTemperature が null の場合
+                heightValue = parseFloat(bodyData[key].value);
+            } else if(bodyData[key].category == 'WEIGHT') {
+                weightValue = parseFloat(bodyData[key].value);
+            }
+        //}
+    }
+
     const tableHead_1 = ['授乳', '哺乳瓶', '飲食']
     const tableData_1 = ['左\n' + formatTime(junyLeftTotal), '右\n' + formatTime(junyRightTotal), 'ミルク\n' + formatMl(milkTotal), '母乳\n' + formatMl(bonyuTotal), '食物\n' + formatGram(foodTotal), '飲物\n' + formatMl(drinkTotal)]
     const tableHead_2 = ['トイレ', '睡眠', '体温', '身長', '体重']
-    const tableData_2 = ['尿\n' + formatCount(oshikkoCount), 'うんち\n' + formatCount(unchiCount), 'XX分', '最新\n' + formatTemperature(bodyTemperature), 'XXcm', 'XXkg']
+    const tableData_2 = ['尿\n' + formatCount(oshikkoCount), 'うんち\n' + formatCount(unchiCount), 'XX分', formatTemperature(bodyTemperature), formatCm(heightValue), formatKgram(weightValue)]
     const widthArr_1 = [110, 110, 110]
     const widthArr_2 = [55, 55, 55, 55, 55, 55]
     const widthArr_3 = [110, 55, 55, 55, 55]

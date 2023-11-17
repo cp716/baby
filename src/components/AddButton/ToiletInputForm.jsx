@@ -31,7 +31,18 @@ export default function ToiletInputForm(props) {
                     (error) => {
                         console.error('テーブルの作成中にエラーが発生しました:', error);
                     }
-                    );
+                );
+                // テーブルが存在しない場合は作成
+                tx.executeSql(
+                    'CREATE TABLE IF NOT EXISTS ToiletRecord_' + year + '_' + month + ' (record_id INTEGER)',
+                    [],
+                    () => {
+                        // console.log('ToiletRecord_' + year + '_' + month + 'テーブルが作成されました');
+                    },
+                    (error) => {
+                        console.error('テーブルの作成中にエラーが発生しました:', error);
+                    }
+                );
             },
             (error) => {
                 console.error('データベースのオープン中にエラーが発生しました:', error);
@@ -51,17 +62,27 @@ export default function ToiletInputForm(props) {
                             day,
                             selectedCategory,
                             memo,
-                            new Date(selectTime).toISOString()
+                            new Date(selectTime).toISOString(),
                         ],
                         (_, result) => {
-                            // 画面リフレッシュのためcurrentBabyStateを更新
-                            currentBabyDispatch({
-                                type: 'addBaby',
-                                name: currentBabyState.name,
-                                birthday: currentBabyState.birthday,
-                                baby_id: currentBabyState.baby_id,
-                            });
-                            toggleModal();
+                            const lastInsertId = result.insertId;
+                            tx.executeSql(
+                                'INSERT INTO ToiletRecord_' + year + '_' + month + ' (record_id) VALUES (?)',
+                                [lastInsertId],
+                                (_, result) => {
+                                    // 画面リフレッシュのためcurrentBabyStateを更新
+                                    currentBabyDispatch({
+                                        type: 'addBaby',
+                                        name: currentBabyState.name,
+                                        birthday: currentBabyState.birthday,
+                                        baby_id: currentBabyState.baby_id,
+                                    });
+                                    toggleModal();
+                                },
+                                (_, error) => {
+                                    console.error('データの挿入中にエラーが発生しました:', error);
+                                }
+                            );
                         },
                         (_, error) => {
                             console.error('データの挿入中にエラーが発生しました:', error);

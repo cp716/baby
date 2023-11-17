@@ -56,7 +56,7 @@ export default function FoodInputForm(props) {
         db.transaction(
             (tx) => {
                 if (selectedCategory !== null) {
-                    let amountToSave = null;
+                    let amountToSave = 0;
                     if (amount !== '') {
                         amountToSave = Number(amount);
                     }
@@ -129,8 +129,8 @@ export default function FoodInputForm(props) {
             <View style={styles.inputAmountContainer}>
                 <Text style={styles.inputTitle}>
                     {selectedCategory === 'FOOD' || selectedCategory === 'DRINK' || selectedCategory === 'category1' || selectedCategory === 'category2' ? 
-                        (selectedCategory === 'FOOD' ? '食べ物(単位/g)' : selectedCategory === 'DRINK' ? '飲み物(単位/ml)' : '量')
-                        : '量'}
+                        (selectedCategory === 'FOOD' ? '食べ物(g)' : selectedCategory === 'DRINK' ? '飲み物(ml)' : '食べ物 or 飲み物')
+                        : '食べ物 or 飲み物'}
                 </Text>
                 <TextInput
                     keyboardType="number-pad"

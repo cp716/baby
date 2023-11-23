@@ -17,11 +17,19 @@ export default function BodyEditForm(props) {
     const [value, setValue] = useState(String(babyData.value) == 0 ? '' : String(babyData.value));
     const [memo, setMemo] = useState(babyData.memo);
 
-    function handlePress() {
+    function saveBodyDataToSQLite() {
         let valueToSave = 0;
         if (value !== '') {
             valueToSave = Number(value);
+            if (isNaN(valueToSave)) {
+                Alert.alert("有効な値を入力してください");
+                return;
+            }
+        } else {
+            Alert.alert("値を入力してください");
+            return;
         }
+        valueToSave = Math.floor(valueToSave * 10) / 10;
         if(selectedCategory == 'HEIGHT' && valueToSave < 20 || selectedCategory == 'HEIGHT' && valueToSave > 150 || selectedCategory == 'HEIGHT' &&  valueToSave === 0) {
             Alert.alert("20cmから150cmまでの値を入力してください");
             return;
@@ -86,6 +94,23 @@ export default function BodyEditForm(props) {
             ],
         );
     }
+
+    const handlePress = () => {
+        Alert.alert('更新します', 'よろしいですか？', [
+            {
+                text: 'キャンセル',
+                style: 'cancel',
+                onPress: () => {},
+            },
+            {
+                text: '更新',
+                style: 'default',
+                onPress: () => {
+                    saveBodyDataToSQLite();
+                },
+            },
+        ]);
+    };
 
     function deleteItem() {
         Alert.alert('削除します', 'よろしいですか？', [
@@ -192,7 +217,7 @@ export default function BodyEditForm(props) {
                 <TouchableOpacity style={modalStyles.confirmDeleteButton} onPress={deleteItem}>
                     <Text style={modalStyles.confirmDeleteButtonText}>削除</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress}>
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveBodyDataToSQLite}>
                     <Text style={modalStyles.confirmButtonText}>更新</Text>
                 </TouchableOpacity>
             </View>

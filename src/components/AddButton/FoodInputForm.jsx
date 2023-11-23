@@ -55,49 +55,80 @@ export default function FoodInputForm(props) {
         const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
-                if (selectedCategory !== null) {
-                    let amountToSave = 0;
-                    if (amount !== '') {
-                        amountToSave = Number(amount);
-                    }
-                    tx.executeSql(
-                        'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
-                        [
-                            currentBabyState.baby_id,
-                            day,
-                            selectedCategory,
-                            memo,
-                            new Date(selectTime).toISOString(),
-                        ],
-                        (_, result) => {
-                            const lastInsertId = result.insertId;
-                            tx.executeSql(
-                                'INSERT INTO FoodRecord_' + year + '_' + month + ' (record_id, amount) VALUES (?, ?)',
-                                [lastInsertId, amountToSave],
-                                (_, result) => {
-                                    // 画面リフレッシュのためcurrentBabyStateを更新
-                                    currentBabyDispatch({
-                                        type: 'addBaby',
-                                        name: currentBabyState.name,
-                                        birthday: currentBabyState.birthday,
-                                        baby_id: currentBabyState.baby_id,
-                                    });
-                                    toggleModal();
-                                },
-                                (_, error) => {
-                                    console.error('データの挿入中にエラーが発生しました:', error);
-                                }
-                            );
-                        },
-                        (_, error) => {
-                            console.error('データの挿入中にエラーが発生しました:', error);
-                        }
-                    );
-                } else {
-                    Alert.alert('記録する項目を選んでください');
+                let amountToSave = 0;
+                if (amount !== '') {
+                    amountToSave = Number(amount);
                 }
+                tx.executeSql(
+                    'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                    [
+                        currentBabyState.baby_id,
+                        day,
+                        selectedCategory,
+                        memo,
+                        new Date(selectTime).toISOString(),
+                    ],
+                    (_, result) => {
+                        const lastInsertId = result.insertId;
+                        tx.executeSql(
+                            'INSERT INTO FoodRecord_' + year + '_' + month + ' (record_id, amount) VALUES (?, ?)',
+                            [lastInsertId, amountToSave],
+                            (_, result) => {
+                                // 画面リフレッシュのためcurrentBabyStateを更新
+                                currentBabyDispatch({
+                                    type: 'addBaby',
+                                    name: currentBabyState.name,
+                                    birthday: currentBabyState.birthday,
+                                    baby_id: currentBabyState.baby_id,
+                                });
+                                toggleModal();
+                            },
+                            (_, error) => {
+                                console.error('データの挿入中にエラーが発生しました:', error);
+                            }
+                        );
+                    },
+                    (_, error) => {
+                        console.error('データの挿入中にエラーが発生しました:', error);
+                    }
+                );
             }
         );
+    };
+
+    const handleButtonPress = () => {
+        const nowDate = new Date();
+        const nowYear = nowDate.getFullYear();
+        const nowMonth = String(nowDate.getMonth() + 1).padStart(2, '0');
+        const nowDay = nowDate.getDate();
+
+        if (selectedCategory !== null) {
+            if (amount == "" || Number.isInteger(amount)) {
+                if(nowYear + nowMonth + nowDay !== year + month + day){
+                    Alert.alert('本日の記録ではありません', '登録してもよろしいですか？', [
+                        {
+                            text: 'キャンセル',
+                            style: 'cancel',
+                            onPress: () => {return;},
+                        },
+                        {
+                            text: '登録',
+                            style: 'destructive',
+                            onPress: () => {
+                                saveFoodDataToSQLite();
+                            },
+                        },
+                    ]);
+                    
+                } else {
+                    saveFoodDataToSQLite();
+                }
+            } else {
+                Alert.alert('有効な値(整数)を入力してください');
+            }
+        } else {
+            Alert.alert('記録する項目を選んでください');
+        }
     };
 
     return (
@@ -157,7 +188,7 @@ export default function FoodInputForm(props) {
                 <TouchableOpacity style={modalStyles.confirmCloseButton} onPress={toggleModal}>
                     <Text style={modalStyles.confirmCloseButtonText}>閉じる</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveFoodDataToSQLite}>
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={handleButtonPress}>
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>

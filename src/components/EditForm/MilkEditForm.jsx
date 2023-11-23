@@ -163,7 +163,7 @@ export default function ToiletEditForm(props) {
         if (selectedCategory !== null) {
             if (
             (Number(milk) !== 0 || Number(bonyu) !== 0 || Number(junyuLeft)  !== 0 || Number(junyuRight) !== 0) &&
-            (Number.isInteger(Number(milk)) || Number.isInteger(Number(bonyu)) || Number.isInteger(Number(junyuLeft)) || Number.isInteger(Number(junyuRight)))
+            (Number.isInteger(Number(milk)) && Number.isInteger(Number(bonyu)) && Number.isInteger(Number(junyuLeft)) && Number.isInteger(Number(junyuRight)))
             ) {
                 Alert.alert('更新します', 'よろしいですか？', [
                     {
@@ -180,7 +180,7 @@ export default function ToiletEditForm(props) {
                     },
                 ]);
             } else {
-                Alert.alert('正しい数値(整数)を入力してください');
+                Alert.alert('有効な値(整数)を入力してください');
             }
         } else {
             Alert.alert('記録する項目を選んでください');

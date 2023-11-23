@@ -210,7 +210,7 @@ export default function ToiletInputForm(props) {
                     saveMilkDataToSQLite();
                 }
             } else {
-                Alert.alert('正しい数値(整数)を入力してください');
+                Alert.alert('有効な値(整数)を入力してください');
             }
         } else {
             Alert.alert('記録する項目を選んでください');

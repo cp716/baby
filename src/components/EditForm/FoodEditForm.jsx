@@ -17,20 +17,8 @@ export default function FoodEditForm(props) {
     const [amount, setAmount] = useState(String(babyData.amount) == 0 ? '' : String(babyData.amount));
     const [memo, setMemo] = useState(babyData.memo);
 
-    function handlePress() {
-        Alert.alert(
-            '更新します', 'よろしいですか？',
-            [
-                {
-                    text: 'キャンセル',
-                    style: 'cancel',
-                    onPress: () => {},
-                },
-                {
-                    text: '更新',
-                    style: 'default',
-                    onPress: () => {
-                        const db = SQLite.openDatabase('BABY.db');
+    function saveFoodDataToSQLite() {
+        const db = SQLite.openDatabase('BABY.db');
                         let amountToSave = 0;
                         if (amount !== '') {
                             amountToSave = Number(amount);
@@ -73,11 +61,33 @@ export default function FoodEditForm(props) {
                                 );
                             }
                         );
-                    },
-                },
-            ],
-        );
     }
+
+    const handlePress = () => {
+        if (selectedCategory !== null) {
+            if (Number(amount) == "" || Number.isInteger(Number(amount))
+            ) {
+                Alert.alert('更新します', 'よろしいですか？', [
+                    {
+                        text: 'キャンセル',
+                        style: 'cancel',
+                        onPress: () => {},
+                    },
+                    {
+                        text: '更新',
+                        style: 'default',
+                        onPress: () => {
+                            saveFoodDataToSQLite();
+                        },
+                    },
+                ]);
+            } else {
+                Alert.alert('有効な値(整数)を入力してください');
+            }
+        } else {
+            Alert.alert('記録する項目を選んでください');
+        }
+    };
 
     function deleteItem() {
         Alert.alert('削除します', 'よろしいですか？', [

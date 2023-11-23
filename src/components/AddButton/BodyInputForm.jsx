@@ -55,57 +55,92 @@ export default function BodyInputForm(props) {
         const db = SQLite.openDatabase('BABY.db');
         db.transaction(
             (tx) => {
-                if (selectedCategory !== null) {
-                    let valueToSave = 0;
-                    if (value !== '') {
-                        valueToSave = Number(value);
-                    }
-                    if(selectedCategory == 'HEIGHT' && valueToSave < 20 || selectedCategory == 'HEIGHT' && valueToSave > 150 || selectedCategory == 'HEIGHT' &&  valueToSave === 0) {
-                        Alert.alert("20cmから150cmまでの値を入力してください");
+                let valueToSave = 0;
+                if (value !== '') {
+                    valueToSave = Number(value);
+                    if (isNaN(valueToSave)) {
+                        Alert.alert("有効な値を入力してください");
                         return;
                     }
-                    if(selectedCategory == 'WEIGHT' && valueToSave < 1 || selectedCategory == 'WEIGHT' && valueToSave > 50 || selectedCategory == 'WEIGHT' &&  valueToSave === 0) {
-                        Alert.alert("1kgから50kgまでの値を入力してください");
-                        return;
-                    }
-                    tx.executeSql(
-                        'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
-                        [
-                            currentBabyState.baby_id,
-                            day,
-                            selectedCategory,
-                            memo,
-                            new Date(selectTime).toISOString(),
-                        ],
-                        (_, result) => {
-                            const lastInsertId = result.insertId;
-                            tx.executeSql(
-                                'INSERT INTO BodyRecord_' + year + '_' + month + ' (record_id, value) VALUES (?, ?)',
-                                [lastInsertId, valueToSave],
-                                (_, result) => {
-                                    // 画面リフレッシュのためcurrentBabyStateを更新
-                                    currentBabyDispatch({
-                                        type: 'addBaby',
-                                        name: currentBabyState.name,
-                                        birthday: currentBabyState.birthday,
-                                        baby_id: currentBabyState.baby_id,
-                                    });
-                                    toggleModal();
-                                },
-                                (_, error) => {
-                                    console.error('データの挿入中にエラーが発生しました:', error);
-                                }
-                            );
-                        },
-                        (_, error) => {
-                            console.error('データの挿入中にエラーが発生しました:', error);
-                        }
-                    );
                 } else {
-                    Alert.alert('記録する項目を選んでください');
+                    Alert.alert("値を入力してください");
+                    return;
                 }
+                valueToSave = Math.floor(valueToSave * 10) / 10;
+                if(selectedCategory == 'HEIGHT' && valueToSave < 20 || selectedCategory == 'HEIGHT' && valueToSave > 150 || selectedCategory == 'HEIGHT' &&  valueToSave === 0) {
+                    Alert.alert("20cmから150cmまでの値を入力してください");
+                    return;
+                }
+                if(selectedCategory == 'WEIGHT' && valueToSave < 1 || selectedCategory == 'WEIGHT' && valueToSave > 50 || selectedCategory == 'WEIGHT' &&  valueToSave === 0) {
+                    Alert.alert("1kgから50kgまでの値を入力してください");
+                    return;
+                }
+                tx.executeSql(
+                    'INSERT INTO CommonRecord_' + year + '_' + month + ' (baby_id, day, category, memo, record_time) VALUES (?, ?, ?, ?, ?)',
+                    [
+                        currentBabyState.baby_id,
+                        day,
+                        selectedCategory,
+                        memo,
+                        new Date(selectTime).toISOString(),
+                    ],
+                    (_, result) => {
+                        const lastInsertId = result.insertId;
+                        tx.executeSql(
+                            'INSERT INTO BodyRecord_' + year + '_' + month + ' (record_id, value) VALUES (?, ?)',
+                            [lastInsertId, valueToSave],
+                            (_, result) => {
+                                // 画面リフレッシュのためcurrentBabyStateを更新
+                                currentBabyDispatch({
+                                    type: 'addBaby',
+                                    name: currentBabyState.name,
+                                    birthday: currentBabyState.birthday,
+                                    baby_id: currentBabyState.baby_id,
+                                });
+                                toggleModal();
+                            },
+                            (_, error) => {
+                                console.error('データの挿入中にエラーが発生しました:', error);
+                            }
+                        );
+                    },
+                    (_, error) => {
+                        console.error('データの挿入中にエラーが発生しました:', error);
+                    }
+                );
             }
         );
+    };
+
+    const handleButtonPress = () => {
+        const nowDate = new Date();
+        const nowYear = nowDate.getFullYear();
+        const nowMonth = String(nowDate.getMonth() + 1).padStart(2, '0');
+        const nowDay = nowDate.getDate();
+
+        if (selectedCategory !== null) {
+            if(nowYear + nowMonth + nowDay !== year + month + day){
+                Alert.alert('本日の記録ではありません', '登録してもよろしいですか？', [
+                    {
+                        text: 'キャンセル',
+                        style: 'cancel',
+                        onPress: () => {return;},
+                    },
+                    {
+                        text: '登録',
+                        style: 'destructive',
+                        onPress: () => {
+                            saveBodyDataToSQLite();
+                        },
+                    },
+                ]);
+                
+            } else {
+                saveBodyDataToSQLite();
+            }
+        } else {
+            Alert.alert('記録する項目を選んでください');
+        }
     };
 
     return (
@@ -165,7 +200,7 @@ export default function BodyInputForm(props) {
                 <TouchableOpacity style={modalStyles.confirmCloseButton} onPress={toggleModal}>
                     <Text style={modalStyles.confirmCloseButtonText}>閉じる</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={saveBodyDataToSQLite}>
+                <TouchableOpacity style={modalStyles.confirmButton} onPress={handleButtonPress}>
                     <Text style={modalStyles.confirmButtonText}>登録</Text>
                 </TouchableOpacity>
             </View>

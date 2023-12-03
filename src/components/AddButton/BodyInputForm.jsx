@@ -173,7 +173,7 @@ export default function BodyInputForm(props) {
                 <Text style={styles.inputTitle}>
                     {selectedCategory === 'HEIGHT' || selectedCategory === 'WEIGHT' || selectedCategory === 'category1' || selectedCategory === 'category2' ? 
                         (selectedCategory === 'HEIGHT' ? '身長(cm)' : selectedCategory === 'WEIGHT' ? '体重(kg)' : '身長 or 体重')
-                        : '身長 or 体重'}
+                        : '身長(cm) or 体重(kg)'}
                 </Text>
                 <TextInput
                     keyboardType="decimal-pad"
@@ -194,6 +194,7 @@ export default function BodyInputForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
+                    maxLength={100}
                 />
             </View>
             <View style={modalStyles.container}>

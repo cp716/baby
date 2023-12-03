@@ -144,6 +144,7 @@ export default function ToiletEditForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
+                    maxLength={100}
                     //placeholder="入力してください"
                 />
             </View>

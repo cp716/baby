@@ -95,23 +95,6 @@ export default function BodyEditForm(props) {
         );
     }
 
-    const handlePress = () => {
-        Alert.alert('更新します', 'よろしいですか？', [
-            {
-                text: 'キャンセル',
-                style: 'cancel',
-                onPress: () => {},
-            },
-            {
-                text: '更新',
-                style: 'default',
-                onPress: () => {
-                    saveBodyDataToSQLite();
-                },
-            },
-        ]);
-    };
-
     function deleteItem() {
         Alert.alert('削除します', 'よろしいですか？', [
             {
@@ -189,7 +172,7 @@ export default function BodyEditForm(props) {
             <View style={styles.inputValueContainer}>
                 <Text style={styles.inputTitle}>
                     {selectedCategory === 'HEIGHT' || selectedCategory === 'WEIGHT' ? 
-                        (selectedCategory === 'HEIGHT' ? '身長(cm)' : '体重(kg)') : '身長 or 体重'}
+                        (selectedCategory === 'HEIGHT' ? '身長(cm)' : '体重(kg)') : '身長(cm) or 体重(kg)'}
                 </Text>
                 <TextInput
                     keyboardType="decimal-pad"
@@ -210,6 +193,7 @@ export default function BodyEditForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
+                    maxLength={100}
                     //placeholder="入力してください"
                 />
             </View>

@@ -397,6 +397,7 @@ export default function ToiletEditForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
+                    maxLength={100}
                 />
             </View>
             <View style={modalStyles.container}>
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     amountInput: {
-        width: '30%', // 横幅の設定
+        width: '40%', // 横幅の設定
         height: 30, // または必要な縦幅に設定
         fontSize: 16,
         backgroundColor: '#ffffff',

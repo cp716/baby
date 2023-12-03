@@ -160,8 +160,8 @@ export default function FoodInputForm(props) {
             <View style={styles.inputAmountContainer}>
                 <Text style={styles.inputTitle}>
                     {selectedCategory === 'FOOD' || selectedCategory === 'DRINK' || selectedCategory === 'category1' || selectedCategory === 'category2' ? 
-                        (selectedCategory === 'FOOD' ? '食べ物(g)' : selectedCategory === 'DRINK' ? '飲み物(ml)' : '食べ物 or 飲み物')
-                        : '食べ物 or 飲み物'}
+                        (selectedCategory === 'FOOD' ? '食べ物(g)' : selectedCategory === 'DRINK' ? '飲み物(ml)' : '食べ物(g) or 飲み物(ml)')
+                        : '食べ物(g) or 飲み物(ml)'}
                 </Text>
                 <TextInput
                     keyboardType="number-pad"
@@ -182,6 +182,7 @@ export default function FoodInputForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
+                    maxLength={100}
                 />
             </View>
             <View style={modalStyles.container}>

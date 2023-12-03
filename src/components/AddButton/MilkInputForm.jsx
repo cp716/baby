@@ -335,7 +335,7 @@ export default function ToiletInputForm(props) {
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <View style={styles.amountText}>
                                         <Text style={{ textAlign: 'center' }}>{`授乳(右)`}</Text>
-                                    </View>                                    
+                                    </View>
                                     <TextInput
                                         keyboardType="number-pad"
                                         value={junyuRight}
@@ -379,6 +379,7 @@ export default function ToiletInputForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
+                    maxLength={100}
                 />
             </View>
             <View style={modalStyles.container}>
@@ -426,10 +427,10 @@ const styles = StyleSheet.create({
     },
     amountText: {
         width: '35%',
-        justifyContent: 'center'
+        //justifyContent: 'center'
     },
     amountInput: {
-        width: '30%', // 横幅の設定
+        width: '40%', // 横幅の設定
         height: 30, // または必要な縦幅に設定
         fontSize: 16,
         backgroundColor: '#ffffff',

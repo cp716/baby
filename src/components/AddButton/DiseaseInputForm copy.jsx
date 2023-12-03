@@ -179,6 +179,7 @@ export default function DiseaseInputForm(props) {
                         onChangeText={(text) => { setBodyText(text); }}
                         //autoFocus
                         placeholder = "メモを入力"
+                        maxLength={100}
                 />
             </View>
             <View style={modalStyles.container}>

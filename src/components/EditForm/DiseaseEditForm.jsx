@@ -18,6 +18,14 @@ export default function DiseaseEditForm(props) {
     const [bodyTemperature, setBodyTemperature] = useState(String(babyData.body_temperature) == 0 ? '' : String(babyData.body_temperature));
 
     function handlePress() {
+        let temperature = 0;
+        if (bodyTemperature !== '') {
+            temperature = Number(bodyTemperature);
+            if (isNaN(temperature)) {
+                Alert.alert("有効な値を入力してください");
+                return;
+            }
+        }
         if(selectedCategory == 'TAION' && bodyTemperature < 32 || selectedCategory == 'TAION' && bodyTemperature > 43 || selectedCategory == 'TAION' &&  bodyTemperature === 0) {
             Alert.alert("32℃から43℃までの値を入力してください");
             return;
@@ -35,10 +43,10 @@ export default function DiseaseEditForm(props) {
                     style: 'default',
                     onPress: () => {
                         const db = SQLite.openDatabase('BABY.db');
-                        let temperature = 0;
-                        if (bodyTemperature !== "") {
-                            temperature = bodyTemperature
-                        }
+                        //let temperature = 0;
+                        //if (bodyTemperature !== "") {
+                        //    temperature = bodyTemperature
+                        //}
                         db.transaction(
                             (tx) => {
                                 tx.executeSql(
@@ -272,6 +280,7 @@ export default function DiseaseEditForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
+                    maxLength={100}
                 />
             </View>
             <View style={modalStyles.container}>
@@ -320,7 +329,7 @@ const styles = StyleSheet.create({
         color: '#737373',
     },
     bodyTemperatureInput: {
-        width: '50%', // 横幅の設定
+        width: '60%', // 横幅の設定
         height: 30, // または必要な縦幅に設定
         fontSize: 16,
         backgroundColor: '#ffffff',

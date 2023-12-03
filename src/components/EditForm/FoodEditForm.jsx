@@ -166,7 +166,7 @@ export default function FoodEditForm(props) {
             <View style={styles.inputAmountContainer}>
                 <Text style={styles.inputTitle}>
                     {selectedCategory === 'FOOD' || selectedCategory === 'DRINK' ? 
-                        (selectedCategory === 'FOOD' ? '食べ物(単位/g)' : '飲み物(単位/ml)') : '量'}
+                        (selectedCategory === 'FOOD' ? '食べ物(g)' : '飲み物(ml)') : '量'}
                 </Text>
                 <TextInput
                     keyboardType="number-pad"
@@ -187,6 +187,7 @@ export default function FoodEditForm(props) {
                     multiline
                     style={styles.memoInput}
                     onChangeText={(text) => setMemo(text)}
+                    maxLength={100}
                     //placeholder="入力してください"
                 />
             </View>

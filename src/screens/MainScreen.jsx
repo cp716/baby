@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import firebase from 'firebase';
 import { useIsFocused } from '@react-navigation/native'
+import Modal from "react-native-modal";
 
 import MilkAddButton from '../components/AddButton/MilkAddButton';
 import ToiletAddButton from '../components/AddButton/ToiletAddButton';
@@ -11,6 +12,7 @@ import FoodAddButton from '../components/AddButton/FoodAddButton';
 import BodyAddButton from '../components/AddButton/BodyAddButton';
 import FreeAddButton from '../components/AddButton/FreeAddButton';
 import ModalSelectBaby from '../components/ModalSelectBaby';
+import BabyInputForm from '../components/AddButton/BabyInputForm';
 
 import Datetime from '../components/Datetime';
 import TableTitle from '../components/TableTitle';
@@ -28,6 +30,11 @@ export default function MainScreen(props) {
     const { dateTimeState, dateTimeDispatch } = useDateTimeContext();
     const { babyRecordState, babyRecordDispatch } = useBabyRecordContext();
     const isFocused = useIsFocused()
+
+    const [isModalVisible, setModalVisible] = useState(true);
+    const toggleModal = () => {
+        setModalVisible(!isModalVisible);
+    };
 
     useEffect(() => {
         const cleanupFuncs = {
@@ -256,17 +263,20 @@ export default function MainScreen(props) {
 
     if (currentBabyState.baby_id === "") {
         return (
-            <View style={styles.container}>
-                <View style={[emptyStyles.inner, {height: '100%'}]}>
-                    <Text style={emptyStyles.title}>初めに赤ちゃんの情報を登録しましょう</Text>
-                    <Button
-                        label="次へ"
-                        onPress={() => { navigation.navigate('BabyAdd'); }}
-                    >
-                        <Text style={styles.footerLink}>次へ</Text>
-                    </Button>
-                </View>
-            </View>
+            <Modal isVisible={isModalVisible}
+                onBackdropPress={null}
+                backdropTransitionOutTiming={0}
+                //modalレパートリー
+                //"bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" |
+                //animationIn="fadeInUpBig"
+                //animationOut="fadeOutDownBig"
+                avoidKeyboard={true}
+                //swipeDirection="down"
+                //onSwipeComplete={toggleModal}
+                style={styles.modalContainer}
+                >
+                <BabyInputForm />
+            </Modal>
         );
     }
 

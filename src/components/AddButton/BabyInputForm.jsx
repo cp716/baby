@@ -1,76 +1,148 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, Button } from 'react-native';
-import firebase from 'firebase';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import * as SQLite from 'expo-sqlite';
 import { useCurrentBabyContext } from '../../context/CurrentBabyContext';
+import Button from '../../components/Button';
 
 export default function BabyInputForm(props) {
     const { navigation } = props;
-    const { toggleModal } = props;
-
     const { currentBabyState, currentBabyDispatch } = useCurrentBabyContext();
 
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [birthday, setBirthday] = useState();
     const [detailTime, setDetailTime] = useState('誕生日を選択');
-    
-    const [babyName, setBabyName] = useState('');
+    const [name, setName] = useState('');
+    const [message, setMessage] = useState('');
+    const [db, setDb] = useState(null);
 
-    function handlePress() {
-        if( babyName !== "" && birthday !== undefined) {
-            const db = firebase.firestore();
-            const { currentUser } = firebase.auth();
-            const ref = db.collection(`users/${currentUser.uid}/babyData`)
-            Alert.alert('「' + babyName + '」を登録します', 'よろしいですか？', [
-                {
-                    text: 'キャンセル',
-                    onPress: () => {},
-                },
-                {
-                    text: '登録する',
-                    //style: 'destructive',
-                    onPress: () => {
-                        //navigation.jumpTo('Home');
-                        toggleModal()
-                        ref.add({
-                            babyName,
-                            birthday,
-                        })
-                        .then((docRef) => {
-                            currentBabyDispatch({ 
-                                type: "addBaby",
-                                babyName: babyName,
-                                babyBirthday: birthday,
-                                babyId: docRef.id,
-                            })
-                        })
-                        .catch((error) => {
-                            console.log('失敗しました', error);
-                        });
-                    },
-                },
-            ]);
-        } else {
-            Alert.alert("未入力です");
+    useEffect(() => {
+        // SQLiteデータベースを開くか作成する
+        const database = SQLite.openDatabase('BABY.db');
+        setDb(database);
+
+        database.transaction(
+        (tx) => {
+            // テーブルが存在しない場合は作成
+            tx.executeSql(
+            'CREATE TABLE IF NOT EXISTS baby_data (baby_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, birthday DATETIME)',
+            [],
+            () => {
+                //console.log('テーブルが作成されました');
+            },
+            (error) => {
+                console.error('テーブルの作成中にエラーが発生しました:', error);
+            }
+            );
+            tx.executeSql(
+            'CREATE TABLE IF NOT EXISTS current_baby (baby_id INTEGER PRIMARY KEY, name TEXT, birthday DATETIME)',
+            [],
+            () => {
+                //console.log('テーブルが作成されました');
+            },
+            (error) => {
+                console.error('テーブルの作成中にエラーが発生しました:', error);
+            }
+            );
+        },
+        (error) => {
+            console.error('データベースのオープン中にエラーが発生しました:', error);
         }
-    }
-    
-    //起動
+        );
+    }, []);
+
+    const handleBabyRegistration = () => {
+        if (name !== "" && birthday !== undefined) {
+            Alert.alert('以下の情報で登録します\n名前:' + name + '\n誕生日:' + detailTime, 'よろしいですか？', [
+            {
+                text: "キャンセル",
+                onPress: () => {},
+                style: "cancel"
+            },
+            {
+                text: "保存",
+                onPress: () => {
+                // SQLiteに赤ちゃんデータを保存
+                saveBabyDataToSQLite();
+                }
+            }
+            ]
+        );
+        } else {
+        Alert.alert("未入力です");
+        }
+    };
+
+    const saveBabyDataToSQLite = () => {
+        db.transaction(
+        (tx) => {
+            tx.executeSql(
+            'INSERT INTO baby_data (name, birthday) VALUES (?, ?)',
+            [name, new Date(birthday).toISOString()],
+            (_, result) => {
+                setMessage('データがテーブルに挿入されました');
+                const insertedId = result.insertId; // 挿入した行のIDを取得
+                tx.executeSql(
+                'SELECT EXISTS (SELECT 1 FROM current_baby)',
+                [],
+                (_, resultSet) => {
+                    const dataExists = resultSet.rows.item(0)[Object.keys(resultSet.rows.item(0))[0]];
+                    if (dataExists == 1) {
+                    // データが存在する場合、UPDATEを実行
+                    tx.executeSql(
+                        'UPDATE current_baby SET name = ?, birthday = ?, baby_id = ?',
+                        [name, new Date(birthday).toISOString(), insertedId],
+                        (_, result) => {
+                        setMessage('データが更新されました');
+                        },
+                        (_, error) => {
+                        setMessage('データの更新中にエラーが発生しました');
+                        console.error('データの更新中にエラーが発生しました:', error);
+                        }
+                    );
+                    } else {
+                    // データが存在しない場合、INSERTを実行
+                    tx.executeSql(
+                        'INSERT INTO current_baby (name, birthday, baby_id) VALUES (?, ?, ?)',
+                        [name, new Date(birthday).toISOString(), insertedId],
+                        (_, result) => {
+                        setMessage('データが挿入されました');
+                        },
+                        (_, error) => {
+                        setMessage('データの挿入中にエラーが発生しました');
+                        console.error('データの挿入中にエラーが発生しました:', error);
+                        }
+                    );
+                    }
+                },
+                (_, error) => {
+                    setMessage('データの存在チェック中にエラーが発生しました');
+                    console.error('データの存在チェック中にエラーが発生しました:', error);
+                }
+                );
+                currentBabyDispatch({ type: "addBaby", name: name, birthday: new Date(birthday).toISOString(), baby_id: insertedId })
+            },
+            (_, error) => {
+                setMessage('データの挿入中にエラーが発生しました');
+                console.error('データの挿入中にエラーが発生しました:', error);
+            }
+            );
+        }
+        );
+    };
+
     const showDatePicker = () => {
         setDatePickerVisibility(true);
     };
 
-    //終了
     const hideDatePicker = () => {
         setDatePickerVisibility(false);
     };
 
-    //表示用のstateへ日時を代入
     const formatDatetime = (date) => {
         setDetailTime(date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日');
     };
 
-    //決定ボタン押下時の処理
     const handleConfirm = (date) => {
         setBirthday(date);
         formatDatetime(date);
@@ -78,93 +150,89 @@ export default function BabyInputForm(props) {
     };
 
     return (
-        <ScrollView scrollEnabled={false}>
-            <View style={styles.inputContainer}>
-                <Text>名前</Text>
+        <View style={styles.container}>
+            <View style={styles.inner}>
+                <Text style={styles.title}>赤ちゃんの情報を登録しよう</Text>
+                <Text style={styles.inputText}>名前</Text>
                 <TextInput
-                        keyboardType="web-search"
-                        value={babyName}
-                        style={styles.input}
-                        onChangeText={(text) => { setBabyName(text); }}
-                        //autoFocus
-                        placeholder = "赤ちゃんの名前を入力"
+                style={styles.input}
+                value={name}
+                onChangeText={(text) => { setName(text); }}
+                autoCapitalize="none"
+                keyboardType="default"
+                placeholder="入力してください"
+                placeholderTextColor="#BFBFBF"
+                />
+                <Text style={styles.inputText}>誕生日</Text>
+                <TouchableOpacity style={styles.birthdayArea} onPress={showDatePicker}>
+                <Text style={styles.birthdayInput}>{detailTime}</Text>
+                </TouchableOpacity>
+                <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                value={birthday}
+                onConfirm={handleConfirm}
+                onCancel={hideDatePicker}
+                mode="date"
+                locale='ja'
+                display="spinner"
+                confirmTextIOS="決定"
+                cancelTextIOS="キャンセル"
+                minuteInterval={5}
+                headerTextIOS=""
+                textColor="blue"
+                date={birthday}
+                />
+                <Button
+                label="登録"
+                onPress={handleBabyRegistration}
                 />
             </View>
-            <View>
-                        <Button title={String(detailTime)} onPress={showDatePicker} />
-                        <DateTimePickerModal
-                            isVisible={isDatePickerVisible}
-                            value={birthday}
-                            onConfirm={handleConfirm}
-                            onCancel={hideDatePicker}
-                            mode="date"//入力項目
-                            locale='ja'//日本語化
-                            display="spinner"//UIタイプ
-                            confirmTextIOS="決定"//決定ボタンテキスト
-                            cancelTextIOS="キャンセル"//キャンセルボタンテキスト
-                            minuteInterval={5}//分数間隔
-                            headerTextIOS=""//入力欄ヘッダーテキスト
-                            textColor="blue"//ピッカーカラー
-                            date={birthday}//ピッカー日付デフォルト
-                        />
-                    </View>
-            <View style={modalStyles.container}>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={toggleModal} >
-                    <Text style={modalStyles.confirmButtonText}>close</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={modalStyles.confirmButton} onPress={handlePress} >
-                    <Text style={modalStyles.confirmButtonText}>登録</Text>
-                </TouchableOpacity>
-            </View>
-        </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    inputTypeContainer: {
-        paddingHorizontal: 27,
-        paddingVertical: 10,
-        //height: 50,
-        //backgroundColor: '#987652',
+    container: {
         //flex: 1,
-        //flexDirection: 'row',
-        //width: 350 ,
+        backgroundColor: '#F0F4F8',
+        borderRadius : 10,
     },
-    inputContainer: {
+    inner: {
         paddingHorizontal: 27,
-        paddingVertical: 10,
-        height: 75,
-        backgroundColor: '#859602'
-        //flex: 1,
+        paddingVertical: 24,
+    },
+    inputText: {
+        fontSize: 15,
+        lineHeight: 32,
+        marginBottom: 1,
+        color: '#737373',
+    },
+    title: {
+        fontSize: 20,
+        lineHeight: 32,
+        fontWeight: 'bold',
+        marginBottom: 24,
+        textAlign: 'center',
     },
     input: {
-        flex: 1,
-        textAlignVertical: 'top',
         fontSize: 16,
-        lineHeight: 25,
-        backgroundColor: '#ffffff'
+        height: 48,
+        borderColor: '#DDDDDD',
+        borderWidth: 1,
+        backgroundColor: '#ffffff',
+        paddingHorizontal: 8,
+        marginBottom: 20,
     },
-});
-
-const modalStyles = StyleSheet.create({
-    container: {
+    birthdayInput: {
+        fontSize: 16,
+        height: 48,
+        borderColor: '#DDDDDD',
+        borderWidth: 1,
+        backgroundColor: '#ffffff',
+        paddingHorizontal: 8,
+        lineHeight: 48,
+    },
+    buttonArea: {
         flexDirection: 'row',
-    },
-    confirmButton : {
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        marginTop : '5%',
-        backgroundColor : '#FFF',
-        borderColor : '#36C1A7',
-        borderWidth : 1,
-        borderRadius : 10,
-        width: "40%",
-    },
-    confirmButtonText : {
-        color : '#36C1A7',
-        fontWeight : 'bold',
-        textAlign : 'center',
-        padding: 10,
-        fontSize: 16,
     },
 });

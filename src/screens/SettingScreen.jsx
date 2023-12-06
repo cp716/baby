@@ -73,20 +73,14 @@ export default function SettingScreen(props) {
                 </List.Section>
                 <List.Section>
                     <List.Subheader style={styles.listSubheader}>赤ちゃん</List.Subheader>
-                    {(() => {
-                        if (babyState.babyData.length > 0) {
-                            return (
-                                <List.Item
-                                    title="赤ちゃん一覧"
-                                    //description="Item description"
-                                    left={props => <List.Icon {...props} icon="baby-face-outline" />}
-                                    right={props => <List.Icon {...props} icon="chevron-right" />}
-                                    style={styles.listItem}
-                                    onPress={() => { navigation.navigate('BabyList'); }}
-                                />
-                            );
-                        }
-                    })()}
+                    <List.Item
+                        title="赤ちゃん一覧"
+                        //description="Item description"
+                        left={props => <List.Icon {...props} icon="baby-face-outline" />}
+                        right={props => <List.Icon {...props} icon="chevron-right" />}
+                        style={styles.listItem}
+                        onPress={() => { navigation.navigate('BabyList'); }}
+                    />
                     <List.Item
                         title="赤ちゃん登録"
                         //description="Item description"
@@ -136,6 +130,14 @@ export default function SettingScreen(props) {
             </List.Section>
             <List.Section>
                 <List.Subheader style={styles.listSubheader}>その他</List.Subheader>
+                <List.Item
+                    title="赤ちゃん一覧"
+                    //description="Item description"
+                    left={props => <List.Icon {...props} icon="baby-face-outline" />}
+                    right={props => <List.Icon {...props} icon="chevron-right" />}
+                    style={styles.listItem}
+                    onPress={() => { navigation.navigate('BabyList'); }}
+                />
                 <List.Item
                     title="赤ちゃん登録"
                     //description="Item description"

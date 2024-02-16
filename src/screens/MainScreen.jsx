@@ -60,7 +60,7 @@ export default function MainScreen(props) {
                 headerTitleStyle: {
                     //fontFamily: 'San Francisco',
                     fontSize: 20, // フォントサイズを調整できます
-                    color: 'black', // テキストの色をカスタマイズ
+                    color: '#312929', // テキストの色をカスタマイズ
                 },
             });
         }
@@ -266,13 +266,7 @@ export default function MainScreen(props) {
             <Modal isVisible={isModalVisible}
                 onBackdropPress={null}
                 backdropTransitionOutTiming={0}
-                //modalレパートリー
-                //"bounce" | "flash" | "jello" | "pulse" | "rotate" | "rubberBand" | "shake" | "swing" | "tada" | "wobble" | "bounceIn" | "bounceInDown" | "bounceInUp" | "bounceInLeft" | "bounceInRight" | "bounceOut" | "bounceOutDown" | "bounceOutUp" | "bounceOutLeft" | "bounceOutRight" | "fadeIn" | "fadeInDown" | "fadeInDownBig" | "fadeInUp" | "fadeInUpBig" | "fadeInLeft" | "fadeInLeftBig" | "fadeInRight" | "fadeInRightBig" | "fadeOut" | "fadeOutDown" | "fadeOutDownBig" | "fadeOutUp" | "fadeOutUpBig" | "fadeOutLeft" | "fadeOutLeftBig" | "fadeOutRight" | "fadeOutRightBig" | "flipInX" | "flipInY" | "flipOutX" | "flipOutY" | "lightSpeedIn" | "lightSpeedOut" | "slideInDown" | "slideInUp" | "slideInLeft" | "slideInRight" | "slideOutDown" | "slideOutUp" | "slideOutLeft" | "slideOutRight" | "zoomIn" | "zoomInDown" | "zoomInUp" | "zoomInLeft" | "zoomInRight" | "zoomOut" | "zoomOutDown" | "zoomOutUp" | "zoomOutLeft" | "zoomOutRight" |
-                //animationIn="fadeInUpBig"
-                //animationOut="fadeOutDownBig"
                 avoidKeyboard={true}
-                //swipeDirection="down"
-                //onSwipeComplete={toggleModal}
                 style={styles.modalContainer}
                 >
                 <BabyInputForm />
@@ -396,6 +390,7 @@ const styles = StyleSheet.create({
     },
     tableTitle: {
         flexDirection: 'row',
+        marginBottom:1,
     },
     button: {
         flexDirection: 'row',

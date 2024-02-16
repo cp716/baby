@@ -274,14 +274,14 @@ const modalStyles = StyleSheet.create({
     confirmButton: {
         marginLeft: 'auto',
         marginRight: 'auto',
-        backgroundColor: '#FFDB59',
-        borderColor: '#FFDB59',
+        backgroundColor: '#f4cdcd',
+        borderColor: '#f4cdcd',
         borderWidth: 0.5,
         borderRadius: 10,
         width: '40%',
     },
     confirmButtonText: {
-        color: '#737373',
+        color: '#312929',
         fontWeight: 'bold',
         textAlign: 'center',
         padding: 10,

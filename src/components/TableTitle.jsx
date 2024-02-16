@@ -5,15 +5,6 @@ export default function TableTitle(props) {
     const { title } = props;
     return (
             <View>
-                {/*<View style={styles.table}>
-                    <View style={styles.tabledesign}>
-                        <Text style={styles.tableTitle}>時間</Text>
-                        <Text style={styles.tableTitle}>種類</Text>
-                        <Text style={styles.tableTitle}>記録</Text>
-                        <Text style={styles.tableTitle}>メモ</Text>
-                        <Text style={styles.tableTitle}>{'修正\n確認'}</Text>
-                    </View>
-                </View>*/}
                 <View style={styles.testTable}>
                     <Text style={styles.testTableTitle} >{title}</Text>
                 </View>
@@ -23,7 +14,7 @@ export default function TableTitle(props) {
 
 const styles = StyleSheet.create({
     testTable: {
-        backgroundColor: '#eee8aa',
+        backgroundColor: '#ffffff',
         flexDirection: 'row',
         //paddingVertical: 16,
         //justifyContent: 'center',

@@ -41,7 +41,7 @@ export default function RecordScreen(props) {
             headerTitleStyle: {
                 //fontFamily: 'San Francisco',
                 fontSize: 20, // フォントサイズを調整できます
-                color: 'black', // テキストの色をカスタマイズ
+                color: '#312929', // テキストの色をカスタマイズ
             },
         });
     }, []);

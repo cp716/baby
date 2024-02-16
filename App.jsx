@@ -48,7 +48,7 @@ function RightTab() {
         initialRouteName="Setting"
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#FFDB59",
+            backgroundColor: "#f4cdcd",
             //backgroundColor: "#F97773",
             //backgroundColor: '#F0F4F8',
             shadowOpacity: 0, // 影を削除
@@ -93,7 +93,8 @@ function CenterTab() {
       initialRouteName="Main"
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#FFDB59",
+          backgroundColor: "#f4cdcd",
+          //backgroundColor: "#FFDB59",
           //backgroundColor: "#F97773",
           //backgroundColor: '#F0F4F8',
           shadowOpacity: 0, // 影を削除
@@ -127,7 +128,7 @@ function LeftTab() {
         initialRouteName="Record"
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#FFDB59",
+            backgroundColor: "#f4cdcd",
             //backgroundColor: "#F97773",
             //backgroundColor: '#F0F4F8',
             shadowOpacity: 0, // 影を削除

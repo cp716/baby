@@ -59,7 +59,7 @@ export default function DiseaseAddButton(props) {
                     //getNewDate(new Date());
                 }}
                 //style={{ top: 80, bottom: 'auto'}}
-            />
+                />
             <Modal isVisible={isModalVisible}
                 onBackdropPress={toggleModal}
                 backdropTransitionOutTiming={0}

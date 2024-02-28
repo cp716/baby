@@ -7,7 +7,7 @@ export default function CircleButton(props) {
     const { style, name, onPress, onLongPress } = props; 
     return (
         <TouchableOpacity style={[styles.circleButton, style]} onPress={onPress} onLongPress={onLongPress}>
-            <MaterialCommunityIcons name={name} size={32} color="#312929" />
+            <MaterialCommunityIcons name={name} size={32} color="#737373" />
         </TouchableOpacity>
     )
 }
@@ -25,7 +25,7 @@ CircleButton.defaultProps = {
 
 const styles = StyleSheet.create({
     circleButton: {
-        backgroundColor: '#f4cdcd',
+        backgroundColor: '#ffffff',
         width: 80,
         height: 50,
         borderRadius: 15,

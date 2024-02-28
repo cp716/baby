@@ -153,15 +153,15 @@ function LeftTab() {
 }
 
 const HomeIcon = ({ focused, size }) => (
-  <MaterialCommunityIcons name="home-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
+  <MaterialCommunityIcons name="home-outline" size={30} color={focused ? '#737373' : '#ccc'}/>
 );
 
 const DataIcon = ({ focused, size }) => (
-  <MaterialCommunityIcons name="note-text-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
+  <MaterialCommunityIcons name="note-text-outline" size={30} color={focused ? '#737373' : '#ccc'}/>
 );
 
 const SettingIcon = ({ focused, size }) => (
-  <Ionicons name="settings-outline" size={30} color={focused ? '#7cc' : '#ccc'}/>
+  <Ionicons name="settings-outline" size={30} color={focused ? '#737373' : '#ccc'}/>
 );
 
 const Stack = createStackNavigator();

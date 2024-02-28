@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
         //marginBottom: 'auto',
         //borderWidth: 3,
         //borderColor: '#c8e1ff',
-        backgroundColor: '#D3EBE9',
+        backgroundColor: '#f4cdcd',
         //borderTopRightRadius: 10,
         //borderTopLeftRadius: 10,
         //height: '100%',
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
     },
     tableRow_3: {
-        backgroundColor: '#D3EBE9',
+        backgroundColor: '#f4cdcd',
     },
     tableRow_4: {
         backgroundColor: '#FFFFFF',
